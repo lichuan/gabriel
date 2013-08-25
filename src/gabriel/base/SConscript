@@ -1,0 +1,3 @@
+Import("env")
+gabriel_base = env.Library("gabriel_base", Glob("*.cpp"))
+Return("gabriel_base")

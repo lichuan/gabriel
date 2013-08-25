@@ -31,10 +31,7 @@ struct Point
         m_y = 0;
     }
 
-    int32 hash() const
-    {
-        return m_x * 10000 + m_y;
-    }    
+    int32 hash() const;    
 
     bool operator==(const Point &pos) const
     {
@@ -85,30 +82,7 @@ private:
     {
         return m_point_check.is_block(pos);
     }
-
-    int32 h_value(const Point &src_pos, const Point &dest_pos) const
-    {
-        int32 x_diff = src_pos.m_x - dest_pos.m_x;
-        int32 y_diff = src_pos.m_y - dest_pos.m_y;
-        x_diff = abs(x_diff);
-        y_diff = abs(y_diff);
-        int32 v1 = 0;
-        int32 v2 = 0;        
-
-        if(x_diff > y_diff)
-        {
-            v1 = x_diff - y_diff;
-            v2 = y_diff;            
-        }
-        else
-        {
-            v1 = y_diff - x_diff;
-            v2 = x_diff;
-        }
-
-        return v1 * 10 + v2 * 14; //横竖方向的权重10，斜方向的权重14
-    }
-
+    
     bool exist_in_close(const Point &pos)
     {
         return m_close_map.find(pos.hash()) != m_close_map.end();
@@ -144,6 +118,29 @@ private:
         }
 
         return iter->second;
+    }
+    
+    int32 h_value(const Point &src_pos, const Point &dest_pos) const
+    {
+        int32 x_diff = src_pos.m_x - dest_pos.m_x;
+        int32 y_diff = src_pos.m_y - dest_pos.m_y;
+        x_diff = abs(x_diff);
+        y_diff = abs(y_diff);
+        int32 v1 = 0;
+        int32 v2 = 0;        
+
+        if(x_diff > y_diff)
+        {
+            v1 = x_diff - y_diff;
+            v2 = y_diff;            
+        }
+        else
+        {
+            v1 = y_diff - x_diff;
+            v2 = x_diff;
+        }
+
+        return v1 * 10 + v2 * 14; //横竖方向的权重10，斜方向的权重14
     }
 
     const Node* add_around_node_to_open(const Node *cur_node, const Point &dest_pos)
@@ -307,41 +304,6 @@ private:
     static Astar *m_instance;    
 };
 
+
 template<int32 MAX_NODE>
 Astar<MAX_NODE>* Astar<MAX_NODE>::m_instance = NULL;
-
-class CB
-{
-public:
-    bool is_block(const Point &pos) const
-    {
-        if(pos.m_x == 500 && pos.m_y != 0)
-        {
-            return true;
-        }
-        
-        return false;
-    }
-};
-
-int main()
-{
-    CB cb;
-    int32 x1, y1, x2, y2;
-    std::cin >> x1 >> y1 >> x2 >> y2;
-    std::cout << "src: (" << x1 << ", " << y1 << ") dest:(" << x2 << ", " << y2 << ")" << std::endl;
-    struct timeval time_begin, time_end;
-    gettimeofday(&time_begin, NULL);
-    std::cout << "start time: " << time_begin.tv_sec << " " << time_begin.tv_usec << std::endl;    
-    std::list<Point> path_list = Astar<500000>::instance()->find_path(cb, Point(x1, y1), Point(x2, y2));
-    gettimeofday(&time_end, NULL);
-    std::cout << "end time: " << time_end.tv_sec << " " << time_end.tv_usec << std::endl;
-    std::cout << "cost time: " << 1000000 * (time_end.tv_sec - time_begin.tv_sec) + time_end.tv_usec - time_begin.tv_usec << " 微秒" << std::endl;    
-    
-    for(std::list<Point>::const_iterator iter = path_list.begin(); iter != path_list.end(); ++iter)
-    {
-        std::cout << "(" << iter->m_x << ", " << iter->m_y << ")->";
-    }
-
-    std::cout << std::endl;
-}

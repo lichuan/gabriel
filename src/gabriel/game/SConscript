@@ -1,0 +1,3 @@
+Import("env")
+game = env.Program("lc.cpp")
+Return("game")
