@@ -7,7 +7,7 @@ def get_static_library_name(node):
 def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
-env = Environment(CCFLAGS='-g', CPPPATH=["#src/gabriel", "#src/3rd-party/ACE_wrappers"])
+env = Environment(CCFLAGS='-g', CPPPATH=["#src", "#src/3rd-party/ACE_wrappers"])
 
 #base
 Export("env")

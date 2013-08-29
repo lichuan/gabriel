@@ -1,4 +1,6 @@
-#include "base/astar.hpp"
+#include "gabriel/base/astar.hpp"
+
+using namespace gabriel::base;
 
 class CB
 {

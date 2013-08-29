@@ -8,15 +8,18 @@
  desc: a星寻路的一种高效实现
 */
 
+#ifndef GABRIEL_BASE_ASTAR
+#define GABRIEL_BASE_ASTAR
+
 #include <sys/time.h>
 #include <list>
 #include <cstdlib>
 #include <map>
 #include <iostream>
+#include "gabriel/base/common.hpp"
 
-typedef int int32;
-typedef unsigned int uint32;
-
+namespace gabriel { namespace base {
+        
 struct Point
 {
     Point(int32 x, int32 y)
@@ -31,8 +34,11 @@ struct Point
         m_y = 0;
     }
 
-    int32 hash() const;    
-
+    int32 hash() const
+    {
+        return m_x * 10000 + m_y;        
+    }
+    
     bool operator==(const Point &pos) const
     {
         return m_x == pos.m_x && m_y == pos.m_y;
@@ -307,3 +313,6 @@ private:
 
 template<int32 MAX_NODE>
 Astar<MAX_NODE>* Astar<MAX_NODE>::m_instance = NULL;
+
+} }
+#endif
