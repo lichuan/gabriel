@@ -1,6 +1,5 @@
 /build/*
 /.sconsign*
 /src/3rd-party/*
-!/src/3rd-party/.empty
 
 
