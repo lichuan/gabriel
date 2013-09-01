@@ -18,7 +18,8 @@
 #include <iostream>
 #include "gabriel/base/common.hpp"
 
-namespace gabriel { namespace base {
+namespace gabriel {
+namespace base {
         
 struct Point
 {
@@ -314,5 +315,6 @@ private:
 template<int32 MAX_NODE>
 Astar<MAX_NODE>* Astar<MAX_NODE>::m_instance = NULL;
 
-} }
+} //end namespace base
+} //end namespace gabriel
 #endif

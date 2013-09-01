@@ -18,12 +18,14 @@ gabriel_protocol = SConscript("src/gabriel/protocol/SConscript", variant_dir="bu
 
 libs = [
   get_static_library_name(gabriel_base),
-  get_static_library_name(gabriel_protocol)
+  get_static_library_name(gabriel_protocol),
+  "ACE"
 ]
 
 lib_path = [
   "#build/base",
-  "#build/protocol"
+  "#build/protocol",
+  os.environ["ACE_ROOT"] + "/lib"
 ]
 
 #game
