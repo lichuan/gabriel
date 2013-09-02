@@ -11,14 +11,14 @@ env = Environment(CCFLAGS='-g', CPPPATH=["#src", "#src/3rd-party/ACE_wrappers", 
 
 #base
 Export("env")
-gabriel_base = SConscript("src/gabriel/base/SConscript", variant_dir="build/base", duplicate=0)
+gabriel_base_lib = SConscript("src/gabriel/base/SConscript", variant_dir="build/base", duplicate=0)
 
 #protocol
-gabriel_protocol = SConscript("src/gabriel/protocol/SConscript", variant_dir="build/protocol", duplicate=0)
+gabriel_protocol_lib = SConscript("src/gabriel/protocol/SConscript", variant_dir="build/protocol", duplicate=0)
 
 libs = [
-  get_static_library_name(gabriel_base),
-  get_static_library_name(gabriel_protocol),
+  get_static_library_name(gabriel_base_lib),
+  get_static_library_name(gabriel_protocol_lib),
   "ACE"
 ]
 
@@ -30,5 +30,9 @@ lib_path = [
 
 #game
 env.Replace(LIBS=libs, LIBPATH=lib_path)
-gabriel_game = SConscript("src/gabriel/game/SConscript", variant_dir="build/game", duplicate=0)
-env.Install("build/bin", gabriel_game)
+gabriel_game_server = SConscript("src/gabriel/game/SConscript", variant_dir="build/game", duplicate=0)
+env.Install("build/bin", gabriel_game_server)
+
+#gate
+gabriel_gate_server = SConscript("src/gabriel/gate/SConscript", variant_dir="build/gate", duplicate=0)
+env.Install("build/bin", gabriel_gate_server)

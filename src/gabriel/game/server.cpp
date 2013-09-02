@@ -1,6 +1,7 @@
 #include <iostream>
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Acceptor.h"
+#include "ace/Signal.h"
 #include "ace/SOCK_Stream.h"
 #include "ace/Acceptor.h"
 #include "ace/Dev_Poll_Reactor.h"
@@ -16,14 +17,21 @@ public:
         cout << "new taskkkkkkkkk" << endl;
     }
 
+
+    virtual ~TCPTask()
+    {
+        ACE_INET_Addr addr;
+        peer().get_remote_addr(addr);        
+        cout << "`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << addr.get_host_addr() << " " << addr.get_ip_address() << endl;        
+    }
+    
     virtual int open(void*)
     {
         cout << "open.........." << endl;       
         ACE_Time_Value iter_delay (2);   // Two seconds
         if (super::open () == -1)
             return -1;
-        return this->reactor ()->schedule_timer
-            (this, 0, ACE_Time_Value::zero, iter_delay);
+        return this->reactor()->register_handler(this, ACE_Event_Handler::WRITE_MASK);        
     }
     
     virtual int handle_input (ACE_HANDLE fd = ACE_INVALID_HANDLE)
@@ -35,9 +43,9 @@ public:
         {
             cout << "<0000000000000000000000" << endl;
 
-            if(errno != EWOULDBLOCK)
+            if(errno != EWOULDBLOCK && errno != EAGAIN)
             {
-                cout << "not ewouldblockkkkkkkkkkkk" << endl;
+                cout << "errno: " << errno << "  " << EWOULDBLOCK << " " << EAGAIN << endl;
             }
             else
             {
@@ -47,13 +55,23 @@ public:
         
         if (recv_cnt > 0)
         {
-            cout << "recv: " << buf << endl;            
+            cout << "recv: " << buf << endl;
+            reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+            ACE_INET_Addr addr;
+            peer().get_remote_addr(addr);
+            cout << "recv: ip: " << addr.get_host_addr() << " " << addr.get_ip_address() <<endl;
+
         
             return 0;
         }
 
         if (recv_cnt == 0)
         {
+            ACE_INET_Addr addr;
+            peer().get_remote_addr(addr);
+            cout << "close: ip: " << addr.get_host_addr() << " " << addr.get_ip_address() <<endl;
+            
+
             cout << "closeeeeeeeeeeeeeeeeeeeee" << endl;            
 
             return -1;
@@ -64,13 +82,10 @@ public:
     
     virtual int handle_output (ACE_HANDLE fd = ACE_INVALID_HANDLE)
     {
-        ACE_Message_Block *mb = 0;
-        ACE_NEW_RETURN (mb, ACE_Message_Block (128), -1);
-        int nbytes = ACE_OS::sprintf
-            (mb->wr_ptr (), "server outputttttttttttttt");        
-        ACE_ASSERT (nbytes > 0);
-        mb->wr_ptr (static_cast<size_t> (nbytes));
-        this->putq (mb);
+        const char *buf = "client hellor";
+        int ret = peer().send(buf, sizeof(buf) + 1);
+        cout << "outttttttttttttttttttttt: ret = " << ret << endl;
+        reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);        
 
         return 0;
     }
@@ -85,6 +100,9 @@ public:
 
 int ACE_TMAIN (int, ACE_TCHAR *[])
 {
+    ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
+    ACE_Sig_Action original_action;
+    no_sigpipe.register_action (SIGPIPE, &original_action);
     ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000), true), true);
     ACE_Acceptor<TCPTask, ACE_SOCK_ACCEPTOR> acceptor;
     acceptor.open(ACE_INET_Addr(20000));    
