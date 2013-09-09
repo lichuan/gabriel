@@ -5,6 +5,7 @@
 #include "ace/SOCK_Stream.h"
 #include "ace/Acceptor.h"
 #include "ace/Dev_Poll_Reactor.h"
+#include "gabriel/base/astar.hpp"
 
 using namespace std;
 
@@ -31,6 +32,8 @@ public:
         ACE_Time_Value iter_delay (2);   // Two seconds
         if (super::open () == -1)
             return -1;
+        ACE_Time_Value tv(1);        
+        ACE_Reactor::instance()->schedule_timer(this, 0, ACE_Time_Value::zero, tv);        
         return this->reactor()->register_handler(this, ACE_Event_Handler::WRITE_MASK);        
     }
     
@@ -56,7 +59,6 @@ public:
         if (recv_cnt > 0)
         {
             cout << "recv: " << buf << endl;
-            reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
             ACE_INET_Addr addr;
             peer().get_remote_addr(addr);
             cout << "recv: ip: " << addr.get_host_addr() << " " << addr.get_ip_address() <<endl;
@@ -85,9 +87,9 @@ public:
         const char *buf = "client hellor";
         int ret = peer().send(buf, sizeof(buf) + 1);
         cout << "outttttttttttttttttttttt: ret = " << ret << endl;
-        reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);        
+        reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
 
-        return 0;
+        return 0;     
     }
 
     virtual int handle_timeout (const ACE_Time_Value &current_time, const void *act = 0)

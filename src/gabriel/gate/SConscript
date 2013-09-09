@@ -1,3 +1,0 @@
-Import("env")
-gabriel_gate_server = env.Program("gabriel_gate_server", Glob("*.cpp"))
-Return("gabriel_gate_server")

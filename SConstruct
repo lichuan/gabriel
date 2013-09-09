@@ -34,5 +34,5 @@ gabriel_game_server = SConscript("src/gabriel/game/SConscript", variant_dir="bui
 env.Install("build/bin", gabriel_game_server)
 
 #gate
-gabriel_gate_server = SConscript("src/gabriel/gate/SConscript", variant_dir="build/gate", duplicate=0)
-env.Install("build/bin", gabriel_gate_server)
+gabriel_gateway_server = SConscript("src/gabriel/gateway/SConscript", variant_dir="build/gateway", duplicate=0)
+env.Install("build/bin", gabriel_gateway_server)
