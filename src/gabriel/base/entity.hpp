@@ -65,6 +65,22 @@ public:
     }    
 };
 
+class Guard_Ref
+{
+public:
+    Guard_Ref(bool &val) : m_val(val)
+    {
+        m_val = true;        
+    }
+
+    ~Guard_Ref()
+    {
+        m_val = false;
+    }
+
+    bool &m_val;
+};
+
 template<typename Key>
 class Entity_Map
 {
@@ -84,11 +100,6 @@ protected:
         return m_in_iteration;
     }
 
-    void in_iteration(bool b)
-    {
-        m_in_iteration = b;
-    }
-    
     bool add_entity(Key key, Entity *entity)
     {
         if(in_iteration())
@@ -139,33 +150,27 @@ protected:
     template<typename Concrete_Entity>
     void exec_all(Entity_Exec<Concrete_Entity> &cb)
     {
-        in_iteration(true);
+        Guard_Ref guard(m_in_iteration);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             cb.exec(static_cast<Concrete_Entity*>(iter->second));            
         }
-
-        in_iteration(false);        
     }
 
     template<typename Concrete_Entity>
     bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
-        in_iteration(true);
+        Guard_Ref guard(m_in_iteration);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             if(cb.exec(static_cast<Concrete_Entity*>(iter->second)))
             {
-                in_iteration(false);
-                
                 return true;                
             }            
         }
 
-        in_iteration(false);
-        
         return false;        
     }
     
@@ -173,7 +178,7 @@ protected:
     bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
         bool ret = false;
-        in_iteration(true);
+        Guard_Ref guard(m_in_iteration);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
@@ -184,8 +189,6 @@ protected:
                 ret = true;
             }
         }
-
-        in_iteration(false);
         
         return ret;        
     }
@@ -206,7 +209,7 @@ protected:
             return false;
         }
 
-        in_iteration(true);
+        Guard_Ref guard(m_in_iteration);
         bool ret = false;
 
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
@@ -219,9 +222,7 @@ protected:
                 del_vec.push_back(concrete_entity);
             }
         }
-
-        in_iteration(false);        
-
+        
         return ret;        
     }
     
