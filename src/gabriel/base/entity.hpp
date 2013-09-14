@@ -71,14 +71,31 @@ class Entity_Map
 protected:
     Entity_Map()
     {
+        m_in_iteration = false;        
     }
 
     ~Entity_Map()
     {
     }
 
+    //是否正在迭代中, 用于禁止在迭代map时进行删除迭代器等操作
+    bool in_iteration() const
+    {
+        return m_in_iteration;
+    }
+
+    void in_iteration(bool b)
+    {
+        m_in_iteration = b;
+    }
+    
     bool add_entity(Key key, Entity *entity)
     {
+        if(in_iteration())
+        {
+            return false;
+        }
+        
         if(m_entity_map.find(key) != m_entity_map.end())
         {
             return false;
@@ -111,39 +128,68 @@ protected:
         return m_entity_map.empty();
     }
 
-    void clear() const
+    void clear()
     {
-        m_entity_map.clear();
+        if(!in_iteration())
+        {
+            m_entity_map.clear();
+        }        
     }
 
     template<typename Concrete_Entity>
-    void exec(Entity_Exec<Concrete_Entity> &cb)
+    void exec_all(Entity_Exec<Concrete_Entity> &cb)
     {
+        if(in_iteration())
+        {
+            return;
+        }
+
+        in_iteration(true);
+        
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             cb.exec(static_cast<Concrete_Entity*>(iter->second));            
         }
+
+        in_iteration(false);        
     }
 
     template<typename Concrete_Entity>
     bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
+        if(in_iteration())
+        {
+            return false;
+        }
+
+        in_iteration(true);
+        
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             if(cb.exec(static_cast<Concrete_Entity*>(iter->second)))
             {
+                in_iteration(false);
+                
                 return true;                
             }            
         }
 
+        in_iteration(false);
+        
         return false;        
     }
     
     template<typename Concrete_Entity>
     bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
+        if(in_iteration())
+        {
+            return false;
+        }
+
+        in_iteration(true);
         bool ret = false;
-        
+
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
@@ -154,19 +200,30 @@ protected:
             }
         }
 
+        in_iteration(false);        
+
         return ret;        
     }
     
     void delete_entity(Key key)
     {
-        m_entity_map.erase(key);
+        if(!in_iteration())
+        {
+            m_entity_map.erase(key);
+        }        
     }
     
     template<typename Concrete_Entity>
     bool delete_if(Entity_Exec<Concrete_Entity> &cb, std::vector<Entity*> &del_vec)
     {
+        if(in_iteration())
+        {
+            return false;
+        }
+
+        in_iteration(true);
         bool ret = false;
-        
+
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
@@ -178,11 +235,14 @@ protected:
             }
         }
 
+        in_iteration(false);        
+
         return ret;        
     }
     
 private:
     std::map<Key, Entity*> m_entity_map;
+    bool m_in_iteration;    
 };
 
 class KEY_UINT32 : protected Entity_Map<uint32>
@@ -266,7 +326,7 @@ struct Get_Super<std::string>
     typedef KEY_STRING Super;
 };
 
-template<typename Concrete_Entity_Type, typename Super1, typename Super2 = KEY_NONE<1> >
+template<typename Concrete_Entity, typename Super1, typename Super2 = KEY_NONE<1> >
 class Entity_Manager : private Super1, private Super2
 {
 protected:
@@ -290,8 +350,7 @@ protected:
 
         return true;
     }
-
-    template<typename Concrete_Entity>
+    
     bool delete_if(Entity_Exec<Concrete_Entity> &cb)
     {
         std::vector<Entity*> del_vec;
@@ -311,11 +370,16 @@ protected:
         return true;        
     }
 
+    void delete_all(Entity_Exec<Concrete_Entity> &cb)
+    {
+        exec_all(cb);
+        clear();        
+    }
 
     template<typename Key>
-    Concrete_Entity_Type* get_entity(Key key) const
+    Concrete_Entity* get_entity(Key key) const
     {
-        return static_cast<Concrete_Entity_Type*>(Get_Super<Key>::Super::get_entity(key));        
+        return static_cast<Concrete_Entity*>(Get_Super<Key>::Super::get_entity(key));        
     }
 
     void delete_entity(Entity *entity)
@@ -341,22 +405,19 @@ public:
         Super2::clear();
     }
 
-    template<typename Concrete_Entity>
     bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
         return Super1::exec_until(cb);
     }
     
-    template<typename Concrete_Entity>
     bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
         return Super1::exec_if(cb);
     }
     
-    template<typename Concrete_Entity>
-    void exec(Entity_Exec<Concrete_Entity> &cb)
+    void exec_all(Entity_Exec<Concrete_Entity> &cb)
     {
-        Super1::exec(cb);
+        Super1::exec_all(cb);
     }
 };
 
