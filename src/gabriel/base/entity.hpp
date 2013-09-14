@@ -139,11 +139,6 @@ protected:
     template<typename Concrete_Entity>
     void exec_all(Entity_Exec<Concrete_Entity> &cb)
     {
-        if(in_iteration())
-        {
-            return;
-        }
-
         in_iteration(true);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
@@ -157,11 +152,6 @@ protected:
     template<typename Concrete_Entity>
     bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
-        if(in_iteration())
-        {
-            return false;
-        }
-
         in_iteration(true);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
@@ -182,14 +172,9 @@ protected:
     template<typename Concrete_Entity>
     bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
-        if(in_iteration())
-        {
-            return false;
-        }
-
-        in_iteration(true);
         bool ret = false;
-
+        in_iteration(true);
+        
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
@@ -200,8 +185,8 @@ protected:
             }
         }
 
-        in_iteration(false);        
-
+        in_iteration(false);
+        
         return ret;        
     }
     
