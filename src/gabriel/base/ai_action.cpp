@@ -267,12 +267,10 @@ bool CBattleAiAttackAction::OnLeave()
 CBattleAiControler::CBattleAiControler(CBattleUnit *holder)
 {
     m_holder = holder;
-    m_pCurAiAction = NULL;
     m_iFollowTargetId = 0;
     m_iAttackTargetId = 0;
     m_bEnableAi = false;    
     m_iDoAiCdTick = 0;
-    m_pHeadAction = NULL;    
     BuildAction();
 }
 
