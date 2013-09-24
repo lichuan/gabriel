@@ -14,7 +14,7 @@ class CBattleAiActionList
 public:
     CBattleAiActionList()
     {
-        m_pCurAction = NULL;
+        m_pCurAiAction = NULL;
     }
     
     void AddAction(CBattleAiAction *pAction)
@@ -22,15 +22,10 @@ public:
         m_actionVec.push_back(pAction);
     }
     
-    void SetCurAction(CBattleAiAction *pAction)
-    {
-        m_pCurAction = pAction;
-    }
-
     void DoAi();    
     
 private:    
-    CBattleAiAction *m_pCurAction;
+    CBattleAiAction *m_pCurAiAction;
     std::vector<CBattleAiAction*> m_actionVec;
 };
 
