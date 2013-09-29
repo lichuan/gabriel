@@ -80,6 +80,7 @@ bool CBattleAiStandAction::OnLeave()
 
 CBattleAiFollowAction::CBattleAiFollowAction(CBattleUnit *pUnit) : CBattleAiAction(pUnit)
 {
+    m_pFollowUnit = NULL;
 }
 
 CBattleAiFollowAction::~CBattleAiFollowAction()
@@ -103,6 +104,8 @@ bool CBattleAiFollowAction::CanDo()
     {
         return false;
     }
+
+    m_pFollowUnit = pFollowUnit;
     
     return true;    
 }
@@ -114,28 +117,157 @@ bool CBattleAiFollowAction::Doing()
         return false;
     }
     
-    CBattleUnit *pFollowUnit = GetBattleObj()->GetUnit(GetAiControler()->FollowTargetId());    
-    GetBattleObj()->MoveToTarget(m_holder, pFollowUnit->iPosX, pFollowUnit->iPosY, 5);
+    GetBattleObj()->MoveToTarget(m_holder, m_pFollowUnit->iPosX, m_pFollowUnit->iPosY, 5);
     
     return true;
 }
 
-bool CBattleAiFollowAction::OnEnter()
+CBattleAiGoBackAction::CBattleAiGoBackAction(CBattleUnit *pUnit) : CBattleAiAction(pUnit)
 {
-    CBattleAiAction::OnEnter();
+}
+
+CBattleAiGoBackAction::~CBattleAiGoBackAction()
+{
+}
+
+bool CBattleAiGoBackAction::CanDo()
+{
+    int dis = CBattleUtils::GetDistance(m_holder->iPosX, m_holder->iPosY, m_holder->GetGroup()->iPosX, m_holder->GetGroup()->iPosY);    
+
+    if(dis <= 5)
+    {
+        return false;
+    }
 
     return true;    
 }
 
-bool CBattleAiFollowAction::OnLeave()
+bool CBattleAiGoBackAction::Doing()
 {
-    CBattleAiAction::OnLeave();
+    if(m_holder->iCdTick > GetCurTick())
+    {
+        return false;
+    }
     
+    GetBattleObj()->MoveToTarget(m_holder, m_holder->GetGroup()->iPosX, m_holder->GetGroup()->iPosY, 5);
+
+    return true;
+}
+
+CBattleAiChangeAction::CBattleAiChangeAction(CBattleUnit *pUnit) : CBattleAiAction(pUnit)
+{
+}
+
+CBattleAiChangeAction::~CBattleAiChangeAction()
+{
+}
+
+bool CBattleAiChangeAction::CanDo()
+{
+    int iUnitId = m_holder->FindTargetInRange(m_holder->GetGroup()->iChaseRange);
+    
+    if(iUnitId == 0)
+    {
+        return false;
+    }
+
     return true;    
+}
+
+bool CBattleAiChangeAction::Doing()
+{
+    CBattleGroup *pGroup = m_holder->GetGroup();    
+    BattleTroopCfg* pTroopCfg = GAME_DATA->cfgBattleTroop.GetCfg(pGroup->m_iDynTrooopId);
+
+    if(pTroopCfg == NULL)
+    {
+        return false;
+    }
+    
+    for(int i=0;i<pTroopCfg->iMonsterNodeCount;i++)
+    {
+        for(int j=0;j<pTroopCfg->astMonsterNodes[i].iCount;j++)
+        {
+            int iMonsterId = pTroopCfg->astMonsterNodes[i].iMonsterId;
+            MonsterCfg* pMonsterCfg = GAME_DATA->cfgMonster.GetCfg(iMonsterId);
+            
+            if(pMonsterCfg==NULL)
+            {
+                break;
+            }
+            
+            CBattleUnit *pUnit = new CBattleUnit(pGroup);
+            pUnit->id(GetBattleObj()->AllocUnitId());
+            pUnit->iUnitType = BattleUnitType::Monster;
+            pUnit->iUnitCfgId = iMonsterId;            
+            pUnit->Set(pMonsterCfg);
+            pUnit->iGroupOffsetX = CUtils::RandNumber(-6,6);
+            pUnit->iGroupOffsetY = CUtils::RandNumber(-6,6);
+            pUnit->m_aiControler.EnableAi(true);
+            pUnit->m_aiControler.BuildAiAction(pMonsterCfg->iMonsterType);
+            pGroup->m_dynUnitVec.push_back(pUnit);            
+        }
+    }
+
+    pGroup->iPosX = pTroopCfg->stMonsterPos.iPosX;
+    pGroup->iPosY = pTroopCfg->stMonsterPos.iPosY;
+    pGroup->iOccupyRange = pTroopCfg->stMonsterPos.iRange;
+    pGroup->iChaseRange = pTroopCfg->iMoveRange;
+    
+//     int iNewPosX = 0;
+//     int iNewPosY = 0;
+    
+//     for(int i = -pGroup->m_stDynMonsterPos.iPosX; i <= pGroup->m_stDynMonsterPos.iPosX; ++i)
+//     {
+//         for(int j = -pGroup->m_stDynMonsterPos.iPosY; j <= pGroup->m_stDynMonsterPos.iPosY; ++j)
+//         {
+//             iNewPosX = pGroup->iPosX + i;
+//             iNewPosY = pGroup->iPosY + j;
+            
+//             if(GetBattleObj()->CanStay(iNewPosX, iNewPosY))
+//             {
+//                 goto out;
+//             }
+//         }
+//     }
+
+// out:    
+//     pGroup->iPosX = iNewPosX;    
+//     pGroup->iPosY = iNewPosY;    
+//     pGroup->iWatchRange = pTroopCfg->iWatchRange;
+//     pGroup->iChaseRange = pTroopCfg->iMoveRange;    
+//     pGroup->iOccupyRange = pGroup->m_stDynMonsterPos.iRange;    
+//     pGroup->iUseSkill = 0;
+
+    return true;
+}
+
+CBattleAiCreateUnitAction::CBattleAiCreateUnitAction(CBattleUnit *pUnit) : CBattleAiAction(pUnit)
+{
+}
+
+CBattleAiCreateUnitAction::~CBattleAiCreateUnitAction()
+{
+}
+
+bool CBattleAiCreateUnitAction::CanDo()
+{
+    return true;
+}
+
+bool CBattleAiCreateUnitAction::Doing()
+{
+    if(m_holder->m_iCreateTick > GetCurTick())
+    {
+        return false;
+    }
+    
+    return true;
 }
 
 CBattleAiChaseAction::CBattleAiChaseAction(CBattleUnit *pUnit) : CBattleAiAction(pUnit)
 {
+    m_pChaseUnit = NULL;    
 }
 
 CBattleAiChaseAction::~CBattleAiChaseAction()
@@ -157,6 +289,8 @@ bool CBattleAiChaseAction::CanDo()
         
         return false;
     }
+
+    m_pChaseUnit = pChaseUnit;
     
     return true;    
 }
@@ -167,29 +301,15 @@ bool CBattleAiChaseAction::Doing()
     {
         return false;
     }
-
-    CBattleUnit *pChaseUnit = GetBattleObj()->GetUnit(GetAiControler()->AttackTargetId());
-    GetBattleObj()->MoveToTarget(m_holder, pChaseUnit->iPosX, pChaseUnit->iPosY, GetBattleObj()->GetNormalAttackDis(m_holder, pChaseUnit));
     
-    return true;
-}
-
-bool CBattleAiChaseAction::OnEnter()
-{
-    CBattleAiAction::OnEnter();
-
-    return true;    
-}
-
-bool CBattleAiChaseAction::OnLeave()
-{
-    CBattleAiAction::OnLeave();
+    GetBattleObj()->MoveToTarget(m_holder, m_pChaseUnit->iPosX, m_pChaseUnit->iPosY, GetBattleObj()->GetNormalAttackDis(m_holder, m_pChaseUnit));
     
     return true;
 }
 
 CBattleAiAttackAction::CBattleAiAttackAction(CBattleUnit *pUnit) : CBattleAiAction(pUnit)
 {
+    m_pAttackUnit = NULL;    
 }
 
 CBattleAiAttackAction::~CBattleAiAttackAction()
@@ -225,6 +345,8 @@ bool CBattleAiAttackAction::CanDo()
     {
         return false;
     }
+
+    m_pAttackUnit = pAttackUnit;    
     
     return true;
 }
@@ -244,24 +366,9 @@ bool CBattleAiAttackAction::Doing()
         return false;
     }
     
-    CBattleUnit *pAttackUnit = GetBattleObj()->GetUnit(GetAiControler()->AttackTargetId());    
-    GetBattleObj()->AttackTarget(m_holder, pAttackUnit);
+    GetBattleObj()->AttackTarget(m_holder, m_pAttackUnit);
     
     return true;
-}
-
-bool CBattleAiAttackAction::OnEnter()
-{
-    CBattleAiAction::OnEnter();
-
-    return true;    
-}
-
-bool CBattleAiAttackAction::OnLeave()
-{
-    CBattleAiAction::OnLeave();
-
-    return true;    
 }
 
 CBattleAiControler::CBattleAiControler(CBattleUnit *holder)
@@ -271,7 +378,7 @@ CBattleAiControler::CBattleAiControler(CBattleUnit *holder)
     m_iAttackTargetId = 0;
     m_bEnableAi = false;    
     m_iDoAiCdTick = 0;
-    BuildAction();
+    RegBuildFuncs();    
 }
 
 int CBattleAiControler::GetCurTick()
@@ -281,7 +388,7 @@ int CBattleAiControler::GetCurTick()
 
 CBattleAiControler::~CBattleAiControler()
 {
-    DeleteAction();    
+    DeleteAction();
 }
 
 void CBattleAiControler::DoAi()
@@ -299,6 +406,11 @@ void CBattleAiControler::DoAi()
         return;
     }
 
+    if(GetCurTick() < m_holder->GetGroup()->m_iDynEffectTick)
+    {
+        return;
+    }
+    
     // //进入战斗后延迟一会执行ai, 因为前台加载资源需要时间，否则导致角色瞬移的问题
     // if(GetCurTick() < CONFIG_DATA->m_iServerFPS * 2)
     // {
@@ -356,26 +468,70 @@ void CBattleAiActionList::DoAi()
 
             break;            
         }
-    }    
+    }
 }
 
-void CBattleAiControler::BuildAction()
+void CBattleAiControler::BuildAiAction(int AiId)
+{    
+    if(AiId >= battle_ai::MAX)
+    {
+        return;
+    }
+
+    (this->*m_funcArr[AiId])();
+}
+
+void CBattleAiControler::RegBuildFuncs()
+{
+    m_funcArr[0] = &CBattleAiControler::BuildAi_0;
+    m_funcArr[1] = &CBattleAiControler::BuildAi_1;
+    m_funcArr[2] = &CBattleAiControler::BuildAi_2;
+    m_funcArr[3] = &CBattleAiControler::BuildAi_3;
+}
+
+CBattleAiActionList CBattleAiControler::BuildActionList(CBattleAiAction **pActionArr, int iArrLen)
+{
+    CBattleAiActionList actionList;
+    
+    for(int i = 0; i != iArrLen; ++i)
+    {
+        CBattleAiAction *pAction = pActionArr[i];
+        AddAction(pAction);
+        actionList.AddAction(pAction);
+    }
+
+    return actionList;    
+}
+
+//常规ai
+void CBattleAiControler::BuildAi_0()
 {
     CBattleAiAction* actionList[] = {
         new CBattleAiAttackAction(m_holder),
-        new CBattleAiChaseAction(m_holder),
-        new CBattleAiFollowAction(m_holder),
+        new CBattleAiChaseAction(m_holder),        
         new CBattleAiStandAction(m_holder)
     };
 
-    const int iCount = sizeof(actionList) / sizeof(actionList[0]);
+    m_firstAiActionList = BuildActionList(actionList, 3);
+}
 
-    for(int i = 0; i != iCount; ++i)
-    {
-        CBattleAiAction *pAction = actionList[i];
-        m_firstAiActionList.AddAction(pAction);
-        AddAction(pAction);        
-    }
+//变身怪ai
+void CBattleAiControler::BuildAi_1()
+{
+    CBattleAiAction* actionList[] = {
+        new CBattleAiChangeAction(m_holder),
+        new CBattleAiStandAction(m_holder)
+    };
+
+    m_firstAiActionList = BuildActionList(actionList, 2);
+}
+
+void CBattleAiControler::BuildAi_2()
+{
+}
+
+void CBattleAiControler::BuildAi_3()
+{
 }
 
 void CBattleAiControler::AddAction(CBattleAiAction *pAction)
