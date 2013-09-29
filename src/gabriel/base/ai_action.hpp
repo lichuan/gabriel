@@ -22,7 +22,7 @@ public:
         m_actionVec.push_back(pAction);
     }
     
-    void DoAi();    
+    void DoAi();
     
 private:    
     CBattleAiAction *m_pCurAiAction;
@@ -67,7 +67,6 @@ private:
     std::vector<CBattleAiActionList> m_siblingActionListVec; //平级兄弟ai行为，当前的行为CanDo时，会执行兄弟行为。
 };
 
-//站立行为
 class CBattleAiStandAction : public CBattleAiAction
 {
 public:
@@ -88,8 +87,19 @@ public:
     virtual ~CBattleAiFollowAction();
     virtual bool CanDo();
     virtual bool Doing();
-    virtual bool OnEnter();
-    virtual bool OnLeave();
+    
+private:
+    CBattleUnit *m_pFollowUnit;    
+};
+
+//返回组中心点
+class CBattleAiGoBackAction : public CBattleAiAction
+{
+public:
+    CBattleAiGoBackAction(CBattleUnit *pUnit);
+    virtual ~CBattleAiGoBackAction();
+    virtual bool CanDo();
+    virtual bool Doing();
 };
 
 //追击行为
@@ -98,11 +108,11 @@ class CBattleAiChaseAction : public CBattleAiAction
 public:
     CBattleAiChaseAction(CBattleUnit *pUnit);
     virtual ~CBattleAiChaseAction();
-
     virtual bool CanDo();
     virtual bool Doing();
-    virtual bool OnEnter();
-    virtual bool OnLeave();
+
+private:
+    CBattleUnit *m_pChaseUnit;    
 };
 
 //攻击行为
@@ -111,13 +121,43 @@ class CBattleAiAttackAction : public CBattleAiAction
 public:
     CBattleAiAttackAction(CBattleUnit *pUnit);
     virtual ~CBattleAiAttackAction();
-
     virtual bool CanDo();
     virtual bool Doing();
-    virtual bool OnEnter();
-    virtual bool OnLeave();
+
+private:
+    CBattleUnit *m_pAttackUnit;    
 };
-    
+
+//定时出兵
+class CBattleAiCreateUnitAction : public CBattleAiAction
+{
+public:
+    CBattleAiCreateUnitAction(CBattleUnit *pUnit);
+    virtual ~CBattleAiCreateUnitAction();
+    virtual bool CanDo();
+    virtual bool Doing();
+};
+
+//陷坑爆炸
+class CBattleAiBurstAction : public CBattleAiAction
+{
+public:
+    CBattleAiBurstAction(CBattleUnit *pUnit);
+    virtual ~CBattleAiBurstAction();
+    virtual bool CanDo();
+    virtual bool Doing();
+};
+
+//靠近变身
+class CBattleAiChangeAction : public CBattleAiAction
+{
+public:
+    CBattleAiChangeAction(CBattleUnit *pUnit);
+    virtual ~CBattleAiChangeAction();
+    virtual bool CanDo();
+    virtual bool Doing();
+};
+
 //ai 控制器
 class CBattleAiControler
 {
@@ -128,7 +168,13 @@ public:
     void DoAi();
     
     //分配行为
-    void BuildAction();
+    void BuildAiAction(int AiId = 0);
+
+    //组装ai
+    void BuildAi_0();    
+    void BuildAi_1();
+    void BuildAi_2();
+    void BuildAi_3();
     
     //释放行为
     void DeleteAction();
@@ -143,7 +189,7 @@ public:
         m_iFollowTargetId = id;
     }
 
-    void AddAction(CBattleAiAction *pAction);    
+    void AddAction(CBattleAiAction *pAction);
 
     int AttackTargetId()
     {
@@ -165,12 +211,15 @@ public:
         m_bEnableAi = enable;
     }
 
-    int GetCurTick();    
+    int GetCurTick();
     
 private:
+    void RegBuildFuncs();
     CBattleUnit *m_holder;
     CBattleAiActionList m_firstAiActionList; //第一条ai行为链
     std::set<CBattleAiAction*> m_allActionSet;
+    void (CBattleAiControler::*m_funcArr[battle_ai::MAX])();
+    CBattleAiActionList BuildActionList(CBattleAiAction **pActionArr, int iArrLen);    
     int m_iFollowTargetId;
     int m_iAttackTargetId;
     bool m_bEnableAi;
