@@ -348,7 +348,7 @@ protected:
 
         for(std::vector<Entity*>::iterator iter = del_vec.begin(); iter != del_vec.end(); ++iter)
         {
-            Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(concrete_entity);
+            Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(*iter);
             delete_entity(concrete_entity);
             cb.exec(concrete_entity);
         }
