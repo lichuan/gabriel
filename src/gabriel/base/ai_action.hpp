@@ -123,7 +123,8 @@ public:
     virtual ~CBattleAiAttackAction();
     virtual bool CanDo();
     virtual bool Doing();
-
+    virtual bool OnEnter();
+    
 private:
     CBattleUnit *m_pAttackUnit;    
 };
@@ -175,6 +176,7 @@ public:
     void BuildAi_1();
     void BuildAi_2();
     void BuildAi_3();
+    void BuildAi_4();
     
     //释放行为
     void DeleteAction();
@@ -212,6 +214,7 @@ public:
     }
 
     int GetCurTick();
+    int m_iCreateTick; //创建兵cd
     
 private:
     void RegBuildFuncs();
@@ -223,7 +226,7 @@ private:
     int m_iFollowTargetId;
     int m_iAttackTargetId;
     bool m_bEnableAi;
-    int m_iDoAiCdTick;    
+    int m_iDoAiCdTick;
 };
 
 #endif
