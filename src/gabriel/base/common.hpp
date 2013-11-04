@@ -12,15 +12,17 @@ class Guard_Scope_Val
 public:
     Guard_Scope_Val(T &val, T in_val, T out_val) : m_val(val)
     {
-        m_val = in_val;        
+        m_val = in_val;
+        m_out_val = out_val;        
     }
 
-    ~Guard_Ref()
+    ~Guard_Scope_Val()
     {
-        m_val = out_val;        
+        m_val = m_out_val;        
     }
 
     T &m_val;
+    T m_out_val;    
 };
 }
 }
