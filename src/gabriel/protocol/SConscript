@@ -1,0 +1,3 @@
+Import("env")
+gabriel_protocol = env.Library("gabriel_protocol", Glob("*.cpp"))
+Return("gabriel_protocol")

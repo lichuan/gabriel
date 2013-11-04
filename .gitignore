@@ -1,0 +1,6 @@
+/build/*
+/.sconsign*
+/src/3rd-party/*
+/src/cscope*
+
+

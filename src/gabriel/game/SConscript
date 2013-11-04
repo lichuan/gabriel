@@ -1,0 +1,3 @@
+Import("env")
+gabriel_game_server = env.Program("gabriel_game_server", Glob("*.cpp"))
+Return("gabriel_game_server")
