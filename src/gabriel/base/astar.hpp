@@ -19,39 +19,11 @@
 
 namespace gabriel {
 namespace base {
-        
-struct Point
-{
-    Point(int32 x, int32 y)
-    {
-        m_x = x;
-        m_y = y;
-    }
-
-    Point()
-    {
-        m_x = 0;
-        m_y = 0;
-    }
-
-    int32 hash() const
-    {
-        return m_x * 10000 + m_y;        
-    }
-    
-    bool operator==(const Point &pos) const
-    {
-        return m_x == pos.m_x && m_y == pos.m_y;
-    }    
-    
-    int32 m_x;
-    int32 m_y;
-};
 
 //路径节点
-struct Node
+struct Astar_Node
 {
-    Node(const Point &pos, int32 g, int32 h, const Node *parent)
+    Astar_Node(const Point &pos, int32 g, int32 h, const Astar_Node *parent)
     {
         m_pos = pos;
         m_g = g;
@@ -64,10 +36,10 @@ struct Node
     int32 m_g; //缓存g值
     int32 m_h; //缓存h    
     int32 m_f; //缓存f值
-    const Node *m_parent; //该节点的前置节点
+    const Astar_Node *m_parent; //该节点的前置节点
 };
 
-class Point_CB
+class Astar_Point_Check
 {
 public:
     virtual bool is_valid(const Point &pos) const = 0;
@@ -86,7 +58,7 @@ class Astar_Impl
     friend class Astar;
     
 private:
-    Astar_Impl(const Point_CB &point_cb) : m_point_cb(point_cb)
+    Astar_Impl(const Astar_Point_Check &point_check) : m_point_check(point_check)
     {
     }
 
@@ -97,12 +69,12 @@ private:
     
     bool is_valid(const Point &pos) const
     {
-        return m_point_cb.is_valid(pos);
+        return m_point_check.is_valid(pos);
     }
 
     bool is_reach(const Point &pos, const Point &dest_pos) const
     {
-        return m_point_cb.is_reach(pos, dest_pos);
+        return m_point_check.is_reach(pos, dest_pos);
     }
     
     bool exist_in_close(const Point &pos) const
@@ -112,27 +84,27 @@ private:
 
     void clear_node()
     {
-        for(std::map<int32, Node*>::const_iterator iter = m_open_map.begin(); iter != m_open_map.end(); ++iter)
+        for(std::map<int32, Astar_Node*>::const_iterator iter = m_open_map.begin(); iter != m_open_map.end(); ++iter)
         {
             delete iter->second;
         }
         
-        for(std::map<int32, Node*>::const_iterator iter = m_close_map.begin(); iter != m_close_map.end(); ++iter)
+        for(std::map<int32, Astar_Node*>::const_iterator iter = m_close_map.begin(); iter != m_close_map.end(); ++iter)
         {
             delete iter->second;
         }
     }
     
-    Node* get_minimum_f_node_from_open() const
+    Astar_Node* get_minimum_f_node_from_open() const
     {
-        std::multimap<int32, Node*>::const_iterator iter = m_order_by_f_map.begin();
+        std::multimap<int32, Astar_Node*>::const_iterator iter = m_order_by_f_map.begin();
 
         return iter->second;
     }
 
-    Node* get_node_from_open(const Point &pos) const
+    Astar_Node* get_node_from_open(const Point &pos) const
     {
-        std::map<int32, Node*>::const_iterator iter = m_open_map.find(pos.hash());
+        std::map<int32, Astar_Node*>::const_iterator iter = m_open_map.find(pos.hash());
 
         if(iter == m_open_map.end())
         {
@@ -165,7 +137,7 @@ private:
         return v1 * 10 + v2 * 14; //横竖方向的权重10，斜方向的权重14
     }
 
-    const Node* add_around_node_to_open(const Node *cur_node, const Point &dest_pos)
+    const Astar_Node* add_around_node_to_open(const Astar_Node *cur_node, const Point &dest_pos)
     {
         static const int32 around_offset[8][2] = {
             {0, -1}, //top
@@ -218,7 +190,7 @@ private:
                 g_inc = 14;                
             }
 
-            Node *node = get_node_from_open(pos);
+            Astar_Node *node = get_node_from_open(pos);
             const int32 g = cur_node->m_g + g_inc;
 
             if(node != NULL)
@@ -235,7 +207,7 @@ private:
                 continue;
             }
 
-            Node *new_node = new Node(pos, g, h_value(pos, dest_pos), cur_node);
+            Astar_Node *new_node = new Astar_Node(pos, g, h_value(pos, dest_pos), cur_node);
             m_open_map.insert(std::make_pair(pos.hash(), new_node));
             m_iter_map.insert(std::make_pair(new_node, m_order_by_f_map.insert(m_order_by_f_map.begin(), std::make_pair(new_node->m_f, new_node))));            
         }
@@ -253,7 +225,7 @@ private:
         }
         
         //反向查找
-        const Node *node = new Node(dest_pos, 0, h_value(dest_pos, src_pos), NULL);
+        const Astar_Node *node = new Astar_Node(dest_pos, 0, h_value(dest_pos, src_pos), NULL);
         m_open_map.insert(std::make_pair(dest_pos.hash(), node));        
         m_iter_map.insert(std::make_pair(node, m_order_by_f_map.insert(m_order_by_f_map.begin(), std::make_pair(node->m_f, node))));
         int32 num = 0;        
@@ -265,16 +237,16 @@ private:
                 return pos_list;
             }
             
-            Node *node = get_minimum_f_node_from_open();                        
+            Astar_Node *node = get_minimum_f_node_from_open();                        
             m_open_map.erase(node->m_pos.hash());
             m_order_by_f_map.erase(m_iter_map[node]);
             m_iter_map.erase(node);
             m_close_map.insert(std::make_pair(node->m_pos.hash(), node));                        
-            const Node *first_node = add_around_node_to_open(node, src_pos);
+            const Astar_Node *first_node = add_around_node_to_open(node, src_pos);
 
             if(first_node != NULL)
             {
-                const Node *node = first_node;
+                const Astar_Node *node = first_node;
                 
                 while(node != NULL)
                 {
@@ -289,11 +261,11 @@ private:
         return pos_list;
     }
 
-    std::map<int32, Node*> m_open_map;
-    std::map<int32, Node*> m_close_map;
-    std::multimap<int32, Node*> m_order_by_f_map;
-    std::map<Node*, std::multimap<int32, Node*>::iterator> m_iter_map;    
-    const Point_CB &m_point_cb;    
+    std::map<int32, Astar_Node*> m_open_map;
+    std::map<int32, Astar_Node*> m_close_map;
+    std::multimap<int32, Astar_Node*> m_order_by_f_map;
+    std::map<Astar_Node*, std::multimap<int32, Astar_Node*>::iterator> m_iter_map;    
+    const Astar_Point_Check &m_point_check;    
 };
     
 template<int32 MAX_NODE>
@@ -308,9 +280,9 @@ public:
     }
 
     //对每一次查找单独创建一个A星实现类，以支持在多线程环境中进行A星寻路
-    std::list<Point> find_path(const Point_CB &point_cb, const Point &src_pos, const Point &dest_pos) const
+    std::list<Point> find_path(const Point_Check &point_check, const Point &src_pos, const Point &dest_pos) const
     {
-        Astar_Impl<MAX_NODE> impl(point_cb);
+        Astar_Impl<MAX_NODE> impl(point_check);
         
         return impl.find_path(src_pos, dest_pos);
     }
