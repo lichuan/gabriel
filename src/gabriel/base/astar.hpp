@@ -19,7 +19,7 @@
 
 namespace gabriel {
 namespace base {
-
+    
 //路径节点
 struct Astar_Node
 {
