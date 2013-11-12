@@ -271,7 +271,8 @@ private:
 template<int32 MAX_NODE>
 class Astar
 {
-    friend class Singleton<Astar<MAX_NODE> >;
+    template<typename, typename>
+    friend class ACE_Singleton;    
     
 public:
     //对每一次查找单独创建一个A星实现类，以支持在多线程环境中进行A星寻路
@@ -292,7 +293,7 @@ private:
     }
 };
 
-typedef Singleton<Astar<1000> > ASTAR_1000;
+typedef ACE_Singleton<Astar<1000>, ACE_Null_Mutex> ASTAR_1000;
     
 } //end namespace base
 } //end namespace gabriel

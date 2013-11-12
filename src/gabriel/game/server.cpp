@@ -102,7 +102,8 @@ public:
 
 int ACE_TMAIN (int, ACE_TCHAR *[])
 {
-    gabriel::base::ASTAR_1000::instance();    
+    gabriel::base::ASTAR_1000::instance();
+    
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;
     no_sigpipe.register_action (SIGPIPE, &original_action);
