@@ -2,6 +2,7 @@
 #define GABRIEL_BASE_COMMON
 
 #include "gabriel/base/define.hpp"
+#include "ace/Singleton.h"
 
 namespace gabriel {
 namespace base {
@@ -52,6 +53,19 @@ public:
     T &m_val;
     T m_out_val;    
 };
+
+//multi-thread environment
+template<typename T>
+class Singleton_MT : public ACE_Singleton<T, ACE_Recursive_Thread_Mutex>
+{
+};
+
+//single-thread environment
+template<typename T>
+class Singleton : public ACE_Singleton<T, ACE_Null_Mutex>
+{
+};
+
 }
 }
 

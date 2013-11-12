@@ -271,16 +271,11 @@ private:
 template<int32 MAX_NODE>
 class Astar
 {
+    friend class Singleton<Astar<MAX_NODE> >;
+    
 public:
-    static Astar* instance()
-    {
-        static Astar singleton;
-
-        return &singleton;
-    }
-
     //对每一次查找单独创建一个A星实现类，以支持在多线程环境中进行A星寻路
-    std::list<Point> find_path(const Point_Check &point_check, const Point &src_pos, const Point &dest_pos) const
+    std::list<Point> find_path(const Astar_Point_Check &point_check, const Point &src_pos, const Point &dest_pos) const
     {
         Astar_Impl<MAX_NODE> impl(point_check);
         
@@ -291,7 +286,14 @@ private:
     Astar()
     {
     }
+    
+    ~Astar()
+    {
+    }
 };
+
+typedef Singleton<Astar<1000> > ASTAR_1000;
+    
 } //end namespace base
 } //end namespace gabriel
 
