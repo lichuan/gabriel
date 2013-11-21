@@ -6,7 +6,10 @@
 namespace gabriel {
 namespace base {
 
-
+class Server
+{
+public:
+};
 
 }
 }

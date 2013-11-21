@@ -1,12 +1,12 @@
-#ifndef GABRIEL_BASE_CLIENT
-#define GABRIEL_BASE_CLIENT
+#ifndef GABRIEL_BASE_CONNECTION
+#define GABRIEL_BASE_CONNECTION
 
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
 namespace base {
 
-class Client
+class Connection
 {
 public:
 };
