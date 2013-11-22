@@ -1,5 +1,5 @@
-#ifndef GABRIEL_BASE_ENTITY
-#define GABRIEL_BASE_ENTITY
+#ifndef GABRIEL__BASE__ENTITY
+#define GABRIEL__BASE__ENTITY
 
 #include <string>
 #include <map>

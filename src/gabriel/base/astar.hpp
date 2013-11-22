@@ -8,14 +8,15 @@
  desc: a星寻路的一种高效实现
 */
 
-#ifndef GABRIEL_BASE_ASTAR
-#define GABRIEL_BASE_ASTAR
+#ifndef GABRIEL__BASE__ASTAR
+#define GABRIEL__BASE__ASTAR
 
 #include <list>
 #include <cstdlib>
 #include <map>
 #include <iostream>
 #include "gabriel/base/common.hpp"
+#include "ace/Singleton.h"
 
 namespace gabriel {
 namespace base {

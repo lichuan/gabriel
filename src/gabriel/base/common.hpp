@@ -1,7 +1,6 @@
-#ifndef GABRIEL_BASE_COMMON
-#define GABRIEL_BASE_COMMON
+#ifndef GABRIEL__BASE__COMMON
+#define GABRIEL__BASE__COMMON
 
-#include "ace/Singleton.h"
 #include "gabriel/base/define.hpp"
 
 namespace gabriel {

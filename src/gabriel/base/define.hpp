@@ -1,5 +1,5 @@
-#ifndef GABRIEL_BASE_DEFINE
-#define GABRIEL_BASE_DEFINE
+#ifndef GABRIEL__BASE__DEFINE
+#define GABRIEL__BASE__DEFINE
 
 #include "ace/Basic_Types.h"
 

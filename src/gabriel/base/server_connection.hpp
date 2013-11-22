@@ -1,5 +1,5 @@
-#ifndef GABRIEL__BASE__SERVER
-#define GABRIEL__BASE__SERVER
+#ifndef GABRIEL__BASE__SERVER_CONNECTION
+#define GABRIEL__BASE__SERVER_CONNECTION
 
 #include "gabriel/base/common.hpp"
 #include "gabriel/base/connection.hpp"
@@ -7,7 +7,7 @@
 namespace gabriel {
 namespace base {
 
-class Server
+class Server_Connection : public Connection
 {
 public:
 };
