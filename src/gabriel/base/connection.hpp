@@ -1,8 +1,6 @@
 #ifndef GABRIEL__BASE__CONNECTION
 #define GABRIEL__BASE__CONNECTION
 
-#include "gabriel/base/common.hpp"
-
 namespace gabriel {
 namespace base {
 
@@ -10,13 +8,9 @@ class Connection
 {
 public:
     Connection();
-    virtual ~Connection();    
-    bool connected() const;
-    void connected(bool b);
-    void close();
-    
-private:
-    bool m_connected;
+    virtual ~Connection();
+    virtual void on_disconnect() = 0;
+    void disconnect();
 };
 
 }

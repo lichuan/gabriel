@@ -1,7 +1,6 @@
 #ifndef GABRIEL__BASE__SERVER
 #define GABRIEL__BASE__SERVER
 
-#include "gabriel/base/common.hpp"
 #include "gabriel/base/connection.hpp"
 
 namespace gabriel {
@@ -14,5 +13,6 @@ public:
 
 }
 }
-    
+
 #endif
+

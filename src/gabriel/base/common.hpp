@@ -52,7 +52,7 @@ public:
     T &m_val;
     T m_out_val;    
 };
-
+    
 }
 }
 

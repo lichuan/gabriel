@@ -12,9 +12,7 @@
 #define GABRIEL__BASE__ASTAR
 
 #include <list>
-#include <cstdlib>
 #include <map>
-#include <iostream>
 #include "gabriel/base/common.hpp"
 #include "ace/Singleton.h"
 

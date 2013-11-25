@@ -1,7 +1,6 @@
 #ifndef GABRIEL__BASE__SERVER_CONNECTION
 #define GABRIEL__BASE__SERVER_CONNECTION
 
-#include "gabriel/base/common.hpp"
 #include "gabriel/base/connection.hpp"
 
 namespace gabriel {
