@@ -25,6 +25,8 @@ public:
     int32 svc()
     {
         (m_object->*m_thread_func)();
+        
+        return 0;
     }
     
     void set_func_info(T *object, void (T::*thread_func)(), int32 num_thread)
