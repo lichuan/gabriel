@@ -25,6 +25,8 @@ public:
     int32 svc()
     {
         (m_object->*m_executor)();
+
+        return 0;
     }
     
     void set_execute_info(T *object, void (T::*executor)(), int32 num_thread)
