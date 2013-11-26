@@ -258,7 +258,7 @@ protected:
 };
 
 //占位
-template<int>
+template<int32>
 class KEY_NONE
 {
 protected:

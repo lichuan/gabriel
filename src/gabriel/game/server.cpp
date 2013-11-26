@@ -6,6 +6,7 @@
 #include "ace/Acceptor.h"
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/base/astar.hpp"
+#include "gabriel/base/thread.hpp"
 
 using namespace std;
 
@@ -100,14 +101,62 @@ public:
     }    
 };
 
+
+class Game_Server : public gabriel::base::Thread_Func_List_Runner<Game_Server, 20000>
+{
+public:
+    Game_Server()
+    {
+        cout << "start game server................." << endl;
+        register_thread_func(this, &Game_Server::thd_1, 3);
+        register_thread_func(this, &Game_Server::thd_2, 3);
+        register_thread_func(this, &Game_Server::thd_3, 3);
+    }
+
+    void thd_1()
+    {
+        while(true)
+        {
+            sleep(1);
+            cout << "thd_11111111111111111" << endl;
+        }        
+    }
+
+    void thd_2()
+    {
+        while(true)
+        {
+            sleep(1);
+            
+        cout << "thd2222222222222" << endl;
+        }
+        
+    }
+
+    void thd_3()
+    {
+        while(true)
+        {
+            sleep(1);
+            
+        cout << "thd333333333333333333" << endl;
+        }
+        
+    }
+};
+    
 int ACE_MAIN (int argc, char *argv[])
 {
-    daemon(1, 1);
+    //daemon(1, 1);
+    Game_Server sobj;
+    sobj.run_thread_func();
+    sobj.wait();
+    
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;
     no_sigpipe.register_action (SIGPIPE, &original_action);
     ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000), true), true);
     ACE_Acceptor<TCPTask, ACE_SOCK_ACCEPTOR> acceptor;
     acceptor.open(ACE_INET_Addr(20000));    
-    ACE_Reactor::instance()->run_event_loop();
+    //ACE_Reactor::instance()->run_event_loop();
 }
