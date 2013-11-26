@@ -102,15 +102,15 @@ public:
 };
 
 
-class Game_Server : public gabriel::base::Thread_Func_List_Runner<Game_Server, 20000>
+class Game_Server : public gabriel::base::Thread<Game_Server>
 {
 public:
     Game_Server()
     {
         cout << "start game server................." << endl;
-        register_thread_func(this, &Game_Server::thd_1, 3);
-        register_thread_func(this, &Game_Server::thd_2, 3);
-        register_thread_func(this, &Game_Server::thd_3, 3);
+        add_executor(this, &Game_Server::thd_1, 3);
+        add_executor(this, &Game_Server::thd_2);
+        add_executor(this, &Game_Server::thd_3, 3);
     }
 
     void thd_1()
@@ -149,7 +149,7 @@ int ACE_MAIN (int argc, char *argv[])
 {
     //daemon(1, 1);
     Game_Server sobj;
-    sobj.run_thread_func();
+    sobj.execute();    
     sobj.wait();
     
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);

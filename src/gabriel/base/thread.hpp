@@ -8,76 +8,76 @@ namespace gabriel {
 namespace base {
 
 template<typename T>
-class Thread_Func_Runner : public ACE_Task_Base
+class Executor : public ACE_Task_Base
 {
 public:
-    Thread_Func_Runner()
+    Executor()
     {
         m_object = NULL;
         m_num_thread = 0;
     }
     
-    void run()
+    void execute()
     {
         activate (THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED, m_num_thread);
     }
     
     int32 svc()
     {
-        (m_object->*m_thread_func)();
+        (m_object->*m_executor)();
     }
     
-    void set_func_info(T *object, void (T::*thread_func)(), int32 num_thread)
+    void set_execute_info(T *object, void (T::*executor)(), int32 num_thread)
     {
         m_object = object;
-        m_thread_func = thread_func;
+        m_executor = executor;
         m_num_thread = num_thread;
     }
     
 private:
     T *m_object;
-    void (T::*m_thread_func)();
+    void (T::*m_executor)();
     int32 m_num_thread;    
 };
 
-template<typename T, int32 MAX_FUNC>
-class Thread_Func_List_Runner
+template<typename T, int32 MAX_EXECUTOR = 10>
+class Thread
 {
 public:
-    Thread_Func_List_Runner()
+    Thread()
     {
-        m_cur_func_idx = 0;
+        m_cur_executor_idx = 0;
     }
     
-    void run_thread_func()
+    void execute()
     {
-        for(int32 i = 0; i != m_cur_func_idx; ++i)
+        for(int32 i = 0; i != m_cur_executor_idx; ++i)
         {
-            m_func_list[i].run();        
+            m_executor_list[i].execute();        
         }
     }
 
     void wait()
     {
-        for(int32 i = 0; i != m_cur_func_idx; ++i)
+        for(int32 i = 0; i != m_cur_executor_idx; ++i)
         {
-            m_func_list[i].wait();
+            m_executor_list[i].wait();
         }
     }
     
-    void register_thread_func(T *object, void (T::*thread_func)(), int32 num_thread)
+    void add_executor(T *object, void (T::*executor)(), int32 num_thread = 1)
     {
-        if(m_cur_func_idx >= MAX_FUNC)
+        if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
             return;
         }
     
-        m_func_list[m_cur_func_idx++].set_func_info(object, thread_func, num_thread);
+        m_executor_list[m_cur_executor_idx++].set_execute_info(object, executor, num_thread);
     }
 
 private:
-    Thread_Func_Runner<T> m_func_list[MAX_FUNC];
-    int32 m_cur_func_idx;    
+    Executor<T> m_executor_list[MAX_EXECUTOR];
+    int32 m_cur_executor_idx;    
 };
 
 }
