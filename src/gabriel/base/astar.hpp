@@ -24,8 +24,8 @@
 
 #include <list>
 #include <map>
-#include "gabriel/base/common.hpp"
 #include "ace/Singleton.h"
+#include "gabriel/base/common.hpp"
 
 namespace gabriel {
 namespace base {
