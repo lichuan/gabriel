@@ -1,4 +1,4 @@
-##gabriel
+##GABRIEL
 
   gabriel is an angel from the Holy Bible, this engine is named gabriel, standing for bring good news to people.
   
