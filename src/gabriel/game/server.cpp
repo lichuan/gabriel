@@ -29,6 +29,8 @@
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/base/astar.hpp"
 #include "gabriel/base/thread.hpp"
+#include "gabriel/base/connection.hpp"
+#include "gabriel/base/server.hpp"
 
 using namespace std;
 
@@ -124,55 +126,22 @@ public:
 };
 
 
-class Game_Server : public gabriel::base::Thread<Game_Server>
+class Game_Server : public gabriel::base::Server
 {
 public:
-    Game_Server()
+    virtual void add_client()
     {
-        cout << "start game server................." << endl;
-        add_executor(this, &Game_Server::thd_1, 3);
-        add_executor(this, &Game_Server::thd_2);
-        add_executor(this, &Game_Server::thd_3, 3);
-    }
-
-    void thd_1()
-    {
-        while(true)
-        {
-            sleep(1);
-            cout << "thd_11111111111111111" << endl;
-        }        
-    }
-
-    void thd_2()
-    {
-        while(true)
-        {
-            sleep(1);
-            
-        cout << "thd2222222222222" << endl;
-        }
-        
-    }
-
-    void thd_3()
-    {
-        while(true)
-        {
-            sleep(1);
-            
-        cout << "thd333333333333333333" << endl;
-        }
-        
-    }
+        cout << "gs: add_client" << endl;
+    }    
 };
+
+
     
 int ACE_MAIN (int argc, char *argv[])
 {
     //daemon(1, 1);
-    Game_Server sobj;
-    sobj.execute();    
-    sobj.wait();
+    gabriel::base::Connection conn;    
+
     
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;

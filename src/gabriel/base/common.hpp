@@ -28,52 +28,12 @@
 namespace gabriel {
 namespace base {
 
-enum SERVER_TYPE
-{
-    INVALID_SERVER = 0,
-    SUPERCENTER_SERVER = 1,    
-    CENTER_SERVER = 2,
-    RECORD_SERVER = 3,
-    LOGIN_SERVER = 4,
-    GAME_SERVER = 5,
-    GATEWAY_SERVER = 6,
-};
-
-enum CLIENT_TYPE
-{
-    INVALID_CLIENT = 0,
-    CENTER_CLIENT = CENTER_SERVER,
-    RECORD_CLIENT = RECORD_SERVER,
-    LOGIN_CLIENT = LOGIN_SERVER,
-    GAME_CLIENT = GAME_SERVER,
-    GATEWAY_CLIENT = GATEWAY_SERVER,
-    USER_CLIENT = GATEWAY_CLIENT + 1,
-};
-
 struct Point
 {
-    Point(int32 x, int32 y)
-    {
-        m_x = x;
-        m_y = y;
-    }
-
-    Point()
-    {
-        m_x = 0;
-        m_y = 0;
-    }
-
-    int32 hash() const
-    {
-        return m_x * 10000 + m_y;        
-    }
-    
-    bool operator==(const Point &pos) const
-    {
-        return m_x == pos.m_x && m_y == pos.m_y;
-    }    
-    
+    Point(int32 x, int32 y);    
+    Point();
+    int32 hash() const;    
+    bool operator==(const Point &pos) const;    
     int32 m_x;
     int32 m_y;
 };
@@ -84,15 +44,15 @@ class Guard_Scope_Value
 public:
     Guard_Scope_Value(T &value, T in_value, T out_value) : m_value(value)
     {
-        m_value = in_value;
-        m_out_value = out_value;        
+        m_value = value;
+        m_out_value = out_value;
     }
-
+    
     ~Guard_Scope_Value()
     {
-        m_value = m_out_value;        
+        m_value = m_out_value;
     }
-
+            
     T &m_value;
     T m_out_value;    
 };

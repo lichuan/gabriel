@@ -23,16 +23,24 @@
 #ifndef GABRIEL__BASE__CONNECTION
 #define GABRIEL__BASE__CONNECTION
 
+#include "ace/Svc_Handler.h"
+#include "ace/SOCK_Stream.h"
+
 namespace gabriel {
 namespace base {
-
-class Connection
+    
+class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>
 {
+    typedef ACE_Svc_Handler Super;    
 public:
     Connection();
     virtual ~Connection();
-    virtual void on_disconnect() = 0;
-    void disconnect();
+    virtual int open(void*);
+    virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
+    virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
+    
+protected:
+    ACE_Message_Queue<ACE_MT_SYNCH> *m_decode_queue;
 };
 
 }

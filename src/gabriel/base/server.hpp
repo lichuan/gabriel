@@ -23,7 +23,10 @@
 #ifndef GABRIEL__BASE__SERVER
 #define GABRIEL__BASE__SERVER
 
+#include <iostream>
 #include "gabriel/base/connection.hpp"
+
+using namespace std;
 
 namespace gabriel {
 namespace base {
@@ -31,6 +34,10 @@ namespace base {
 class Server
 {
 public:
+    virtual void add_client()
+    {
+        cout << "add_client()" << endl;
+    }    
 };
 
 }
