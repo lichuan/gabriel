@@ -158,7 +158,7 @@ protected:
     template<typename Concrete_Entity>
     void exec_all(Entity_Exec<Concrete_Entity> &cb)
     {
-        Guard_Scope_Val<bool> scope_val(m_in_iteration, true, false);
+        Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
@@ -169,7 +169,7 @@ protected:
     template<typename Concrete_Entity>
     bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
-        Guard_Scope_Val<bool> scope_val(m_in_iteration, true, false);
+        Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
@@ -186,7 +186,7 @@ protected:
     bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
         bool ret = false;
-        Guard_Scope_Val<bool> scope_val(m_in_iteration, true, false);
+        Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
@@ -217,7 +217,7 @@ protected:
             return false;
         }
         
-        Guard_Scope_Val<bool> scope_val(m_in_iteration, true, false);
+        Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         bool ret = false;
 
         for(typename std::map<Key, Entity*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)

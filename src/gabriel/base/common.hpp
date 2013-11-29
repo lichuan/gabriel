@@ -27,7 +27,29 @@
 
 namespace gabriel {
 namespace base {
-    
+
+enum SERVER_TYPE
+{
+    INVALID_SERVER = 0,
+    SUPERCENTER_SERVER = 1,    
+    CENTER_SERVER = 2,
+    RECORD_SERVER = 3,
+    LOGIN_SERVER = 4,
+    GAME_SERVER = 5,
+    GATEWAY_SERVER = 6,
+};
+
+enum CLIENT_TYPE
+{
+    INVALID_CLIENT = 0,
+    CENTER_CLIENT = CENTER_SERVER,
+    RECORD_CLIENT = RECORD_SERVER,
+    LOGIN_CLIENT = LOGIN_SERVER,
+    GAME_CLIENT = GAME_SERVER,
+    GATEWAY_CLIENT = GATEWAY_SERVER,
+    USER_CLIENT = GATEWAY_CLIENT + 1,
+};
+
 struct Point
 {
     Point(int32 x, int32 y)
@@ -57,22 +79,22 @@ struct Point
 };
 
 template<typename T>
-class Guard_Scope_Val
+class Guard_Scope_Value
 {
 public:
-    Guard_Scope_Val(T &val, T in_val, T out_val) : m_val(val)
+    Guard_Scope_Value(T &value, T in_value, T out_value) : m_value(value)
     {
-        m_val = in_val;
-        m_out_val = out_val;        
+        m_value = in_value;
+        m_out_value = out_value;        
     }
 
-    ~Guard_Scope_Val()
+    ~Guard_Scope_Value()
     {
-        m_val = m_out_val;        
+        m_value = m_out_value;        
     }
 
-    T &m_val;
-    T m_out_val;    
+    T &m_value;
+    T m_out_value;    
 };
     
 }
