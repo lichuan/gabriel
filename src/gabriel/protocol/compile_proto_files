@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+protoc -I=./proto_files --cpp_out=./ ./proto_files/*.proto
