@@ -2,6 +2,6 @@
 /.sconsign*
 /src/3rd-party/*
 /src/cscope*
-/src/gabriel/protocol/*.pb.*
+/src/gabriel/protocol/generated
 
 
