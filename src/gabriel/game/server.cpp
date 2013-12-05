@@ -31,6 +31,7 @@
 #include "gabriel/base/thread.hpp"
 #include "gabriel/base/connection.hpp"
 #include "gabriel/base/server.hpp"
+#include "gabriel/base/entity.hpp"
 
 using namespace std;
 
@@ -131,17 +132,31 @@ class Game_Server : public gabriel::base::Server
 public:
     virtual void add_client()
     {
-        cout << "gs: add_client" << endl;
+        CCk a = 'i';        
+        cout << "gs: add_client" << endl;        
     }    
 };
 
+class A : public gabriel::base::Entity<uint64>
+{
+public:
+};
 
-    
 int ACE_MAIN (int argc, char *argv[])
 {
+    cout  << RAND_MAX << endl;
     //daemon(1, 1);
-    gabriel::base::Connection conn;    
+    //gabriel::base::Connection conn;
+    gabriel::base::Entity_Manager<A, gabriel::base::KEY_ID> amgr;
+    A obj;
+    obj.id(8989);
+    amgr.add_entity(&obj);
+    gabriel::base::KEY_NONE_1<A> kn1;
+    A *jj = amgr.get_entity(8989);
 
+    cout << jj << endl;
+    
+    
     
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;

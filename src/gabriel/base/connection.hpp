@@ -25,24 +25,46 @@
 
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
+#include "gabriel/base/common.hpp"
 
 namespace gabriel {
 namespace base {
+
+struct Msg_Pkg
+{
+    Msg_Pkg()
+    {
+        m_msg_type = 0;
+        m_msg_id = 0;
+        m_msg_size = 0;
+        m_msg = NULL;        
+    }
+
+    uint32 m_msg_type;
+    uint32 m_msg_id;
+    uint32 m_msg_size;
+    void *m_msg;
+};
+
+class Server;
     
 class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>
 {
     typedef ACE_Svc_Handler Super;    
 public:
     Connection();
-    virtual ~Connection();
+    virtual ~Connection();    
     virtual int open(void*);
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
+    virtual Server* holder() = 0;
     
 protected:
-    ACE_Message_Queue<ACE_MT_SYNCH> *m_decode_queue;
+    ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
+    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
+    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
 };
-
+    
 }
 }
 

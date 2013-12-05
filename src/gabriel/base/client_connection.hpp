@@ -31,6 +31,8 @@ namespace base {
 class Client_Connection : public Connection
 {
 public:
+    Client_Connection();
+    virtual ~Client_Connection();    
 };
 
 }

@@ -34,6 +34,12 @@ namespace base {
 class Server
 {
 public:
+    typedef char CCk;
+    static void sss()
+    {
+        cout << "server::sss" << endl;
+    }
+    
     virtual void add_client()
     {
         cout << "add_client()" << endl;

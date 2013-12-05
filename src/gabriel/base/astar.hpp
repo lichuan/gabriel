@@ -282,9 +282,6 @@ private:
 template<int32 MAX_NODE>
 class Astar
 {
-    template<typename, typename>
-    friend class ACE_Singleton;    
-    
 public:
     //对每一次查找单独创建一个A星实现类，以支持在多线程环境中进行A星寻路
     std::list<Point> find_path(const Astar_Point_Check &point_check, const Point &src_pos, const Point &dest_pos) const
@@ -293,8 +290,7 @@ public:
         
         return impl.find_path(src_pos, dest_pos);
     }
-
-private:
+    
     Astar()
     {
     }
