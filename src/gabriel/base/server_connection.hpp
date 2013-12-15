@@ -33,11 +33,7 @@ class Server_Connection : public Connection
 public:
     Server_Connection();
     virtual ~Server_Connection();
-    virtual Server* holder();    
-    void holder(Server *_holder);
-    
-private:
-    Server *m_server;
+    virtual int open(void *acceptor_or_connector);
 };
 
 }

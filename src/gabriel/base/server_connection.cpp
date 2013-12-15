@@ -16,27 +16,33 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 08:59:53                                        *
+ *   @date: 2013-12-15 23:22:16                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__CLIENT_CONNECTION
-#define GABRIEL__BASE__CLIENT_CONNECTION
-
-#include "gabriel/base/connection.hpp"
+#include "ace/SOCK_Connector.h"
+#include "gabriel/base/server_connection.hpp"
+#include "gabriel/base/connector.hpp"
 
 namespace gabriel {
 namespace base {
 
-class Client_Connection : public Connection
-{    
-public:
-    Client_Connection();
-    virtual ~Client_Connection();
-    virtual int open(void *acceptor_or_connector);
-};
+Server_Connection::Server_Connection()
+{
+}
+    
+Server_Connection::~Server_Connection()
+{
+}
+    
+int Server_Connection::open(void *acceptor_or_connector)
+{
+    typedef Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> Connector;
+    Connector *connector = static_cast<Connector*>(acceptor_or_connector);
+    m_holder = connector->holder();
+    
+    return Connection::open(acceptor_or_connector);    
+}
 
 }
 }
-
-#endif

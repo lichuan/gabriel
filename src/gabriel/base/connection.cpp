@@ -32,20 +32,21 @@ Connection::Connection() :
 {
     water_marks(ACE_IO_Cntl_Msg::SET_HWM, MSG_QUEUE_HWM);
     water_marks(ACE_IO_Cntl_Msg::SET_LWM, MSG_QUEUE_LWM);
+    m_holder = NULL;    
 }
 
 Connection::~Connection()
 {
 }
 
-int Connection::open(void *)
+int Connection::open(void *acceptor_or_connector)
 {
     if(Super::open() == -1)
     {
         return -1;
     }
     
-    reactor()->register_handler(this, ACE_Event_Handler::WRITE_MASK);
+    return reactor()->register_handler(this, ACE_Event_Handler::WRITE_MASK);
 }
 
 int Connection::handle_input(ACE_HANDLE hd)

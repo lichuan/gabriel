@@ -23,10 +23,13 @@
 #ifndef GABRIEL__BASE__SERVER
 #define GABRIEL__BASE__SERVER
 
-#include <iostream>
-#include "gabriel/base/connection.hpp"
-
-using namespace std;
+#include "ace/SOCK_Acceptor.h"
+#include "ace/SOCK_Connector.h"
+#include "gabriel/base/connector.hpp"
+#include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/client_connection.hpp"
+#include "gabriel/base/server_connection.hpp"
 
 namespace gabriel {
 namespace base {
@@ -34,20 +37,15 @@ namespace base {
 class Server
 {
 public:
-    typedef char CCk;
-    static void sss()
-    {
-        cout << "server::sss" << endl;
-    }
+    Server();
+    virtual ~Server();
     
-    virtual void add_client()
-    {
-        cout << "add_client()" << endl;
-    }    
+private:    
+    Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
+    Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;    
 };
 
 }
 }
 
 #endif
-

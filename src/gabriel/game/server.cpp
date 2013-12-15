@@ -132,7 +132,6 @@ class Game_Server : public gabriel::base::Server
 public:
     virtual void add_client()
     {
-        CCk a = 'i';        
         cout << "gs: add_client" << endl;        
     }    
 };

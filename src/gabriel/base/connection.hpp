@@ -54,15 +54,15 @@ class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>
 public:
     Connection();
     virtual ~Connection();    
-    virtual int open(void*);
+    virtual int open(void *acceptor_or_connector);
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
-    virtual Server* holder() = 0;
     
 protected:
     ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
+    Server *m_holder;
 };
     
 }

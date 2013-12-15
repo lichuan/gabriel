@@ -16,27 +16,22 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 08:59:53                                        *
+ *   @date: 2013-12-15 23:33:45                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__CLIENT_CONNECTION
-#define GABRIEL__BASE__CLIENT_CONNECTION
-
-#include "gabriel/base/connection.hpp"
+#include "gabriel/base/server.hpp"
 
 namespace gabriel {
 namespace base {
 
-class Client_Connection : public Connection
-{    
-public:
-    Client_Connection();
-    virtual ~Client_Connection();
-    virtual int open(void *acceptor_or_connector);
-};
-
-}
+Server::Server() : m_acceptor(this), m_connector(this)
+{
 }
 
-#endif
+Server::~Server()
+{
+}
+    
+}
+}

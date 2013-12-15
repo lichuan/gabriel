@@ -16,27 +16,31 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 08:59:53                                        *
+ *   @date: 2013-12-15 23:51:05                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__CLIENT_CONNECTION
-#define GABRIEL__BASE__CLIENT_CONNECTION
-
-#include "gabriel/base/connection.hpp"
+#include "gabriel/base/connector.hpp"
 
 namespace gabriel {
 namespace base {
 
-class Client_Connection : public Connection
-{    
-public:
-    Client_Connection();
-    virtual ~Client_Connection();
-    virtual int open(void *acceptor_or_connector);
-};
-
-}
+template <typename SVC_HANDLER, typename PEER_CONNECTOR>
+Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::Gabriel_Connector(Server *holder)
+{
+    m_holder = holder;
 }
 
-#endif
+template <typename SVC_HANDLER, typename PEER_CONNECTOR>
+Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::~Gabriel_Connector()
+{
+}
+
+template <typename SVC_HANDLER, typename PEER_CONNECTOR>
+Server* Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::holder() const    
+{
+    return m_holder;
+}
+    
+}
+}
