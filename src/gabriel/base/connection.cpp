@@ -32,11 +32,27 @@ Connection::Connection() :
 {
     water_marks(ACE_IO_Cntl_Msg::SET_HWM, MSG_QUEUE_HWM);
     water_marks(ACE_IO_Cntl_Msg::SET_LWM, MSG_QUEUE_LWM);
-    m_holder = NULL;    
+    m_holder = NULL;
+    m_state = INVALID_STATE;    
 }
 
 Connection::~Connection()
 {
+}
+
+CONNECTION_STATE Connection::state() const
+{
+    return m_state;    
+}
+
+void Connection::state(CONNECTION_STATE _state)
+{
+    m_state = _state;
+}
+
+bool Connection::connected() const
+{
+    return m_state == CONNECTED_STATE;    
 }
 
 int Connection::open(void *acceptor_or_connector)
@@ -57,21 +73,13 @@ int Connection::handle_input(ACE_HANDLE hd)
     if(recv_size > 0)
     {
         msg_block->wr_ptr(recv_size);
-        
-        if(putq(msg_block) < 0)
-        {
-            delete msg_block;
-        }
+        putq(msg_block);
     }
     else
     {
-        delete msg_block;
-
-        if(recv_size == 0 || errno != EWOULDBLOCK)
-        {
-            //close
-            return -1;
-        }
+        msg_block->release();
+        state(CLOSED_STATE);
+        shutdown();
     }
 
     return 0;
@@ -80,17 +88,30 @@ int Connection::handle_input(ACE_HANDLE hd)
 int Connection::handle_output(ACE_HANDLE hd)
 {
     ACE_Message_Block *msg_block;
-
-    if(getq(msg_block) < -1)
-    {
-        return 0;
-    }
-    
+    m_send_queue_2.dequeue(msg_block);    
     int32 send_size = peer().send(msg_block, msg_block->length());
 
     if(send_size > 0)
-    {        
-    }    
+    {
+        msg_block->rd_ptr(send_size);
+
+        if(msg_block->length() > 0)
+        {
+            m_send_queue_2.enqueue_head(msg_block);
+        }
+        else
+        {
+            msg_block->release();
+        }
+    }
+    else
+    {
+        msg_block->release();
+        state(CLOSED_STATE);
+        shutdown();
+    }
+
+    return 0;
 }
 
 }

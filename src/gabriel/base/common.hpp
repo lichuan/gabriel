@@ -66,7 +66,7 @@ public:
         m_id = 1;
     }
 
-    T new_id();
+    T new_id();    
     
 private:
     T m_id;    

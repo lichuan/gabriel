@@ -40,11 +40,13 @@ public:
     Server();
     virtual ~Server();
     void add_client_connection(Client_Connection *cli_conn);
-    
-private:
-    ID_Allocator<> m_client_id_allocator;    
+
+protected:
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
-    Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;    
+    Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
+
+private:
+    ID_Allocator<> m_client_id_allocator;
 };
 
 }

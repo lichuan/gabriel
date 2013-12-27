@@ -58,12 +58,18 @@ public:
     virtual int open(void *acceptor_or_connector);
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
+    CONNECTION_STATE state() const;
+    void state(CONNECTION_STATE _state);
+    bool connected() const;    
     
 protected:
     ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
     Server *m_holder;
+
+private:
+    CONNECTION_STATE m_state;    
 };
     
 }

@@ -85,6 +85,14 @@ enum CLIENT_TYPE
     USER_CLIENT = GATEWAY_CLIENT + 1,
 };
 
+enum CONNECTION_STATE
+{
+    INVALID_STATE = 0,
+    CONNECTED_STATE = 1,
+    CLOSING_STATE = 2,
+    CLOSED_STATE = 3,
+};
+
 }
 }
 
