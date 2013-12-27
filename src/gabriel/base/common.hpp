@@ -56,7 +56,44 @@ public:
     T &m_value;
     T m_out_value;    
 };
+
+template<typename T = uint32>
+class ID_Allocator
+{
+public:
+    ID_Allocator()
+    {
+        m_id = 1;
+    }
+
+    T new_id();
     
+private:
+    T m_id;    
+};
+
+template<>
+uint32 ID_Allocator<uint32>::new_id()
+{
+    if(m_id >= MAX_UINT32)
+    {
+        m_id = 1;
+    }
+
+    return m_id++;
+}
+
+template<>
+uint64 ID_Allocator<uint64>::new_id()
+{
+    if(m_id >= MAX_UINT64)
+    {
+        m_id = 1;
+    }
+
+    return m_id++;
+}
+
 }
 }
 

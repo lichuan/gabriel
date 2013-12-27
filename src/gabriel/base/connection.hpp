@@ -26,6 +26,7 @@
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
 #include "gabriel/base/common.hpp"
+#include "gabriel/base/entity.hpp"
 
 namespace gabriel {
 namespace base {
@@ -48,7 +49,7 @@ struct Msg_Pkg
 
 class Server;
     
-class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>
+class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>
 {
     typedef ACE_Svc_Handler Super;    
 public:

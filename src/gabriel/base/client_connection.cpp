@@ -23,6 +23,7 @@
 #include "ace/SOCK_Acceptor.h"
 #include "gabriel/base/client_connection.hpp"
 #include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/server.hpp"
 
 namespace gabriel {
 namespace base {
@@ -30,7 +31,7 @@ namespace base {
 Client_Connection::Client_Connection()
 {
 }
-    
+
 Client_Connection::~Client_Connection()
 {
 }
@@ -39,9 +40,15 @@ int Client_Connection::open(void *acceptor_or_connector)
 {
     typedef Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> Acceptor;
     Acceptor *acceptor = static_cast<Acceptor*>(acceptor_or_connector);
-    m_holder = acceptor->holder();
+    m_holder = acceptor->holder();    
+    int open_ret = Connection::open(acceptor_or_connector);
 
-    return Connection::open(acceptor_or_connector);
+    if(open_ret >= 0) //success
+    {
+        m_holder->add_client_connection(this);
+    }
+
+    return open_ret;
 }
 
 }

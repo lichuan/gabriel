@@ -32,6 +32,14 @@ Server::Server() : m_acceptor(this), m_connector(this)
 Server::~Server()
 {
 }
+
+void Server::add_client_connection(Client_Connection *cli_conn)
+{
+    int unique_id = 0;
+    while(get_entity(unique_id = m_client_id_allocator.new_id()) != NULL);
+    cli_conn->id(unique_id);
+    add_entity(cli_conn);
+}
     
 }
 }
