@@ -89,14 +89,14 @@ public:
         }
     }
     
-    void add_executor(T *object, void (T::*executor)(), int32 num_thread = 1)
+    void add_executor(void (T::*executor)(), int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
             return;
         }
     
-        m_executor_list[m_cur_executor_idx++].set_execute_context(object, executor, num_thread);
+        m_executor_list[m_cur_executor_idx++].set_execute_context(static_cast<T*>(this), executor, num_thread);
     }
 
 private:

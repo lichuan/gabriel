@@ -28,25 +28,33 @@
 #include "gabriel/base/connector.hpp"
 #include "gabriel/base/acceptor.hpp"
 #include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/thread.hpp"
 #include "gabriel/base/client_connection.hpp"
 #include "gabriel/base/server_connection.hpp"
 
 namespace gabriel {
 namespace base {
 
-class Server : public Entity_Manager<Client_Connection, KEY_ID>
+class Server : public Entity_Manager<Client_Connection, KEY_ID>, public Thread<Server>
 {
 public:
     Server();
     virtual ~Server();
-    void add_client_connection(Client_Connection *cli_conn);
-
+    void add_client_connection(Client_Connection *client_connection);
+    void init();
+    
 protected:
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
 
 private:
-    ID_Allocator<> m_client_id_allocator;
+    void decode_msg();
+    void encode_msg();
+    virtual void pre_init();    
+    virtual void post_init();    
+    ID_Allocator<> m_client_connection_id_allocator;
+    ID_Allocator<> m_server_connection_id_allocator;    
+    //Entity_Manager<Server_Connection, KEY_ID> m_server_connections;    
 };
 
 }

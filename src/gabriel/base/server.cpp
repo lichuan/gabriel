@@ -33,12 +33,24 @@ Server::~Server()
 {
 }
 
-void Server::add_client_connection(Client_Connection *cli_conn)
+void Server::init()
+{
+}
+
+void Server::pre_init()
+{
+}
+
+void Server::post_init()
+{
+}
+
+void Server::add_client_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;
-    while(get_entity(unique_id = m_client_id_allocator.new_id()) != NULL);
-    cli_conn->id(unique_id);
-    add_entity(cli_conn);
+    while(get_entity(unique_id = m_client_connection_id_allocator.new_id()) != NULL);
+    client_connection->id(unique_id);
+    add_entity(client_connection);
 }
     
 }

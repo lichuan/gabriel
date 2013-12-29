@@ -55,6 +55,22 @@ bool Connection::connected() const
     return m_state == CONNECTED_STATE;    
 }
 
+void Connection::encode_send_msg()
+{
+}
+    
+void Connection::decode_recv_msg()
+{
+    ACE_Message_Block *msg_block;
+
+    if(msg_queue()->is_empty())
+    {
+        return;
+    }
+
+    getq(msg_block);
+}
+    
 int Connection::open(void *acceptor_or_connector)
 {
     if(Super::open() == -1)
@@ -87,6 +103,13 @@ int Connection::handle_input(ACE_HANDLE hd)
 
 int Connection::handle_output(ACE_HANDLE hd)
 {
+    if(m_send_queue_2.is_empty())
+    {
+        reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+
+        return 0;        
+    }
+    
     ACE_Message_Block *msg_block;
     m_send_queue_2.dequeue(msg_block);    
     int32 send_size = peer().send(msg_block, msg_block->length());

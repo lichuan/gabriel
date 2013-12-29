@@ -253,12 +253,12 @@ protected:
     {
     }
 
-    bool add_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    bool add_entity(Concrete_Entity *entity)
     {
         return Super::add_entity(entity->id(), entity);
     }
 
-    void delete_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    void delete_entity(Concrete_Entity *entity)
     {
         Super::delete_entity(entity->id());
     }
@@ -274,12 +274,12 @@ protected:
     {
     }
 
-    bool add_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    bool add_entity(Concrete_Entity *entity)
     {
         return Super::add_entity(entity->name(), entity);
     }
 
-    void delete_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    void delete_entity(Concrete_Entity *entity)
     {
         Super::delete_entity(entity->name());
     }    
@@ -298,12 +298,12 @@ protected:
     {
     }
 
-    bool add_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    bool add_entity(Concrete_Entity *entity)
     {
         return true;        
     }
     
-    void delete_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    void delete_entity(Concrete_Entity *entity)
     {
     }    
 };
@@ -347,7 +347,7 @@ public:
     {
     }
     
-    bool add_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    bool add_entity(Concrete_Entity *entity)
     {
         if(!Super1::add_entity(entity))
         {

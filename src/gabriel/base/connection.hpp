@@ -60,7 +60,9 @@ public:
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     CONNECTION_STATE state() const;
     void state(CONNECTION_STATE _state);
-    bool connected() const;    
+    bool connected() const;
+    void decode_recv_msg();
+    void encode_send_msg();
     
 protected:
     ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
