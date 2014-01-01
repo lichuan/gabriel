@@ -37,14 +37,12 @@ struct Msg_Pkg
     {
         m_msg_type = 0;
         m_msg_id = 0;
-        m_msg_size = 0;
-        m_msg = NULL;        
+        m_msg_block = NULL;        
     }
 
     uint32 m_msg_type;
     uint32 m_msg_id;
-    uint32 m_msg_size;
-    void *m_msg;
+    ACE_Message_Block *m_msg_block;
 };
 
 class Server;
@@ -65,13 +63,14 @@ public:
     void encode_send_msg();
     
 protected:
-    ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
-    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
-    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
     Server *m_holder;
 
 private:
-    CONNECTION_STATE m_state;    
+    ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
+    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
+    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
+    CONNECTION_STATE m_state;
+    bool m_cancel_write;    
 };
     
 }

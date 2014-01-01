@@ -33,7 +33,8 @@ Connection::Connection() :
     water_marks(ACE_IO_Cntl_Msg::SET_HWM, MSG_QUEUE_HWM);
     water_marks(ACE_IO_Cntl_Msg::SET_LWM, MSG_QUEUE_LWM);
     m_holder = NULL;
-    m_state = INVALID_STATE;    
+    m_state = INVALID_STATE;
+    m_cancel_write = true;
 }
 
 Connection::~Connection()
@@ -57,6 +58,21 @@ bool Connection::connected() const
 
 void Connection::encode_send_msg()
 {
+    ACE_Message_Block *msg_block;
+
+    if(m_send_queue_1.is_empty())
+    {
+        return;
+    }
+
+    //m_send_queue_1.dequeue(msg_block);
+    m_send_queue_2.enqueue_tail(msg_block);
+
+    if(m_cancel_write)
+    {
+        reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        m_cancel_write = false;        
+    }
 }
     
 void Connection::decode_recv_msg()
@@ -69,6 +85,7 @@ void Connection::decode_recv_msg()
     }
 
     getq(msg_block);
+    //m_recv_msg_queue.enqueue_tail(msg_block);
 }
     
 int Connection::open(void *acceptor_or_connector)
@@ -106,6 +123,7 @@ int Connection::handle_output(ACE_HANDLE hd)
     if(m_send_queue_2.is_empty())
     {
         reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        m_cancel_write = true;        
 
         return 0;        
     }
