@@ -30,21 +30,7 @@
 
 namespace gabriel {
 namespace base {
-
-struct Message
-{
-    Message()
-    {
-        m_msg_type = 0;
-        m_msg_id = 0;
-        m_msg_data = NULL;
-    }
-
-    uint32 m_msg_type;
-    uint32 m_msg_id;
-    ACE_Message_Block *m_msg_data;    
-};
-
+    
 class Server;
     
 class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>
@@ -68,11 +54,13 @@ protected:
     void shutdown();
 
 private:
-    ACE_Message_Queue_Ex<Message, ACE_MT_SYNCH> m_recv_queue;
-    ACE_Message_Queue_Ex<Message, ACE_MT_SYNCH> m_send_queue_1;
+    uint32 decode_msg_length();    
+    ACE_Message_Queue<ACE_MT_SYNCH> m_recv_queue;
+    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
     CONNECTION_STATE m_state;
-    bool m_cancel_write;    
+    bool m_cancel_write;
+    uint32 m_last_decode_msg_length;
 };
     
 }

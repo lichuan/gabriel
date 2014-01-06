@@ -45,6 +45,11 @@ void Server::post_init()
 {
 }
 
+bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
+{
+    return true;
+}
+
 void Server::add_client_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;

@@ -35,6 +35,7 @@ Connection::Connection() :
     m_holder = NULL;
     m_state = INVALID_STATE;
     m_cancel_write = true;
+    m_last_decode_msg_length = 0;    
 }
 
 Connection::~Connection()
@@ -58,13 +59,15 @@ bool Connection::connected() const
 
 void Connection::send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    Message *msg = new Message;
-    msg->m_msg_type = msg_type;
-    msg->m_msg_id = msg_id;
-    ACE_Message_Block *msg_data = new ACE_Message_Block(size);
-    msg_data->copy(static_cast<char*>(data), size);
-    msg->m_msg_data = msg_data;    
-    m_send_queue_1.enqueue_tail(msg);
+    const uint32 msg_size = sizeof(uint32) * 3 + size;    
+    ACE_Message_Block *msg_block = new ACE_Message_Block(msg_size);
+    uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());
+    uint32_msg[0] = ACE_HTONL(msg_size);
+    uint32_msg[1] = ACE_HTONL(msg_type);
+    uint32_msg[2] = ACE_HTONL(msg_id);
+    msg_block->wr_ptr(sizeof(uint32) * 3);    
+    msg_block->copy(static_cast<char*>(data), size);
+    m_send_queue_1.enqueue_tail(msg_block);    
 }
     
 void Connection::encode()
@@ -73,20 +76,10 @@ void Connection::encode()
     {
         return;
     }
-    
-    Message *msg;
-    m_send_queue_1.dequeue(msg);
-    const uint32 encoded_msg_size = 3 * sizeof(uint32) + msg->m_msg_data->size();    
-    ACE_Message_Block *encoded_msg = new ACE_Message_Block(encoded_msg_size);    
-    uint32 *uint32_msg = reinterpret_cast<uint32*>(encoded_msg);
-    uint32_msg[0] = ACE_HTONL(encoded_msg_size);    
-    uint32_msg[1] = ACE_HTONL(msg->m_msg_type);
-    uint32_msg[2] = ACE_HTONL(msg->m_msg_id);
-    encoded_msg->wr_ptr(3 * sizeof(uint32));
-    encoded_msg->copy(msg->m_msg_data->base(), msg->m_msg_data->size());
-    m_send_queue_2.enqueue_tail(encoded_msg);
-    msg->m_msg_data->release();
-    delete msg;
+
+    ACE_Message_Block *msg_block;
+    m_send_queue_1.dequeue(msg_block);
+    m_send_queue_2.enqueue_tail(msg_block);
     
     if(m_cancel_write)
     {
@@ -94,17 +87,104 @@ void Connection::encode()
         m_cancel_write = false;
     }
 }
+
+uint32 Connection::decode_msg_length()
+{
+    if(m_last_decode_msg_length != 0)
+    {
+        return 0;        
+    }
+    
+    if(msg_queue()->message_length() < sizeof(uint32))
+    {
+        return 0;
+    }
+    
+    ACE_Message_Block *cur_msg_block = NULL;
+    uint32 remain_bytes = sizeof(uint32);
+    char *cur_ptr = reinterpret_cast<char*>(&m_last_decode_msg_length);
+    
+    for(;;)
+    {
+        getq(cur_msg_block);
+
+        if(cur_msg_block->length() >= remain_bytes)
+        {
+            ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), remain_bytes);
+            cur_msg_block->rd_ptr(remain_bytes);
+            
+            if(cur_msg_block->length() > 0)
+            {
+                ungetq(cur_msg_block);
+            }
+            else
+            {
+                cur_msg_block->release();
+            }
+
+            break;
+        }
+
+        ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), cur_msg_block->length());
+        remain_bytes -= cur_msg_block->length();            
+        cur_ptr += cur_msg_block->length();        
+        cur_msg_block->release();
+    }
+
+    m_last_decode_msg_length = ACE_NTOHL(m_last_decode_msg_length);
+
+    return m_last_decode_msg_length;
+}
     
 void Connection::decode()
 {
-    ACE_Message_Block *msg_block;
-
-    if(msg_queue()->is_empty())
+    if(decode_msg_length() == 0)
     {
         return;
     }
 
-    getq(msg_block);    
+    if(m_last_decode_msg_length == sizeof(uint32))
+    {
+        return;
+    }
+
+    uint32 remain_bytes = m_last_decode_msg_length - sizeof(uint32);
+    
+    if(msg_queue()->message_length() < remain_bytes)
+    {
+        return;
+    }
+
+    ACE_Message_Block *msg_block = new ACE_Message_Block(remain_bytes);
+    ACE_Message_Block *cur_msg_block = NULL;
+    
+    for(;;)
+    {
+        getq(cur_msg_block);
+
+        if(cur_msg_block->length() >= remain_bytes)
+        {
+            msg_block->copy(cur_msg_block->rd_ptr(), remain_bytes);
+            cur_msg_block->rd_ptr(remain_bytes);
+            
+            if(cur_msg_block->length() > 0)
+            {
+                ungetq(cur_msg_block);
+            }
+            else
+            {
+                cur_msg_block->release();
+            }
+
+            break;
+        }
+
+        msg_block->copy(cur_msg_block->rd_ptr(), cur_msg_block->length());
+        remain_bytes -= cur_msg_block->length();
+        cur_msg_block->release();
+    }
+
+    m_recv_queue.enqueue_tail(msg_block);    
 }
     
 int Connection::open(void *acceptor_or_connector)
@@ -163,7 +243,7 @@ int Connection::handle_output(ACE_HANDLE hd)
     
     ACE_Message_Block *msg_block;
     m_send_queue_2.dequeue(msg_block);    
-    int32 send_size = peer().send(msg_block, msg_block->length());
+    int32 send_size = peer().send(msg_block->rd_ptr(), msg_block->length());
     
     if(send_size > 0)
     {

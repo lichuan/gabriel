@@ -41,15 +41,16 @@ public:
     Server();
     virtual ~Server();
     void add_client_connection(Client_Connection *client_connection);
-    void init();
+    void init();    
+    virtual bool verify_connection(Client_Connection *client_connection);
     
 protected:
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
 
 private:
-    void decode_msg();
-    void encode_msg();
+    void decode_thread();    
+    void encode_thread();
     virtual void pre_init();    
     virtual void post_init();    
     ID_Allocator<> m_client_connection_id_allocator;
