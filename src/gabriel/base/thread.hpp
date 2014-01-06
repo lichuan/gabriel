@@ -37,6 +37,7 @@ public:
     {
         m_object = NULL;
         m_num_thread = 0;
+        m_waited = false;        
     }
     
     void execute()
@@ -50,6 +51,18 @@ public:
 
         return 0;
     }
+
+    int wait()
+    {
+        if(!m_waited)
+        {
+            m_waited = true;
+            
+            return ACE_Task_Base::wait();
+        }
+
+        return 0;        
+    }
     
     void set_execute_context(T *object, void (T::*executor)(), int32 num_thread)
     {
@@ -61,7 +74,8 @@ public:
 private:
     T *m_object;
     void (T::*m_executor)();
-    int32 m_num_thread;    
+    int32 m_num_thread;
+    bool m_waited;    
 };
 
 template<typename T, int32 MAX_EXECUTOR = 10>
@@ -88,12 +102,35 @@ public:
             m_executor_list[i].wait();
         }
     }
+
+    void wait(int32 idx)
+    {
+        if(idx < 0 || idx >= MAX_EXECUTOR)
+        {
+            return;
+        }
+
+        m_executor_list[idx].wait();
+    }
     
-    void add_executor(void (T::*executor)(), int32 num_thread = 1)
+    int32 start_executor_instantly(void (T::*executor)(), int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
-            return;
+            return -1;
+        }
+
+        m_executor_list[m_cur_executor_idx].set_execute_context(static_cast<T*>(this), executor, num_thread);
+        m_executor_list[m_cur_executor_idx].execute();
+
+        return m_cur_executor_idx++;
+    }
+    
+    int32 add_executor(void (T::*executor)(), int32 num_thread = 1)
+    {
+        if(m_cur_executor_idx >= MAX_EXECUTOR)
+        {
+            return -1;
         }
     
         m_executor_list[m_cur_executor_idx++].set_execute_context(static_cast<T*>(this), executor, num_thread);

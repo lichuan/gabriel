@@ -31,18 +31,18 @@
 namespace gabriel {
 namespace base {
 
-struct Msg_Pkg
+struct Message
 {
-    Msg_Pkg()
+    Message()
     {
         m_msg_type = 0;
         m_msg_id = 0;
-        m_msg_block = NULL;        
+        m_msg_data = NULL;
     }
 
     uint32 m_msg_type;
     uint32 m_msg_id;
-    ACE_Message_Block *m_msg_block;
+    ACE_Message_Block *m_msg_data;    
 };
 
 class Server;
@@ -59,15 +59,17 @@ public:
     CONNECTION_STATE state() const;
     void state(CONNECTION_STATE _state);
     bool connected() const;
-    void decode_recv_msg();
-    void encode_send_msg();
+    void decode();
+    void encode();
+    void send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     
 protected:
     Server *m_holder;
+    void shutdown();
 
 private:
-    ACE_Message_Queue_Ex<Msg_Pkg, ACE_MT_SYNCH> m_recv_msg_queue;
-    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
+    ACE_Message_Queue_Ex<Message, ACE_MT_SYNCH> m_recv_queue;
+    ACE_Message_Queue_Ex<Message, ACE_MT_SYNCH> m_send_queue_1;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
     CONNECTION_STATE m_state;
     bool m_cancel_write;    

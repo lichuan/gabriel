@@ -41,7 +41,12 @@ int Server_Connection::open(void *acceptor_or_connector)
     Connector *connector = static_cast<Connector*>(acceptor_or_connector);
     m_holder = connector->holder();
     
-    return Connection::open(acceptor_or_connector);    
+    return Connection::open(acceptor_or_connector);
+}
+
+int Server_Connection::close(u_long flags)
+{
+    shutdown();
 }
 
 }

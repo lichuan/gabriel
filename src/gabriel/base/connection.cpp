@@ -26,7 +26,7 @@ namespace gabriel {
 namespace base {
 
 Connection::Connection() :
-    m_recv_msg_queue(MSG_QUEUE_HWM, MSG_QUEUE_LWM),
+    m_recv_queue(MSG_QUEUE_HWM, MSG_QUEUE_LWM),
     m_send_queue_1(MSG_QUEUE_HWM, MSG_QUEUE_LWM),
     m_send_queue_2(MSG_QUEUE_HWM, MSG_QUEUE_LWM)
 {
@@ -53,29 +53,49 @@ void Connection::state(CONNECTION_STATE _state)
 
 bool Connection::connected() const
 {
-    return m_state == CONNECTED_STATE;    
+    return m_state == CONNECTED_STATE;
 }
 
-void Connection::encode_send_msg()
+void Connection::send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    ACE_Message_Block *msg_block;
-
+    Message *msg = new Message;
+    msg->m_msg_type = msg_type;
+    msg->m_msg_id = msg_id;
+    ACE_Message_Block *msg_data = new ACE_Message_Block(size);
+    msg_data->copy(static_cast<char*>(data), size);
+    msg->m_msg_data = msg_data;    
+    m_send_queue_1.enqueue_tail(msg);
+}
+    
+void Connection::encode()
+{
     if(m_send_queue_1.is_empty())
     {
         return;
     }
-
-    //m_send_queue_1.dequeue(msg_block);
-    m_send_queue_2.enqueue_tail(msg_block);
-
+    
+    Message *msg;
+    m_send_queue_1.dequeue(msg);
+    const uint32 encoded_msg_size = 3 * sizeof(uint32) + msg->m_msg_data->size();    
+    ACE_Message_Block *encoded_msg = new ACE_Message_Block(encoded_msg_size);    
+    uint32 *uint32_msg = reinterpret_cast<uint32*>(encoded_msg);
+    uint32_msg[0] = ACE_HTONL(encoded_msg_size);    
+    uint32_msg[1] = ACE_HTONL(msg->m_msg_type);
+    uint32_msg[2] = ACE_HTONL(msg->m_msg_id);
+    encoded_msg->wr_ptr(3 * sizeof(uint32));
+    encoded_msg->copy(msg->m_msg_data->base(), msg->m_msg_data->size());
+    m_send_queue_2.enqueue_tail(encoded_msg);
+    msg->m_msg_data->release();
+    delete msg;
+    
     if(m_cancel_write)
     {
         reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-        m_cancel_write = false;        
+        m_cancel_write = false;
     }
 }
     
-void Connection::decode_recv_msg()
+void Connection::decode()
 {
     ACE_Message_Block *msg_block;
 
@@ -84,18 +104,24 @@ void Connection::decode_recv_msg()
         return;
     }
 
-    getq(msg_block);
-    //m_recv_msg_queue.enqueue_tail(msg_block);
+    getq(msg_block);    
 }
     
 int Connection::open(void *acceptor_or_connector)
 {
-    if(Super::open() == -1)
+    if(Super::open() < 0)
     {
         return -1;
     }
     
-    return reactor()->register_handler(this, ACE_Event_Handler::WRITE_MASK);
+    if(reactor()->register_handler(this, ACE_Event_Handler::WRITE_MASK) < 0)
+    {
+        return -1;
+    }
+
+    state(CONNECTED_STATE);
+
+    return 0;
 }
 
 int Connection::handle_input(ACE_HANDLE hd)
@@ -111,11 +137,18 @@ int Connection::handle_input(ACE_HANDLE hd)
     else
     {
         msg_block->release();
-        state(CLOSED_STATE);
         shutdown();
     }
 
     return 0;
+}
+
+void Connection::shutdown()
+{
+    ACE_Svc_Handler::shutdown();
+    state(CLOSED_STATE);
+    reactor(0);
+    recycler(0, 0);
 }
 
 int Connection::handle_output(ACE_HANDLE hd)
@@ -123,7 +156,7 @@ int Connection::handle_output(ACE_HANDLE hd)
     if(m_send_queue_2.is_empty())
     {
         reactor()->cancel_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-        m_cancel_write = true;        
+        m_cancel_write = true;
 
         return 0;        
     }
@@ -131,7 +164,7 @@ int Connection::handle_output(ACE_HANDLE hd)
     ACE_Message_Block *msg_block;
     m_send_queue_2.dequeue(msg_block);    
     int32 send_size = peer().send(msg_block, msg_block->length());
-
+    
     if(send_size > 0)
     {
         msg_block->rd_ptr(send_size);
@@ -148,10 +181,9 @@ int Connection::handle_output(ACE_HANDLE hd)
     else
     {
         msg_block->release();
-        state(CLOSED_STATE);
         shutdown();
     }
-
+    
     return 0;
 }
 

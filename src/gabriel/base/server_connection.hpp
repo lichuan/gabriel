@@ -34,6 +34,7 @@ public:
     Server_Connection();
     virtual ~Server_Connection();
     virtual int open(void *acceptor_or_connector);
+    virtual int close (u_long flags = 0);
 };
 
 }
