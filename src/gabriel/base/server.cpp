@@ -34,15 +34,31 @@ Server::~Server()
 {
 }
 
+void Server::main()
+{
+    init();
+    run();
+    fini();
+}
+    
 void Server::init()
 {
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;
     no_sigpipe.register_action (SIGPIPE, &original_action);
-    add_executor(&Server::reactor_thread);
-    add_executor(&Server::encode_thread);
-    add_executor(&Server::decode_thread);
+    add_executor(&Server::do_reactor);
+    add_executor(&Server::do_encode);    
+    add_executor(&Server::do_decode);
     daemon(1, 1);
+    init_hook();
+}
+
+void Server::init_hook()
+{
+}
+
+void Server::fini_hook()
+{
 }
 
 void Server::fini()
@@ -68,12 +84,12 @@ void Server::run()
     }    
 }
 
-void Server::reactor_thread()
+void Server::do_reactor()
 {
     ACE_Reactor::instance()->run_event_loop();
 }
 
-void Server::encode_thread()
+void Server::do_encode()
 {
     for(;;)
     {
@@ -92,7 +108,7 @@ void Server::encode_thread()
     }
 }
 
-void Server::decode_thread()
+void Server::do_decode()
 {
     for(;;)
     {

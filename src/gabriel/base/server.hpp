@@ -42,6 +42,7 @@ public:
     virtual ~Server();
     void add_client_connection(Client_Connection *client_connection);
     virtual bool verify_connection(Client_Connection *client_connection);
+    void main();    
     
 protected:
     void init();
@@ -51,11 +52,11 @@ protected:
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     
 private:
-    void reactor_thread();
-    void decode_thread();    
-    void encode_thread();
-    virtual void init_hook() = 0;
-    virtual void fini_hook() = 0;
+    void do_reactor();
+    void do_decode();
+    void do_encode();
+    virtual void init_hook();
+    virtual void fini_hook();    
     ID_Allocator<> m_client_connection_id_allocator;
     ID_Allocator<> m_server_connection_id_allocator;    
     //Entity_Manager<Server_Connection, KEY_ID> m_server_connections;    
