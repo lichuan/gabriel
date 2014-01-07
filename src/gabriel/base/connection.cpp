@@ -184,7 +184,7 @@ void Connection::decode()
         cur_msg_block->release();
     }
 
-    m_recv_queue.enqueue_tail(msg_block);    
+    m_recv_queue.enqueue_tail(msg_block);
 }
     
 int Connection::open(void *acceptor_or_connector)

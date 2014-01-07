@@ -20,6 +20,7 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "ace/Signal.h"
 #include "gabriel/base/server.hpp"
 
 namespace gabriel {
@@ -35,14 +36,79 @@ Server::~Server()
 
 void Server::init()
 {
+    ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
+    ACE_Sig_Action original_action;
+    no_sigpipe.register_action (SIGPIPE, &original_action);
+    add_executor(&Server::reactor_thread);
+    add_executor(&Server::encode_thread);
+    add_executor(&Server::decode_thread);
+    daemon(1, 1);
 }
 
-void Server::pre_init()
+void Server::fini()
 {
+    ACE_Reactor::instance()->close_singleton();
+    wait();
 }
 
-void Server::post_init()
+void Server::run()
 {
+    for(;;)
+    {
+        struct CB : Entity_Exec<Client_Connection>
+        {
+            bool exec(Client_Connection *client_connection)
+            {
+                return true;
+            }
+        };
+
+        CB cb;
+        exec_all(cb);
+    }    
+}
+
+void Server::reactor_thread()
+{
+    ACE_Reactor::instance()->run_event_loop();
+}
+
+void Server::encode_thread()
+{
+    for(;;)
+    {
+        struct CB : Entity_Exec<Client_Connection>
+        {
+            bool exec(Client_Connection *client_connection)
+            {
+                client_connection->encode();
+
+                return true;
+            }
+        };
+
+        CB cb;
+        exec_all(cb);
+    }
+}
+
+void Server::decode_thread()
+{
+    for(;;)
+    {
+        struct CB : Entity_Exec<Client_Connection>
+        {
+            bool exec(Client_Connection *client_connection)
+            {
+                client_connection->decode();
+
+                return true;
+            }
+        };
+
+        CB cb;
+        exec_all(cb);
+    }
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
