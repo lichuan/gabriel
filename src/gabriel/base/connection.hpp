@@ -48,12 +48,14 @@ public:
     void decode();
     void encode();
     void shutdown();
-    void send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    void dispatch();    
+    void send(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     
 protected:
     Server *m_holder;
 
 private:
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     uint32 decode_msg_length();    
     ACE_Message_Queue<ACE_MT_SYNCH> m_recv_queue;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;

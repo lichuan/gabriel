@@ -399,7 +399,7 @@ public:
         return static_cast<Concrete_Entity*>(Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_Name_Type>::Super::get_entity(key));
     }
     
-    void delete_entity(Entity<typename Concrete_Entity::Entity_ID_Type> *entity)
+    void delete_entity(Concrete_Entity *entity)
     {
         Super1::delete_entity(entity);
         Super2::delete_entity(entity);

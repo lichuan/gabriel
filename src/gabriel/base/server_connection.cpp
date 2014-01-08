@@ -23,6 +23,7 @@
 #include "ace/SOCK_Connector.h"
 #include "gabriel/base/server_connection.hpp"
 #include "gabriel/base/connector.hpp"
+#include "gabriel/base/server.hpp"
 
 namespace gabriel {
 namespace base {
@@ -33,6 +34,11 @@ Server_Connection::Server_Connection()
     
 Server_Connection::~Server_Connection()
 {
+}
+
+void Server_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    m_holder->dispatch(this, msg_type, msg_id, data, size);
 }
     
 int Server_Connection::open(void *acceptor_or_connector)

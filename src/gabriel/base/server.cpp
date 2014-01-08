@@ -36,11 +36,13 @@ Server::~Server()
 
 void Server::main()
 {
-    if(init() >= 0)
+    if(init() < 0)
     {
-        run();
-        fini();
+        return;
     }
+
+    run();
+    fini();
 }
 
 uint32 Server::state() const
@@ -61,6 +63,7 @@ int32 Server::init()
     add_executor(&Server::do_reactor);
     add_executor(&Server::do_encode);    
     add_executor(&Server::do_decode);
+    add_executor(&Server::do_main);
     daemon(1, 1);
     
     return init_hook();
@@ -68,7 +71,7 @@ int32 Server::init()
 
 int32 Server::init_hook()
 {
-    return 0;    
+    return 0;
 }
 
 void Server::fini_hook()
@@ -77,34 +80,73 @@ void Server::fini_hook()
 
 void Server::fini()
 {
-    ACE_Reactor::instance()->end_event_loop();
     wait();
     ACE_Reactor::instance()->close_singleton();
     fini_hook();
 }
 
-bool Server::should_shutdown()
+void Server::run()
 {
-    return state() >= SERVER_STATE::SHUTDOWN_STATE;
+    execute();
 }
 
-void Server::run()
+void Server::check_connection()
+{
+}
+    
+void Server::do_main()
 {
     state(SERVER_STATE::RUNNING_STATE);
 
-    while(!should_shutdown())
+    while(state() != SERVER_STATE::SHUTDOWN_STATE)
     {
         struct CB : Entity_Exec<Client_Connection>
         {
+            CB(Server *holder)
+            {
+                m_holder = holder;
+            }
+            
             bool exec(Client_Connection *client_connection)
             {
-                return true;
+                client_connection->close();
+
+                return true;                
             }
+            
+            bool can_delete(Client_Connection *client_connection) const
+            {
+                if(client_connection->state() == CONNECTION_STATE::RECYCLED_STATE)
+                {
+                    return true;
+                }
+
+                if(client_connection->state() == CONNECTION_STATE::SHUTDOWN_STATE)
+                {
+                    m_holder->on_client_connection_shutdown(client_connection);
+                    client_connection->state(CONNECTION_STATE::SHUTDOWN_STATE_1);
+                }
+                else if(client_connection->state() == CONNECTION_STATE::CONNECTED_STATE)
+                {
+                    client_connection->Connection::dispatch();
+                }
+
+                return false;
+            }
+
+            Server *m_holder;
         };
 
-        CB cb;
-        exec_all(cb);
-    }
+        CB cb(this);
+        delete_if(cb);
+        update();
+    };
+
+    ACE_Reactor::instance()->end_event_loop();
+}
+
+void Server::update()
+{
 }
 
 void Server::do_reactor()
@@ -114,7 +156,7 @@ void Server::do_reactor()
 
 void Server::do_encode()
 {
-    while(!should_shutdown())
+    while(state() != SERVER_STATE::SHUTDOWN_STATE)
     {
         struct CB : Entity_Exec<Client_Connection>
         {
@@ -133,7 +175,7 @@ void Server::do_encode()
 
 void Server::do_decode()
 {
-    while(!should_shutdown())
+    while(state() != SERVER_STATE::SHUTDOWN_STATE)
     {
         struct CB : Entity_Exec<Client_Connection>
         {

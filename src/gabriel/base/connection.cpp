@@ -56,17 +56,39 @@ bool Connection::connected() const
     return m_state == CONNECTION_STATE::CONNECTED_STATE;
 }
 
-void Connection::send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    if(!connected())
+    {
+        return;
+    }
+    
     const uint32 msg_size = sizeof(uint32) * 3 + size;    
     ACE_Message_Block *msg_block = new ACE_Message_Block(msg_size);
     uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());
     uint32_msg[0] = ACE_HTONL(msg_size);
     uint32_msg[1] = ACE_HTONL(msg_type);
     uint32_msg[2] = ACE_HTONL(msg_id);
-    msg_block->wr_ptr(sizeof(uint32) * 3);    
+    msg_block->wr_ptr(sizeof(uint32) * 3);
     msg_block->copy(static_cast<char*>(data), size);
     m_send_queue_1.enqueue_tail(msg_block);    
+}
+
+void Connection::dispatch()
+{
+    if(m_recv_queue.is_empty())
+    {
+        return;
+    }
+
+    ACE_Message_Block *msg_block;
+    m_recv_queue.dequeue(msg_block);
+    uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());
+    const uint32 msg_type = ACE_NTOHL(uint32_msg[0]);
+    const uint32 msg_id = ACE_NTOHL(uint32_msg[1]);
+    msg_block->rd_ptr(2 * sizeof(uint32));    
+    dispatch(msg_type, msg_id, msg_block->rd_ptr(), msg_block->length());
+    msg_block->release();
 }
     
 void Connection::encode()
@@ -125,7 +147,7 @@ uint32 Connection::decode_msg_length()
         }
 
         ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), cur_msg_block->length());
-        remain_bytes -= cur_msg_block->length();            
+        remain_bytes -= cur_msg_block->length();
         cur_ptr += cur_msg_block->length();        
         cur_msg_block->release();
     }
@@ -142,7 +164,7 @@ void Connection::decode()
         return;
     }
 
-    if(m_last_decode_msg_length <= sizeof(uint32))
+    if(m_last_decode_msg_length <= 3 * sizeof(uint32))
     {
         return;
     }
@@ -184,6 +206,7 @@ void Connection::decode()
     }
 
     m_recv_queue.enqueue_tail(msg_block);
+    m_last_decode_msg_length = 0;    
 }
     
 int Connection::open(void *acceptor_or_connector)

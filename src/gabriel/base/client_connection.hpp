@@ -34,6 +34,9 @@ public:
     Client_Connection();
     virtual ~Client_Connection();
     virtual int open(void *acceptor_or_connector);
+
+private:
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
 };
 
 }

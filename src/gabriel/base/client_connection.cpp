@@ -36,6 +36,11 @@ Client_Connection::~Client_Connection()
 {
 }
 
+void Client_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    m_holder->dispatch(this, msg_type, msg_id, data, size);
+}
+
 int Client_Connection::open(void *acceptor_or_connector)
 {
     typedef Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> Acceptor;

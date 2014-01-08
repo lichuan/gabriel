@@ -35,6 +35,9 @@ public:
     virtual ~Server_Connection();
     virtual int open(void *acceptor_or_connector);
     virtual int close (u_long flags = 0);
+
+private:
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
 };
 
 }
