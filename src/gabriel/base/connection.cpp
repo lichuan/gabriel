@@ -74,6 +74,19 @@ void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
     m_send_queue_1.enqueue_tail(msg_block);    
 }
 
+void Connection::do_main()
+{
+    if(state() == CONNECTION_STATE::SHUTDOWN_STATE)
+    {
+        on_shutdown();
+        state(CONNECTION_STATE::SHUTDOWN_STATE_1);
+    }
+    else if(state() == CONNECTION_STATE::CONNECTED_STATE)
+    {
+        dispatch();
+    }
+}
+
 void Connection::dispatch()
 {
     if(m_recv_queue.is_empty())
@@ -248,7 +261,7 @@ int Connection::handle_input(ACE_HANDLE hd)
 void Connection::shutdown()
 {
     ACE_Svc_Handler::shutdown();
-    state(CONNECTION_STATE::SHUTDOWN_STATE);    
+    state(CONNECTION_STATE::SHUTDOWN_STATE);
     reactor(0);
     recycler(0, 0);
 }

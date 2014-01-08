@@ -41,6 +41,11 @@ void Client_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uin
     m_holder->dispatch(this, msg_type, msg_id, data, size);
 }
 
+void Client_Connection::on_shutdown()
+{
+    m_holder->on_connection_shutdown(this);    
+}
+
 int Client_Connection::open(void *acceptor_or_connector)
 {
     typedef Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> Acceptor;
@@ -56,7 +61,7 @@ int Client_Connection::open(void *acceptor_or_connector)
 
     if(open_ret >= 0) //success
     {
-        m_holder->add_client_connection(this);
+        m_holder->add_connection(this);
     }
 
     return open_ret;

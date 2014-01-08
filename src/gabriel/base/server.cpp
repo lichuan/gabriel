@@ -90,58 +90,53 @@ void Server::run()
     execute();
 }
 
-void Server::check_connection()
+void Server::on_connection_shutdown(Client_Connection *client_connection)
 {
 }
+
+void Server::on_connection_shutdown(Server_Connection *server_connection)
+{
+}
+
+void Server::do_main_client_connection()
+{
+    struct CB : Entity_Exec<Client_Connection>
+    {
+        bool exec(Client_Connection *client_connection)
+        {
+            client_connection->close();
+
+            return true;
+        }
+            
+        bool can_delete(Client_Connection *client_connection) const
+        {
+            if(client_connection->state() == CONNECTION_STATE::RECYCLED_STATE)
+            {
+                return true;
+            }
+
+            client_connection->do_main();
+            
+            return false;
+        }
+    };
     
+    CB cb;    
+    delete_if(cb);
+}
+
 void Server::do_main()
 {
     state(SERVER_STATE::RUNNING_STATE);
 
     while(state() != SERVER_STATE::SHUTDOWN_STATE)
     {
-        struct CB : Entity_Exec<Client_Connection>
-        {
-            CB(Server *holder)
-            {
-                m_holder = holder;
-            }
-            
-            bool exec(Client_Connection *client_connection)
-            {
-                client_connection->close();
-
-                return true;                
-            }
-            
-            bool can_delete(Client_Connection *client_connection) const
-            {
-                if(client_connection->state() == CONNECTION_STATE::RECYCLED_STATE)
-                {
-                    return true;
-                }
-
-                if(client_connection->state() == CONNECTION_STATE::SHUTDOWN_STATE)
-                {
-                    m_holder->on_client_connection_shutdown(client_connection);
-                    client_connection->state(CONNECTION_STATE::SHUTDOWN_STATE_1);
-                }
-                else if(client_connection->state() == CONNECTION_STATE::CONNECTED_STATE)
-                {
-                    client_connection->Connection::dispatch();
-                }
-
-                return false;
-            }
-
-            Server *m_holder;
-        };
-
-        CB cb(this);
-        delete_if(cb);
+        do_main_server_connection();
+        do_main_client_connection();
         update();
-    };
-
+    }
+    
     ACE_Reactor::instance()->end_event_loop();
 }
 
@@ -163,16 +158,17 @@ void Server::do_encode()
             bool exec(Client_Connection *client_connection)
             {
                 client_connection->encode();
-
+                
                 return true;
             }
         };
 
         CB cb;
         exec_all(cb);
+        do_encode_server_connection();
     }
 }
-
+    
 void Server::do_decode()
 {
     while(state() != SERVER_STATE::SHUTDOWN_STATE)
@@ -189,6 +185,7 @@ void Server::do_decode()
 
         CB cb;
         exec_all(cb);
+        do_decode_server_connection();
     }
 }
 
@@ -197,13 +194,13 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
-void Server::add_client_connection(Client_Connection *client_connection)
+void Server::add_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;
     while(get_entity(unique_id = m_client_connection_id_allocator.new_id()) != NULL);
     client_connection->id(unique_id);
     add_entity(client_connection);
 }
-    
+
 }
 }

@@ -40,7 +40,12 @@ void Server_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uin
 {
     m_holder->dispatch(this, msg_type, msg_id, data, size);
 }
-    
+
+void Server_Connection::on_shutdown()
+{
+    m_holder->on_connection_shutdown(this);
+}
+
 int Server_Connection::open(void *acceptor_or_connector)
 {
     typedef Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> Connector;

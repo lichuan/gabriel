@@ -37,7 +37,8 @@ public:
     virtual int close (u_long flags = 0);
 
 private:
-    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    virtual void on_shutdown();    
 };
 
 }

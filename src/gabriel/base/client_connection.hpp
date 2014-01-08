@@ -36,7 +36,8 @@ public:
     virtual int open(void *acceptor_or_connector);
 
 private:
-    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    virtual void on_shutdown();    
 };
 
 }
