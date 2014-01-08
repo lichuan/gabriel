@@ -35,7 +35,7 @@
 namespace gabriel {
 namespace base {
     
-class Server : public Entity_Manager<Client_Connection, KEY_ID>, public Thread<Server>
+class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Thread<Server>
 {
 public:
     Server();

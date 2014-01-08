@@ -26,6 +26,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "ace/RW_Mutex.h"
+#include "ace/Guard_T.h"
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
@@ -336,7 +338,7 @@ struct Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_Name_Type>
     typedef KEY_NAME<Concrete_Entity> Super;    
 };
 
-template<typename Concrete_Entity, template<typename> class Super_T_1, template<typename> class Super_T_2 = KEY_NONE>
+template<typename Concrete_Entity, template<typename> class Super_T_1, bool lock = false, template<typename> class Super_T_2 = KEY_NONE>
 class Entity_Manager : private Super_T_1<Concrete_Entity>, private Super_T_2<Concrete_Entity>
 {
 public:
@@ -349,16 +351,35 @@ public:
     
     bool add_entity(Concrete_Entity *entity)
     {
-        if(!Super1::add_entity(entity))
+        if(lock)
         {
-            return false;
+            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+
+            if(!Super1::add_entity(entity))
+            {
+                return false;
+            }
+
+            if(!Super2::add_entity(entity))
+            {
+                Super1::delete_entity(entity);
+
+                return false;
+            }
         }
+        else
+        {        
+            if(!Super1::add_entity(entity))
+            {
+                return false;
+            }
+            
+            if(!Super2::add_entity(entity))
+            {
+                Super1::delete_entity(entity);
 
-        if(!Super2::add_entity(entity))
-        {
-            Super1::delete_entity(entity);
-
-            return false;            
+                return false;
+            }
         }
 
         return true;
@@ -368,25 +389,61 @@ public:
     {
         std::vector<Concrete_Entity*> del_vec;
 
-        if(!Super1::delete_if(cb, del_vec))
+        if(lock)
         {
-            return false;
+            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
+            
+            if(!Super1::delete_if(cb, del_vec))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if(!Super1::delete_if(cb, del_vec))
+            {
+                return false;
+            }
         }
 
-        for(typename std::vector<Concrete_Entity*>::iterator iter = del_vec.begin(); iter != del_vec.end(); ++iter)
+        if(lock)
         {
-            Concrete_Entity *concrete_entity = *iter;
-            delete_entity(concrete_entity);
-            cb.exec(concrete_entity);
+            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+            
+            for(typename std::vector<Concrete_Entity*>::iterator iter = del_vec.begin(); iter != del_vec.end(); ++iter)
+            {
+                Concrete_Entity *concrete_entity = *iter;
+                Super1::delete_entity(concrete_entity);
+                Super2::delete_entity(concrete_entity);
+                cb.exec(concrete_entity);
+            }
         }
-
+        else
+        {
+            for(typename std::vector<Concrete_Entity*>::iterator iter = del_vec.begin(); iter != del_vec.end(); ++iter)
+            {
+                Concrete_Entity *concrete_entity = *iter;
+                delete_entity(concrete_entity);
+                cb.exec(concrete_entity);
+            }
+        }
+        
         return true;
     }
 
     void delete_all(Entity_Exec<Concrete_Entity> &cb)
     {
-        exec_all(cb);
-        clear();
+        if(lock)
+        {
+            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+            exec_all(cb);
+            clear();
+        }
+        else
+        {
+            exec_all(cb);
+            clear();
+        }
     }
     
     Concrete_Entity* get_entity(typename Concrete_Entity::Entity_ID_Type key) const
@@ -401,8 +458,17 @@ public:
     
     void delete_entity(Concrete_Entity *entity)
     {
-        Super1::delete_entity(entity);
-        Super2::delete_entity(entity);
+        if(lock)
+        {
+            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+            Super1::delete_entity(entity);
+            Super2::delete_entity(entity);
+        }
+        else
+        {
+            Super1::delete_entity(entity);
+            Super2::delete_entity(entity);
+        }
     }
     
     uint32 size() const
@@ -415,26 +481,49 @@ public:
         return Super1::empty();
     }
 
-    void clear()
-    {
-        Super1::clear();
-        Super2::clear();
-    }
-
     bool exec_until(Entity_Exec<Concrete_Entity> &cb)
     {
+        if(lock)
+        {
+            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
+            return Super1::exec_until(cb);
+        }
+        
         return Super1::exec_until(cb);
     }
     
     bool exec_if(Entity_Exec<Concrete_Entity> &cb)
     {
+        if(lock)
+        {
+            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
+            return Super1::exec_if(cb);
+        }
+        
         return Super1::exec_if(cb);
     }
     
     void exec_all(Entity_Exec<Concrete_Entity> &cb)
     {
-        Super1::exec_all(cb);
+        if(lock)
+        {
+            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
+            Super1::exec_all(cb);
+        }
+        else
+        {
+            Super1::exec_all(cb);
+        }
     }
+    
+private:
+    void clear()
+    {
+        Super1::clear();
+        Super2::clear();
+    }
+    
+    ACE_RW_Mutex m_lock;    
 };
 
 }
