@@ -197,7 +197,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 void Server::add_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;
-    while(get_entity(unique_id = m_client_connection_id_allocator.new_id()) != NULL);
+    while(get_entity(unique_id = m_connection_id_allocator.new_id()) != NULL);
     client_connection->id(unique_id);
     add_entity(client_connection);
 }

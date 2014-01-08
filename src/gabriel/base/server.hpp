@@ -69,7 +69,7 @@ private:
     virtual void update();
     virtual int32 init_hook();
     virtual void fini_hook();
-    ID_Allocator<> m_client_connection_id_allocator;
+    ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
 };
 
