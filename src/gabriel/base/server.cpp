@@ -36,12 +36,24 @@ Server::~Server()
 
 void Server::main()
 {
-    init();
-    run();
-    fini();
+    if(init() >= 0)
+    {
+        run();
+        fini();
+    }
+}
+
+uint32 Server::state() const
+{
+    return m_state;
+}
+
+void Server::state(uint32 _state)
+{
+    m_state = _state;
 }
     
-void Server::init()
+int32 Server::init()
 {
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;
@@ -50,11 +62,13 @@ void Server::init()
     add_executor(&Server::do_encode);    
     add_executor(&Server::do_decode);
     daemon(1, 1);
-    init_hook();
+    
+    return init_hook();
 }
 
-void Server::init_hook()
+int32 Server::init_hook()
 {
+    return 0;    
 }
 
 void Server::fini_hook()
@@ -63,13 +77,22 @@ void Server::fini_hook()
 
 void Server::fini()
 {
-    ACE_Reactor::instance()->close_singleton();
+    ACE_Reactor::instance()->end_event_loop();
     wait();
+    ACE_Reactor::instance()->close_singleton();
+    fini_hook();
+}
+
+bool Server::should_shutdown()
+{
+    return state() >= SERVER_STATE::SHUTDOWN_STATE;
 }
 
 void Server::run()
 {
-    for(;;)
+    state(SERVER_STATE::RUNNING_STATE);
+
+    while(!should_shutdown())
     {
         struct CB : Entity_Exec<Client_Connection>
         {
@@ -81,7 +104,7 @@ void Server::run()
 
         CB cb;
         exec_all(cb);
-    }    
+    }
 }
 
 void Server::do_reactor()
@@ -91,7 +114,7 @@ void Server::do_reactor()
 
 void Server::do_encode()
 {
-    for(;;)
+    while(!should_shutdown())
     {
         struct CB : Entity_Exec<Client_Connection>
         {
@@ -110,7 +133,7 @@ void Server::do_encode()
 
 void Server::do_decode()
 {
-    for(;;)
+    while(!should_shutdown())
     {
         struct CB : Entity_Exec<Client_Connection>
         {

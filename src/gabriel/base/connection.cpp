@@ -33,28 +33,27 @@ Connection::Connection() :
     water_marks(ACE_IO_Cntl_Msg::SET_HWM, MSG_QUEUE_HWM);
     water_marks(ACE_IO_Cntl_Msg::SET_LWM, MSG_QUEUE_LWM);
     m_holder = NULL;
-    m_state = INVALID_STATE;
     m_cancel_write = true;
-    m_last_decode_msg_length = 0;    
+    m_last_decode_msg_length = 0;
 }
 
 Connection::~Connection()
 {
 }
 
-CONNECTION_STATE Connection::state() const
+uint32 Connection::state() const
 {
     return m_state;    
 }
 
-void Connection::state(CONNECTION_STATE _state)
+void Connection::state(uint32 _state)
 {
     m_state = _state;
 }
 
 bool Connection::connected() const
 {
-    return m_state == CONNECTED_STATE;
+    return m_state == CONNECTION_STATE::CONNECTED_STATE;
 }
 
 void Connection::send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
@@ -92,7 +91,7 @@ uint32 Connection::decode_msg_length()
 {
     if(m_last_decode_msg_length != 0)
     {
-        return 0;        
+        return m_last_decode_msg_length;
     }
     
     if(msg_queue()->message_length() < sizeof(uint32))
@@ -143,7 +142,7 @@ void Connection::decode()
         return;
     }
 
-    if(m_last_decode_msg_length == sizeof(uint32))
+    if(m_last_decode_msg_length <= sizeof(uint32))
     {
         return;
     }
@@ -199,7 +198,7 @@ int Connection::open(void *acceptor_or_connector)
         return -1;
     }
 
-    state(CONNECTED_STATE);
+    state(CONNECTION_STATE::CONNECTED_STATE);
 
     return 0;
 }
@@ -226,7 +225,7 @@ int Connection::handle_input(ACE_HANDLE hd)
 void Connection::shutdown()
 {
     ACE_Svc_Handler::shutdown();
-    state(CLOSED_STATE);
+    state(CONNECTION_STATE::SHUTDOWN_STATE);    
     reactor(0);
     recycler(0, 0);
 }

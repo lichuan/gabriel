@@ -42,23 +42,28 @@ public:
     virtual ~Server();
     void add_client_connection(Client_Connection *client_connection);
     virtual bool verify_connection(Client_Connection *client_connection);
-    void main();    
+    void main();
+    void shutdown();
+    uint32 state() const;
+    void state(uint32 _state);
     
 protected:
-    void init();
-    void fini();
-    void run();
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     
-private:
+private:    
+    int32 init();
+    void fini();
+    void run();
     void do_reactor();
     void do_decode();
     void do_encode();
-    virtual void init_hook();
+    virtual bool should_shutdown();    
+    virtual int32 init_hook();
     virtual void fini_hook();    
     ID_Allocator<> m_client_connection_id_allocator;
-    ID_Allocator<> m_server_connection_id_allocator;    
+    ID_Allocator<> m_server_connection_id_allocator;
+    uint32 m_state;    
     //Entity_Manager<Server_Connection, KEY_ID> m_server_connections;    
 };
 

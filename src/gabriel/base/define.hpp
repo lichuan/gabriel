@@ -85,13 +85,20 @@ enum CLIENT_TYPE
     USER_CLIENT = GATEWAY_CLIENT + 1,
 };
 
-enum CONNECTION_STATE
+struct CONNECTION_STATE
 {
-    INVALID_STATE = 0,
-    CONNECTED_STATE = 1,
-    CLOSED_STATE = 3,
+    static const uint32 CONNECTED_STATE = 1;
+    static const uint32 SHUTDOWN_STATE = 2;
+    static const uint32 RECYCLED_STATE = 3;
 };
 
+struct SERVER_STATE
+{
+    static const uint32 RUNNING_STATE = 1;
+    static const uint32 SHUTDOWN_STATE = 2;
+    static const uint32 CLOSED_STATE = 3;
+};
+    
 }
 }
 

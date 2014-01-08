@@ -42,23 +42,23 @@ public:
     virtual int open(void *acceptor_or_connector);
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
-    CONNECTION_STATE state() const;
-    void state(CONNECTION_STATE _state);
+    uint32 state() const;
+    void state(uint32 _state);
     bool connected() const;
     void decode();
     void encode();
+    void shutdown();
     void send_msg(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     
 protected:
     Server *m_holder;
-    void shutdown();
 
 private:
     uint32 decode_msg_length();    
     ACE_Message_Queue<ACE_MT_SYNCH> m_recv_queue;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
-    CONNECTION_STATE m_state;
+    uint32 m_state;
     bool m_cancel_write;
     uint32 m_last_decode_msg_length;
 };
