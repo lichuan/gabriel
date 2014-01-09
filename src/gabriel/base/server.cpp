@@ -69,11 +69,6 @@ int32 Server::init()
     return init_hook();
 }
 
-int32 Server::init_hook()
-{
-    return 0;
-}
-
 void Server::fini_hook()
 {
 }
@@ -94,7 +89,7 @@ void Server::on_connection_shutdown(Client_Connection *client_connection)
 {
 }
 
-void Server::on_connection_shutdown(Server_Connection *server_connection)
+void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
 }
 

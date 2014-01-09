@@ -45,7 +45,7 @@ public:
 private:
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void on_shutdown();
-    ACE_INET_Addr m_addr;    
+    ACE_INET_Addr m_addr;
 };
 
 }

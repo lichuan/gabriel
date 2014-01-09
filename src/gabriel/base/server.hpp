@@ -46,8 +46,8 @@ public:
     void state(uint32 _state);
     virtual void dispatch(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     virtual void dispatch(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
+    virtual void on_connection_shutdown(Server_Connection *server_connection);    
     virtual void on_connection_shutdown(Client_Connection *client_connection);
-    virtual void on_connection_shutdown(Server_Connection *server_connection);
     
 protected:
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
@@ -59,14 +59,14 @@ private:
     void run();
     void do_reactor();
     void do_decode();
-    virtual void do_decode_server_connection() = 0;
     void do_encode();
-    virtual void do_encode_server_connection() = 0;
     void do_main();
     void do_main_client_connection();
+    virtual void do_decode_server_connection() = 0;
+    virtual void do_encode_server_connection() = 0;
     virtual void do_main_server_connection() = 0;
+    virtual int32 init_hook() = 0;
     virtual void update();
-    virtual int32 init_hook();
     virtual void fini_hook();
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;

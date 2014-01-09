@@ -52,22 +52,30 @@ void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_con
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
+    return true;    
 }
 
 void Server::do_decode_server_connection()
 {
+    m_record_connection.decode();
+    m_center_connection.decode();
 }
 
 void Server::do_encode_server_connection()
 {
+    m_record_connection.encode();
+    m_center_connection.encode();
 }
 
 void Server::do_main_server_connection()
 {
+    m_record_connection.do_main();
+    m_center_connection.do_main();
 }
 
 void Server::update()
 {
+    //游戏循环
 }
 
 int32 Server::init_hook()
@@ -80,6 +88,7 @@ int32 Server::init_hook()
 
 void Server::fini_hook()
 {
+    //停服操作 比如释放资源
 }
 
 }
