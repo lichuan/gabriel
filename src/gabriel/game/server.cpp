@@ -72,7 +72,8 @@ void Server::update()
 
 int32 Server::init_hook()
 {
-    ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000), true), true);
+    ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100), true), true);
+    m_acceptor.open(ACE_INET_Addr(22228));
     
     return 0;
 }
@@ -90,3 +91,6 @@ int ACE_MAIN (int argc, char *argv[])
 
     return 0;
 }
+
+
+

@@ -20,8 +20,11 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/gateway/server.hpp"
+
+using namespace std;
 
 namespace gabriel {
 namespace gateway {
@@ -68,11 +71,27 @@ void Server::do_main_server_connection()
 
 void Server::update()
 {
+    sleep(1);
+
+    cout << "ip addr: " << m_game_connection.ip_addr() << endl;
+    cout << "port: " << m_game_connection.port() << endl;
+    cout << "host_name: " << m_game_connection.host_name() << endl;
 }
 
 int32 Server::init_hook()
 {
     ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000), true), true);
+    m_game_connection.set_addr(22228);
+    gabriel::base::Server_Connection *game_connection = &m_game_connection;
+    
+    if(m_connector.connect(game_connection, m_game_connection.inet_addr()) < 0)
+    {
+        cout << "连接到game服务器失败" << endl;
+
+        return -1;
+    }
+
+    cout << "连接到game服务器成功" << endl;
     
     return 0;
 }

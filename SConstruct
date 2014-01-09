@@ -33,6 +33,6 @@ env.Replace(LIBS=libs, LIBPATH=lib_path)
 gabriel_game_server = SConscript("src/gabriel/game/SConscript", variant_dir="build/game", duplicate=0)
 env.Install("build/bin", gabriel_game_server)
 
-#gate
+#gateway
 gabriel_gateway_server = SConscript("src/gabriel/gateway/SConscript", variant_dir="build/gateway", duplicate=0)
 env.Install("build/bin", gabriel_gateway_server)

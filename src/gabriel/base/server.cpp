@@ -135,6 +135,7 @@ void Server::do_main()
         do_main_server_connection();
         do_main_client_connection();
         update();
+        usleep(2000);
     }
     
     ACE_Reactor::instance()->end_event_loop();
@@ -166,6 +167,7 @@ void Server::do_encode()
         CB cb;
         exec_all(cb);
         do_encode_server_connection();
+        usleep(2000);
     }
 }
     
@@ -186,6 +188,7 @@ void Server::do_decode()
         CB cb;
         exec_all(cb);
         do_decode_server_connection();
+        usleep(2000);
     }
 }
 

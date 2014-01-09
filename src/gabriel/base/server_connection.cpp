@@ -36,6 +36,36 @@ Server_Connection::~Server_Connection()
 {
 }
 
+void Server_Connection::set_addr(uint16 port)
+{
+    m_addr.set_port_number(port);    
+}
+
+void Server_Connection::set_addr(uint16 port, const char *addr)
+{
+    m_addr.set(port, addr);
+}
+
+uint16 Server_Connection::port() const
+{
+    return m_addr.get_port_number();
+}
+
+const char* Server_Connection::ip_addr() const
+{
+    return m_addr.get_host_addr();    
+}
+
+const char* Server_Connection::host_name() const
+{
+    return m_addr.get_host_name();
+}
+
+const ACE_INET_Addr& Server_Connection::inet_addr() const
+{
+    return m_addr;
+}
+    
 void Server_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     m_holder->dispatch(this, msg_type, msg_id, data, size);

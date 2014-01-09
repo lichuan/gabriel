@@ -35,10 +35,17 @@ public:
     virtual ~Server_Connection();
     virtual int open(void *acceptor_or_connector);
     virtual int close (u_long flags = 0);
-
+    void set_addr(uint16 port);
+    void set_addr(uint16 port, const char *addr);
+    uint16 port() const;
+    const char* ip_addr() const;
+    const char* host_name() const;    
+    const ACE_INET_Addr& inet_addr() const;
+    
 private:
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual void on_shutdown();    
+    virtual void on_shutdown();
+    ACE_INET_Addr m_addr;    
 };
 
 }
