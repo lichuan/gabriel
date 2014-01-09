@@ -27,11 +27,11 @@
 #include "ace/SOCK_Stream.h"
 #include "ace/Acceptor.h"
 #include "ace/Dev_Poll_Reactor.h"
-#include "gabriel/base/astar.hpp"
 #include "gabriel/base/thread.hpp"
 #include "gabriel/base/connection.hpp"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/entity.hpp"
+#include "gabriel/game/astar.hpp"
 
 using namespace std;
 

@@ -16,239 +16,150 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 09:00:52                                        *
+ *   @date: 2014-01-09 12:26:17                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef __BATTLE_UNIT_ACTION__
-#define __BATTLE_UNIT_ACTION__
+#ifndef GABRIEL__GAME__AI_ACTION
+#define GABRIEL__GAME__AI_ACTION
 
-#include "BattleCommon.h"
+#include <vector>
+#include <set>
+#include "gabriel/base/common.hpp"
 
-class CBattleUnit;
-class CBattleObj;
-class CBattleAiControler;
-class CBattleAiAction;
+namespace gabriel {
+namespace game {
 
+class Ai_Action;
+class Ai_Entity;
+class Ai_Controller;
+    
 //ai后续行为链
-class CBattleAiActionList
+class Ai_Action_List
 {
 public:
-    CBattleAiActionList()
+    Ai_Action_List()
     {
-        m_pCurAiAction = NULL;
+        m_current_ai_action = NULL;
     }
-    
-    void AddAction(CBattleAiAction *pAction)
+
+    void add_action(Ai_Action *action)
     {
-        m_actionVec.push_back(pAction);
+        m_actions.push_back(action);
     }
+
+    bool doing();
     
-    void DoAi();
-    
-private:    
-    CBattleAiAction *m_pCurAiAction;
-    std::vector<CBattleAiAction*> m_actionVec;
+private:
+    Ai_Action *m_current_ai_action;
+    std::vector<Ai_Action*> m_actions;
 };
 
 //ai行为基类
-class CBattleAiAction
+class Ai_Action
 {
 public:
-    CBattleAiAction(CBattleUnit *pUnit)
+    Ai_Action(Ai_Entity *holder)
     {
-        m_iEnterTick = 0;
-        m_iLeaveTick = 0;
-        m_holder = pUnit;
+        m_holder = holder;
     }
     
-    virtual ~CBattleAiAction();    
-    virtual bool CanDo() = 0;    
-    virtual bool Doing() = 0;    
-    virtual bool OnEnter();    
-    virtual bool OnLeave();
-    void SiblingDoAi();
-
-    void AddSiblingActionList(CBattleAiActionList &actionList)
+    virtual ~Ai_Action();
+    virtual bool can_do() = 0;    
+    virtual bool doing() = 0;
+    virtual bool on_enter();
+    virtual bool on_leave();
+    void do_sibling();
+    
+    void add_sibling_action(Ai_Action_List &action_list)
     {
-        m_siblingActionListVec.push_back(actionList);
+        m_sibling_actions.push_back(action_list);
     }
     
 protected:
-    int GetCurTick();
-    CBattleObj* GetBattleObj();
-    CBattleAiControler* GetAiControler();
-    int m_iEnterTick;
-    int m_iLeaveTick;
-    CBattleUnit *m_holder;
-
+    Ai_Controller* ai_controller() const;
+    Ai_Entity *m_holder;
+    
 private:
-    void SiblingOnEnter();
-    void SiblingOnLeave();
-    void SiblingDoing();
-    std::vector<CBattleAiActionList> m_siblingActionListVec; //平级兄弟ai行为，当前的行为CanDo时，会执行兄弟行为。
+    std::vector<Ai_Action_List> m_sibling_actions;    
 };
 
-class CBattleAiStandAction : public CBattleAiAction
+class Stand_Ai_Action : public Ai_Action
 {
 public:
-    CBattleAiStandAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiStandAction();
-    
-    virtual bool CanDo();
-    virtual bool Doing();
-    virtual bool OnEnter();
-    virtual bool OnLeave();    
+    Stand_Ai_Action(Ai_Entity *holder);    
+    virtual ~Stand_Ai_Action();    
+    virtual bool can_do();
+    virtual bool doing();
+    virtual bool on_enter();
+    virtual bool on_leave();
 };
 
 //跟随行为
-class CBattleAiFollowAction : public CBattleAiAction
+class Follow_Ai_Action : public Ai_Action
 {
 public:
-    CBattleAiFollowAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiFollowAction();
-    virtual bool CanDo();
-    virtual bool Doing();
+    Follow_Ai_Action(Ai_Entity *holder);
+    virtual ~Follow_Ai_Action();
+    virtual bool can_do();
+    virtual bool doing();
     
 private:
-    CBattleUnit *m_pFollowUnit;    
-};
-
-//返回组中心点
-class CBattleAiGoBackAction : public CBattleAiAction
-{
-public:
-    CBattleAiGoBackAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiGoBackAction();
-    virtual bool CanDo();
-    virtual bool Doing();
-};
-
-//追击行为
-class CBattleAiChaseAction : public CBattleAiAction
-{
-public:
-    CBattleAiChaseAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiChaseAction();
-    virtual bool CanDo();
-    virtual bool Doing();
-
-private:
-    CBattleUnit *m_pChaseUnit;    
-};
-
-//攻击行为
-class CBattleAiAttackAction : public CBattleAiAction
-{
-public:
-    CBattleAiAttackAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiAttackAction();
-    virtual bool CanDo();
-    virtual bool Doing();
-    virtual bool OnEnter();
-    
-private:
-    CBattleUnit *m_pAttackUnit;    
-};
-
-//定时出兵
-class CBattleAiCreateUnitAction : public CBattleAiAction
-{
-public:
-    CBattleAiCreateUnitAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiCreateUnitAction();
-    virtual bool CanDo();
-    virtual bool Doing();
-};
-
-//陷坑爆炸
-class CBattleAiBurstAction : public CBattleAiAction
-{
-public:
-    CBattleAiBurstAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiBurstAction();
-    virtual bool CanDo();
-    virtual bool Doing();
-};
-
-//靠近变身
-class CBattleAiChangeAction : public CBattleAiAction
-{
-public:
-    CBattleAiChangeAction(CBattleUnit *pUnit);
-    virtual ~CBattleAiChangeAction();
-    virtual bool CanDo();
-    virtual bool Doing();
+    Ai_Entity *m_follow_entity;
 };
 
 //ai 控制器
-class CBattleAiControler
+class Ai_Controller
 {
 public:
-    CBattleAiControler(CBattleUnit *holder);
-    ~CBattleAiControler();
-
-    void DoAi();
+    Ai_Controller(Ai_Entity *holder);
+    ~Ai_Controller();
+    void doing();
     
     //分配行为
-    void BuildAiAction(int AiId = 0);
-
+    void build_ai_action(uint32 ai_id);
+    
     //组装ai
-    void BuildAi_0();    
-    void BuildAi_1();
-    void BuildAi_2();
-    void BuildAi_3();
-    void BuildAi_4();
+    void build_ai_0();    
+    void build_ai_1();
+    void build_ai_2();
+    void build_ai_3();
     
     //释放行为
-    void DeleteAction();
+    void delete_action();
+    void add_action(Ai_Action *action);
     
-    int FollowTargetId()
+    bool enable_ai() const
     {
-        return m_iFollowTargetId;
+        return m_enable_ai;
     }
 
-    void FollowTargetId(int id)
+    void enable_ai(bool enable)
     {
-        m_iFollowTargetId = id;
+        m_enable_ai = enable;
     }
-
-    void AddAction(CBattleAiAction *pAction);
-
-    int AttackTargetId()
-    {
-        return m_iAttackTargetId;
-    }
-
-    void AttackTargetId(int id)
-    {
-        m_iAttackTargetId = id;
-    }
-
-    bool EnableAi()
-    {
-        return m_bEnableAi;
-    }
-
-    void EnableAi(bool enable)
-    {
-        m_bEnableAi = enable;
-    }
-
-    int GetCurTick();
-    int m_iCreateTick; //创建兵cd
     
 private:
-    void RegBuildFuncs();
-    CBattleUnit *m_holder;
-    CBattleAiActionList m_firstAiActionList; //第一条ai行为链
-    std::set<CBattleAiAction*> m_allActionSet;
-    void (CBattleAiControler::*m_funcArr[battle_ai::MAX])();
-    CBattleAiActionList BuildActionList(CBattleAiAction **pActionArr, int iArrLen);    
-    int m_iFollowTargetId;
-    int m_iAttackTargetId;
-    bool m_bEnableAi;
-    int m_iDoAiCdTick;
+    void register_build_func();
+    Ai_Entity *m_holder;
+    Ai_Action_List m_first_action_list; //第一条ai行为链
+    std::set<Ai_Action*> m_all_actions;
+    void (Ai_Controller::*m_build_funcs[10])();
+    Ai_Action_List build_action_list(Ai_Action **action_arr, uint32 arr_length);
+    bool m_enable_ai;
 };
+
+class Ai_Entity
+{
+public:
+    Ai_Entity() : m_ai_controller(this)
+    {
+    }
+    
+    Ai_Controller m_ai_controller;
+};
+
+}
+}
 
 #endif

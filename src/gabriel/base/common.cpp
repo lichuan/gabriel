@@ -45,7 +45,29 @@ int32 Point::hash() const
 bool Point::operator==(const Point &pos) const
 {
     return m_x == pos.m_x && m_y == pos.m_y;
-}    
+}
+
+template<>
+uint32 ID_Allocator<uint32>::new_id()
+{
+    if(m_id >= MAX_UINT32)
+    {
+        m_id = 1;
+    }
+
+    return m_id++;
+}
+
+template<>
+uint64 ID_Allocator<uint64>::new_id()
+{
+    if(m_id >= MAX_UINT64)
+    {
+        m_id = 1;
+    }
+
+    return m_id++;
+}
     
 }
 }

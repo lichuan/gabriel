@@ -20,8 +20,8 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__ASTAR
-#define GABRIEL__BASE__ASTAR
+#ifndef GABRIEL__GAME__ASTAR
+#define GABRIEL__GAME__ASTAR
 
 #include <list>
 #include <map>
@@ -29,7 +29,9 @@
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
-namespace base {
+namespace game {
+
+using gabriel::base::Point;
     
 //路径节点
 struct Astar_Node
