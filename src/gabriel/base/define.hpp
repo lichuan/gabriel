@@ -87,6 +87,7 @@ enum CLIENT_TYPE
 
 struct CONNECTION_STATE
 {
+    static const uint32 INVALID = 0;    
     static const uint32 CONNECTED = 1;
     static const uint32 SHUTTING_DOWN = 2;
     static const uint32 SHUTTING_DOWN_1 = 3;

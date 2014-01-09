@@ -52,7 +52,7 @@ void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_con
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
-    return true;    
+    return true;
 }
 
 void Server::do_decode_server_connection()
@@ -100,6 +100,3 @@ int ACE_MAIN (int argc, char *argv[])
 
     return 0;
 }
-
-
-

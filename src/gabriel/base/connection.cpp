@@ -35,6 +35,7 @@ Connection::Connection() :
     m_holder = NULL;
     m_cancel_write = true;
     m_last_decode_msg_length = 0;
+    m_state = CONNECTION_STATE::INVALID;
 }
 
 Connection::~Connection()
