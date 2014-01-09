@@ -20,11 +20,13 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "ace/SOCK_Acceptor.h"
 #include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/client_connection.hpp"
 
 namespace gabriel {
 namespace base {
-
+    
 template <typename SVC_HANDLER, typename PEER_ACCEPTOR>
 Gabriel_Acceptor<SVC_HANDLER, PEER_ACCEPTOR>::Gabriel_Acceptor(Server *holder)
 {
@@ -41,6 +43,8 @@ Server* Gabriel_Acceptor<SVC_HANDLER, PEER_ACCEPTOR>::holder() const
 {
     return m_holder;
 }
-    
+
+template class Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR>;
+
 }
 }

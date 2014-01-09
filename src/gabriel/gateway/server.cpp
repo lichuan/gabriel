@@ -16,32 +16,77 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 09:01:07                                        *
+ *   @date: 2014-01-09 14:41:41                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <iostream>
-#include "ace/SOCK_Connector.h"
-#include "ace/Svc_Handler.h"
-#include "ace/SOCK_Acceptor.h"
-#include "ace/Connector.h"
-#include "ace/SOCK_Stream.h"
-#include "ace/Acceptor.h"
 #include "ace/Dev_Poll_Reactor.h"
+#include "gabriel/gateway/server.hpp"
 
-using namespace std;
+namespace gabriel {
+namespace gateway {
 
-int ACE_TMAIN (int, ACE_TCHAR *[])
+Server::Server()
 {
+}
+
+Server::~Server()
+{
+}
+
+void Server::dispatch(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+}
+
+void Server::dispatch(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+}
+
+void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
+{
+}
+
+void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+{
+}
+
+bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
+{
+}
+
+void Server::do_decode_server_connection()
+{
+}
+
+void Server::do_encode_server_connection()
+{
+}
+
+void Server::do_main_server_connection()
+{
+}
+
+void Server::update()
+{
+}
+
+int32 Server::init_hook()
+{
+    ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000), true), true);
     
-    // ACE_INET_Addr port_to_connect (20000);
-    // ACE_Connector<TCPTask, ACE_SOCK_CONNECTOR> connector;
-    // TCPTask task;
-    // TCPTask *ptask = &task;
+    return 0;
+}
+
+void Server::fini_hook()
+{
+}
+
+}
+}
+
+int ACE_MAIN (int argc, char *argv[])
+{
+    SERVER::instance()->main();
     
-    // if (connector.connect (ptask, port_to_connect) == -1)
-    //     ACE_ERROR_RETURN ((LM_ERROR, ACE_TEXT ("%p\n"),
-    //                        ACE_TEXT ("connect")), 1);
-    // ACE_Reactor::instance()->run_event_loop();
-    
+    return 0;
 }

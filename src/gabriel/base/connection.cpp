@@ -53,7 +53,7 @@ void Connection::state(uint32 _state)
 
 bool Connection::connected() const
 {
-    return m_state == CONNECTION_STATE::CONNECTED_STATE;
+    return m_state == CONNECTION_STATE::CONNECTED;
 }
 
 void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
@@ -76,12 +76,12 @@ void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 
 void Connection::do_main()
 {
-    if(state() == CONNECTION_STATE::SHUTDOWN_STATE)
+    if(state() == CONNECTION_STATE::SHUTTING_DOWN)
     {
         on_shutdown();
-        state(CONNECTION_STATE::SHUTDOWN_STATE_1);
+        state(CONNECTION_STATE::SHUTTING_DOWN_1);
     }
-    else if(state() == CONNECTION_STATE::CONNECTED_STATE)
+    else if(state() == CONNECTION_STATE::CONNECTED)
     {
         dispatch();
     }
@@ -234,7 +234,7 @@ int Connection::open(void *acceptor_or_connector)
         return -1;
     }
 
-    state(CONNECTION_STATE::CONNECTED_STATE);
+    state(CONNECTION_STATE::CONNECTED);
 
     return 0;
 }
@@ -261,7 +261,7 @@ int Connection::handle_input(ACE_HANDLE hd)
 void Connection::shutdown()
 {
     ACE_Svc_Handler::shutdown();
-    state(CONNECTION_STATE::SHUTDOWN_STATE);
+    state(CONNECTION_STATE::SHUTTING_DOWN);
     reactor(0);
     recycler(0, 0);
 }

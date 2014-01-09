@@ -20,7 +20,9 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "ace/SOCK_Connector.h"
 #include "gabriel/base/connector.hpp"
+#include "gabriel/base/server_connection.hpp"
 
 namespace gabriel {
 namespace base {
@@ -41,6 +43,8 @@ Server* Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::holder() const
 {
     return m_holder;
 }
+
+template class Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR>;
     
 }
 }

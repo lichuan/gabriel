@@ -64,7 +64,7 @@ int32 Server::init()
     add_executor(&Server::do_encode);    
     add_executor(&Server::do_decode);
     add_executor(&Server::do_main);
-    daemon(1, 1);
+    //daemon(1, 1);
     
     return init_hook();
 }
@@ -111,7 +111,7 @@ void Server::do_main_client_connection()
             
         bool can_delete(Client_Connection *client_connection) const
         {
-            if(client_connection->state() == CONNECTION_STATE::RECYCLED_STATE)
+            if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
             {
                 return true;
             }
@@ -128,9 +128,9 @@ void Server::do_main_client_connection()
 
 void Server::do_main()
 {
-    state(SERVER_STATE::RUNNING_STATE);
+    state(SERVER_STATE::RUNNING);
 
-    while(state() != SERVER_STATE::SHUTDOWN_STATE)
+    while(state() != SERVER_STATE::SHUTDOWN)
     {
         do_main_server_connection();
         do_main_client_connection();
@@ -151,7 +151,7 @@ void Server::do_reactor()
 
 void Server::do_encode()
 {
-    while(state() != SERVER_STATE::SHUTDOWN_STATE)
+    while(state() != SERVER_STATE::SHUTDOWN)
     {
         struct CB : Entity_Exec<Client_Connection>
         {
@@ -171,7 +171,7 @@ void Server::do_encode()
     
 void Server::do_decode()
 {
-    while(state() != SERVER_STATE::SHUTDOWN_STATE)
+    while(state() != SERVER_STATE::SHUTDOWN)
     {
         struct CB : Entity_Exec<Client_Connection>
         {

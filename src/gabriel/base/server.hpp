@@ -27,7 +27,6 @@
 #include "ace/SOCK_Connector.h"
 #include "gabriel/base/connector.hpp"
 #include "gabriel/base/acceptor.hpp"
-#include "gabriel/base/acceptor.hpp"
 #include "gabriel/base/thread.hpp"
 #include "gabriel/base/client_connection.hpp"
 #include "gabriel/base/server_connection.hpp"

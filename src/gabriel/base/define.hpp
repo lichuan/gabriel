@@ -87,17 +87,17 @@ enum CLIENT_TYPE
 
 struct CONNECTION_STATE
 {
-    static const uint32 CONNECTED_STATE = 1;
-    static const uint32 SHUTDOWN_STATE = 2;
-    static const uint32 SHUTDOWN_STATE_1 = 3;    
-    static const uint32 RECYCLED_STATE = 4;
+    static const uint32 CONNECTED = 1;
+    static const uint32 SHUTTING_DOWN = 2;
+    static const uint32 SHUTTING_DOWN_1 = 3;
+    static const uint32 SHUTDOWN = 4;
 };
 
 struct SERVER_STATE
 {
-    static const uint32 RUNNING_STATE = 1;
-    static const uint32 SHUTDOWN_DEFERRED_STATE = 2;
-    static const uint32 SHUTDOWN_STATE = 3;
+    static const uint32 RUNNING = 1;
+    static const uint32 SHUTTING_DOWN = 2;
+    static const uint32 SHUTDOWN = 3;
 };
     
 }

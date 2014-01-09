@@ -16,77 +16,41 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2014-01-09 12:48:05                                        *
+ *   @date: 2014-01-09 12:40:31                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "ace/Dev_Poll_Reactor.h"
-#include "gabriel/game/server.hpp"
+#ifndef GABRIEL__GAME__SERVER
+#define GABRIEL__GAME__SERVER
+
+#include "gabriel/base/server.hpp"
 
 namespace gabriel {
 namespace game {
 
-Server::Server()
+class Server : public gabriel::base::Server
 {
-}
-
-Server::~Server()
-{
-}
-
-void Server::dispatch(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-}
-
-void Server::dispatch(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-}
-
-void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
-{
-}
-
-void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
-{
-}
-
-bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
-{
-}
-
-void Server::do_decode_server_connection()
-{
-}
-
-void Server::do_encode_server_connection()
-{
-}
-
-void Server::do_main_server_connection()
-{
-}
-
-void Server::update()
-{
-}
-
-int32 Server::init_hook()
-{
-    ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000), true), true);
+public:
+    Server();
+    virtual ~Server();
     
-    return 0;
+private:
+    virtual void dispatch(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
+    virtual void dispatch(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
+    virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
+    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
+    virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
+    virtual void do_decode_server_connection();    
+    virtual void do_encode_server_connection();    
+    virtual void do_main_server_connection();    
+    virtual void update();
+    virtual int32 init_hook();
+    virtual void fini_hook();
+};
+    
+}
 }
 
-void Server::fini_hook()
-{
-}
+typedef ACE_Singleton<gabriel::game::Server, ACE_Null_Mutex> SERVER;
 
-}
-}
-
-int ACE_MAIN (int argc, char *argv[])
-{
-    SERVER::instance()->main();
-
-    return 0;
-}
+#endif

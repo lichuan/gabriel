@@ -30,13 +30,11 @@
 
 namespace gabriel {
 namespace game {
-
-using gabriel::base::Point;
     
 //路径节点
 struct Astar_Node
 {
-    Astar_Node(const Point &pos, int32 g, int32 h, const Astar_Node *parent)
+    Astar_Node(const gabriel::base::Point &pos, int32 g, int32 h, const Astar_Node *parent)
     {
         m_pos = pos;
         m_g = g;
@@ -45,7 +43,7 @@ struct Astar_Node
         m_parent = parent;        
     }
 
-    Point m_pos; //节点的坐标
+    gabriel::base::Point m_pos; //节点的坐标
     int32 m_g; //缓存g值
     int32 m_h; //缓存h    
     int32 m_f; //缓存f值
@@ -55,9 +53,9 @@ struct Astar_Node
 class Astar_Point_Check
 {
 public:
-    virtual bool is_valid(const Point &pos) const = 0;
+    virtual bool is_valid(const gabriel::base::Point &pos) const = 0;
     
-    virtual bool is_reach(const Point &pos, const Point &dest_pos) const
+    virtual bool is_reach(const gabriel::base::Point &pos, const gabriel::base::Point &dest_pos) const
     {
         return pos == dest_pos;
     }    
@@ -80,17 +78,17 @@ private:
         clear_node();        
     }
     
-    bool is_valid(const Point &pos) const
+    bool is_valid(const gabriel::base::Point &pos) const
     {
         return m_point_check.is_valid(pos);
     }
 
-    bool is_reach(const Point &pos, const Point &dest_pos) const
+    bool is_reach(const gabriel::base::Point &pos, const gabriel::base::Point &dest_pos) const
     {
         return m_point_check.is_reach(pos, dest_pos);
     }
     
-    bool exist_in_close(const Point &pos) const
+    bool exist_in_close(const gabriel::base::Point &pos) const
     {
         return m_close_map.find(pos.hash()) != m_close_map.end();
     }
@@ -115,7 +113,7 @@ private:
         return iter->second;
     }
 
-    Astar_Node* get_node_from_open(const Point &pos) const
+    Astar_Node* get_node_from_open(const gabriel::base::Point &pos) const
     {
         std::map<int32, Astar_Node*>::const_iterator iter = m_open_map.find(pos.hash());
 
@@ -127,7 +125,7 @@ private:
         return iter->second;
     }
     
-    int32 h_value(const Point &src_pos, const Point &dest_pos) const
+    int32 h_value(const gabriel::base::Point &src_pos, const gabriel::base::Point &dest_pos) const
     {
         int32 x_diff = src_pos.m_x - dest_pos.m_x;
         int32 y_diff = src_pos.m_y - dest_pos.m_y;
@@ -150,7 +148,7 @@ private:
         return v1 * 10 + v2 * 14; //横竖方向的权重10，斜方向的权重14
     }
 
-    const Astar_Node* add_around_node_to_open(const Astar_Node *cur_node, const Point &dest_pos)
+    const Astar_Node* add_around_node_to_open(const Astar_Node *cur_node, const gabriel::base::Point &dest_pos)
     {
         static const int32 around_offset[8][2] = {
             {0, -1}, //top
@@ -163,12 +161,12 @@ private:
             {-1, -1},
         };
 
-        const Point &cur_pos = cur_node->m_pos;
+        const gabriel::base::Point &cur_pos = cur_node->m_pos;
         int32 g_inc = 0;        
         
         for(int32 i = 0; i != 8; ++i)
         {
-            const Point pos(cur_pos.m_x + around_offset[i][0], cur_pos.m_y + around_offset[i][1]);
+            const gabriel::base::Point pos(cur_pos.m_x + around_offset[i][0], cur_pos.m_y + around_offset[i][1]);
 
             if(is_reach(pos, dest_pos))
             {
@@ -192,8 +190,8 @@ private:
             {
                 const int32 idx_1 = (i - 1) % 8;
                 const int32 idx_2 = (i + 1) % 8;
-                const Point pos_1(cur_pos.m_x + around_offset[idx_1][0], cur_pos.m_y + around_offset[idx_1][1]);
-                const Point pos_2(cur_pos.m_x + around_offset[idx_2][0], cur_pos.m_y + around_offset[idx_2][1]);
+                const gabriel::base::Point pos_1(cur_pos.m_x + around_offset[idx_1][0], cur_pos.m_y + around_offset[idx_1][1]);
+                const gabriel::base::Point pos_2(cur_pos.m_x + around_offset[idx_2][0], cur_pos.m_y + around_offset[idx_2][1]);
 
                 if(!is_valid(pos_1) || !is_valid(pos_2))
                 {
@@ -228,9 +226,9 @@ private:
         return NULL;            
     }
     
-    std::list<Point> find_path(const Point &src_pos, const Point &dest_pos)
+    std::list<gabriel::base::Point> find_path(const gabriel::base::Point &src_pos, const gabriel::base::Point &dest_pos)
     {
-        std::list<Point> pos_list;
+        std::list<gabriel::base::Point> pos_list;
         
         if(!is_valid(src_pos) || !is_valid(dest_pos) || is_reach(src_pos, dest_pos))
         {
@@ -286,7 +284,7 @@ class Astar
 {
 public:
     //对每一次查找单独创建一个A星实现类，以支持在多线程环境中进行A星寻路
-    std::list<Point> find_path(const Astar_Point_Check &point_check, const Point &src_pos, const Point &dest_pos) const
+    std::list<gabriel::base::Point> find_path(const Astar_Point_Check &point_check, const gabriel::base::Point &src_pos, const gabriel::base::Point &dest_pos) const
     {
         Astar_Impl<MAX_NODE> impl(point_check);
         
