@@ -60,10 +60,10 @@ int32 Server::init()
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;
     no_sigpipe.register_action (SIGPIPE, &original_action);
-    add_executor(&Server::do_reactor);
-    add_executor(&Server::do_encode);    
-    add_executor(&Server::do_decode);
-    add_executor(&Server::do_main);
+    m_thread.add_executor(this, &Server::do_reactor);
+    m_thread.add_executor(this, &Server::do_encode);    
+    m_thread.add_executor(this, &Server::do_decode);
+    m_thread.add_executor(this, &Server::do_main);
     //daemon(1, 1);
     
     return init_hook();
@@ -75,14 +75,14 @@ void Server::fini_hook()
 
 void Server::fini()
 {
-    wait();
+    m_thread.wait();    
     ACE_Reactor::instance()->close_singleton();
     fini_hook();
 }
 
 void Server::run()
 {
-    execute();
+    m_thread.execute();
 }
 
 void Server::on_connection_shutdown(Client_Connection *client_connection)

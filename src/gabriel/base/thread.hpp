@@ -91,7 +91,7 @@ public:
     {
         for(int32 i = 0; i != m_cur_executor_idx; ++i)
         {
-            m_executor_list[i].execute();        
+            m_executor_list[i].execute();
         }
     }
 
@@ -113,27 +113,27 @@ public:
         m_executor_list[idx].wait();
     }
     
-    int32 start_executor_instantly(void (T::*executor)(), int32 num_thread = 1)
+    int32 start_executor_instantly(T *object, void (T::*executor)(), int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
             return -1;
         }
 
-        m_executor_list[m_cur_executor_idx].set_execute_context(static_cast<T*>(this), executor, num_thread);
+        m_executor_list[m_cur_executor_idx].set_execute_context(object, executor, num_thread);
         m_executor_list[m_cur_executor_idx].execute();
 
         return m_cur_executor_idx++;
     }
     
-    int32 add_executor(void (T::*executor)(), int32 num_thread = 1)
+    int32 add_executor(T *object, void (T::*executor)(), int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
             return -1;
         }
     
-        m_executor_list[m_cur_executor_idx++].set_execute_context(static_cast<T*>(this), executor, num_thread);
+        m_executor_list[m_cur_executor_idx++].set_execute_context(object, executor, num_thread);
     }
 
 private:

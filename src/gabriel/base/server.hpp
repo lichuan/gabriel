@@ -34,7 +34,7 @@
 namespace gabriel {
 namespace base {
     
-class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Thread<Server>
+class Server : public Entity_Manager<Client_Connection, KEY_ID, true>
 {
 public:
     Server();
@@ -70,6 +70,7 @@ private:
     virtual void fini_hook();
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
+    Thread<Server> m_thread;
 };
 
 }

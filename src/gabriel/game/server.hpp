@@ -47,7 +47,7 @@ private:
     virtual int32 init_hook();
     virtual void fini_hook();
     gabriel::base::Server_Connection m_center_connection;
-    gabriel::base::Server_Connection m_record_connection;    
+    gabriel::base::Server_Connection m_record_connection;
 };
     
 }
