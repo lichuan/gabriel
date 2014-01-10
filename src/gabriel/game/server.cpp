@@ -20,8 +20,11 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/game/server.hpp"
+
+using namespace std;
 
 namespace gabriel {
 namespace game {
@@ -75,7 +78,7 @@ void Server::do_main_server_connection()
 
 void Server::update()
 {
-    //游戏循环
+    //游戏循环    
 }
 
 int32 Server::init_hook()

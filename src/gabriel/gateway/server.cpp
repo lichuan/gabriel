@@ -82,6 +82,8 @@ void Server::do_main_server_connection()
 void Server::update()
 {
     //游戏循环
+    gabriel::base::sleep_sec(3);
+    cout << "update.............." << endl;    
 }
 
 int32 Server::init_hook()

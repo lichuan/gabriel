@@ -20,6 +20,7 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include "ace/OS.h"
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
@@ -67,6 +68,39 @@ uint64 ID_Allocator<uint64>::new_id()
     }
 
     return m_id++;
+}
+
+void sleep_sec(uint32 sec)
+{
+    ACE_OS::sleep(ACE_Time_Value(sec, 0));
+}
+
+void sleep_msec(uint32 _msec)
+{
+    uint32 sec = 0;
+    uint32 msec = _msec;
+    
+    if(msec >= ACE_ONE_SECOND_IN_MSECS)
+    {
+        sec = msec / ACE_ONE_SECOND_IN_MSECS;
+        msec = msec % ACE_ONE_SECOND_IN_MSECS;
+    }
+    
+    ACE_OS::sleep(ACE_Time_Value(sec, msec));
+}
+
+void sleep_usec(uint32 _usec)
+{
+    uint32 sec = 0;
+    uint32 usec = _usec;
+    
+    if(usec >= ACE_ONE_SECOND_IN_USECS)
+    {
+        sec = usec / ACE_ONE_SECOND_IN_USECS;
+        usec = usec % ACE_ONE_SECOND_IN_USECS;
+    }
+
+    ACE_OS::sleep(ACE_Time_Value(sec, usec));
 }
     
 }

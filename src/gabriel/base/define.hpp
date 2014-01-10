@@ -55,7 +55,7 @@ typedef ACE_UINT64 uint64;
 
 #define MIN_DOUBLE ACE_DBL_MIN
 #define MAX_DOUBLE ACE_DBL_MAX
-
+    
 namespace gabriel {
 namespace base {
 

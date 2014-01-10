@@ -72,6 +72,10 @@ private:
     T m_id;    
 };
 
+void sleep_sec(uint32 sec);
+void sleep_msec(uint32 msec);
+void sleep_usec(uint32 usec);
+
 }
 }
 
