@@ -1,8 +1,0 @@
-package gabriel.protocol.game;
-
-enum MSG_TYPE
-{
-    NPC_MSG_TYPE = 1;
-    SKILL_MSG_TYPE = 2;
-    BATTLE_MSG_TYPE = 3;
-}

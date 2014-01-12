@@ -104,7 +104,7 @@ void Server::do_main_client_connection()
             return true;
         }
             
-        bool can_delete(Client_Connection *client_connection) const
+        bool can_delete(Client_Connection *client_connection)
         {
             if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
             {

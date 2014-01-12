@@ -1,4 +1,0 @@
-Import("env")
-env = env.Clone(CPPPATH=["#src/gabriel/protocol/generated"])
-gabriel_protocol = env.Library("gabriel_protocol", Glob("generated/*/*/*/*.cc"))
-Return("gabriel_protocol")

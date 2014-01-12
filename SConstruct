@@ -7,24 +7,31 @@ def get_static_library_name(node):
 def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
-env = Environment(CCFLAGS='-g', CPPPATH=["#src", "#src/3rd-party/ACE_wrappers", "#src/3rd-party/protobuf/src"])
+env = Environment(CCFLAGS='-g', CPPPATH=[
+        "#src",
+        "#3rd-party/ACE_wrappers",
+        "#3rd-party/protobuf/src",
+        "#protocol/generated",
+        ])
 
 #base
 Export("env")
 gabriel_base_lib = SConscript("src/gabriel/base/SConscript", variant_dir="build/base", duplicate=0)
 
 #protocol
-gabriel_protocol_lib = SConscript("src/gabriel/protocol/SConscript", variant_dir="build/protocol", duplicate=0)
+gabriel_protocol_lib = SConscript("protocol/SConscript", variant_dir="build/protocol", duplicate=0)
 
 libs = [
   get_static_library_name(gabriel_base_lib),
   get_static_library_name(gabriel_protocol_lib),
-  "ACE"
+  "ACE",
+  "protobuf"
 ]
 
 lib_path = [
   "#build/base",
   "#build/protocol",
+  "#3rd-party/protobuf/lib",
   os.environ["ACE_ROOT"] + "/lib"
 ]
 

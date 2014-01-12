@@ -40,7 +40,7 @@ private:
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
-    virtual void do_decode_server_connection();    
+    virtual void do_decode_server_connection();
     virtual void do_encode_server_connection();
     virtual void do_main_server_connection();
     virtual void update();

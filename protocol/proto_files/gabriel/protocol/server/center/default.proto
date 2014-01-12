@@ -1,0 +1,6 @@
+package gabriel.protocol.server.center;
+
+enum DEFAULT_MSG
+{
+    REGISTER_SERVER = 1;
+}

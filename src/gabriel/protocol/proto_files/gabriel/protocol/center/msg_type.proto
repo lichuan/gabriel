@@ -1,9 +1,0 @@
-package gabriel.protocol.center;
-
-enum MSG_TYPE
-{
-    LOGIN_MSG_TYPE = 1;
-    GAME_MSG_TYPE = 2;
-    RECORD_MSG_TYPE = 3;
-    GATEWAY_MSG_TYPE = 4;
-}

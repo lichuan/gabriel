@@ -39,18 +39,32 @@ Server::~Server()
 
 void Server::dispatch(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    if(msg_type == gabriel::base::GATEWAY_CLIENT)
+    {
+        //网关消息
+    }
 }
 
 void Server::dispatch(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    if(server_connection == &m_center_connection)
+    {
+        //中心服务器的消息
+    }
+    else if(server_connection == &m_record_connection)
+    {
+        //档案服务器的消息
+    }
 }
-
+    
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
+    //客户端连接掉线
 }
 
 void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
+    //服务器连接掉线
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)

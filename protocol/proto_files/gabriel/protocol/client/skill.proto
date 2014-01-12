@@ -1,0 +1,6 @@
+package gabriel.protocol.client;
+
+enum SKILL_MSG
+{
+    CREATE_SKILL = 1;
+}

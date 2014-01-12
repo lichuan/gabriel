@@ -1,0 +1,6 @@
+package gabriel.protocol.client;
+
+enum DEFAULT_MSG
+{
+    ENTER_GAME = 1;    
+}

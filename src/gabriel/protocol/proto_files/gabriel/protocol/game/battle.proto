@@ -1,7 +1,0 @@
-package gabriel.protocol.game;
-
-enum BATTLE_MSG
-{
-    START_BATTLE = 1;
-    END_BATTLE = 2;
-}

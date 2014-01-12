@@ -1,0 +1,7 @@
+package gabriel.protocol.client;
+
+enum BATTLE_MSG
+{
+    START_BATTLE = 1;
+};
+

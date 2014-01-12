@@ -89,10 +89,10 @@ public:
 
     virtual bool exec(Concrete_Entity *entity) = 0;
     
-    virtual bool can_delete(Concrete_Entity *entity) const
+    virtual bool can_delete(Concrete_Entity *entity)
     {
-        return true;        
-    }    
+        return true;
+    }
 };
 
 template<typename Key, typename Entity_ID_Type>

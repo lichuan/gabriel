@@ -1,7 +1,7 @@
 /build/*
 /.sconsign*
-/src/3rd-party/*
+/3rd-party/*
 /src/cscope*
-/src/gabriel/protocol/generated
+/protocol/generated
 
 

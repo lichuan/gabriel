@@ -86,7 +86,7 @@ void sleep_msec(uint32 _msec)
         msec = msec % ACE_ONE_SECOND_IN_MSECS;
     }
     
-    ACE_OS::sleep(ACE_Time_Value(sec, msec));
+    ACE_OS::sleep(ACE_Time_Value(sec, msec * 1000));
 }
 
 void sleep_usec(uint32 _usec)
