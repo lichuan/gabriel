@@ -192,6 +192,16 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
+void Server::register_handler(uint32 msg_type, uint32 msg_id, void (*handler)(gabriel::base::Client_Connection *, void *, uint32))
+{
+    m_msg_handler.register_handler(msg_type, msg_id, handler);
+}
+
+void Server::handle_message(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    m_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
+}
+
 void Server::add_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;

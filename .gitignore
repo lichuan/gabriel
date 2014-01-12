@@ -1,7 +1,7 @@
 /build/*
 /.sconsign*
 /3rd-party/*
-/src/cscope*
+/cscope*
 /protocol/generated
 
 

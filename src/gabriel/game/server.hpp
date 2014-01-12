@@ -24,6 +24,7 @@
 #define GABRIEL__GAME__SERVER
 
 #include "gabriel/base/server.hpp"
+#include "gabriel/base/message_handler.hpp"
 
 namespace gabriel {
 namespace game {
@@ -35,8 +36,7 @@ public:
     virtual ~Server();
     
 private:
-    virtual void dispatch(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
-    virtual void dispatch(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
+    virtual void dispatch(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
@@ -46,6 +46,7 @@ private:
     virtual void update();
     virtual int32 init_hook();
     virtual void fini_hook();
+    void register_server_connection_message_handler();
     gabriel::base::Server_Connection m_center_connection;
     gabriel::base::Server_Connection m_record_connection;
 };

@@ -68,7 +68,17 @@ const ACE_INET_Addr& Server_Connection::inet_addr() const
     
 void Server_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    m_holder->dispatch(this, msg_type, msg_id, data, size);
+    handle_message(msg_type, msg_id, data, size);
+}
+
+void Server_Connection::register_handler(uint32 msg_type, uint32 msg_id, void (*handler)(gabriel::base::Server_Connection *, void *, uint32))
+{
+    m_msg_handler.register_handler(msg_type, msg_id, handler);
+}
+
+void Server_Connection::handle_message(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    m_msg_handler.handle_message(msg_type, msg_id, this, data, size);
 }
 
 void Server_Connection::on_shutdown()

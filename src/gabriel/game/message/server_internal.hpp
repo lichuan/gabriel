@@ -16,43 +16,26 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 09:00:28                                        *
+ *   @date: 2014-01-12 16:06:25                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__SERVER_CONNECTION
-#define GABRIEL__BASE__SERVER_CONNECTION
+#ifndef GABRIEL__GAME__MESSAGE__SERVER_INTERNAL
+#define GABRIEL__GAME__MESSAGE__SERVER_INTERNAL
 
-#include "gabriel/base/connection.hpp"
-#include "gabriel/base/message_handler.hpp"
+#include "gabriel/base/server_connection.hpp"
 
 namespace gabriel {
-namespace base {
+namespace game {
+namespace message {
 
-class Server_Connection : public Connection
-{
-public:
-    Server_Connection();
-    virtual ~Server_Connection();
-    virtual int open(void *acceptor_or_connector);
-    virtual int close (u_long flags = 0);
-    void set_addr(uint16 port);
-    void set_addr(uint16 port, const char *addr);
-    uint16 port() const;
-    const char* ip_addr() const;
-    const char* host_name() const;    
-    const ACE_INET_Addr& inet_addr() const;
-    void register_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Server_Connection *connection, void *data, uint32 size));
-    
-private:
-    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    void handle_message(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual void on_shutdown();
-    ACE_INET_Addr m_addr;
-    Message_Handler<Server_Connection> m_msg_handler;
-};
+//center    
+void register_ret(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
+
+//record ...
 
 }
 }
-    
+}
+
 #endif

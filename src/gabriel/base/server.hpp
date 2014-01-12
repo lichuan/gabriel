@@ -44,12 +44,12 @@ public:
     void main();
     uint32 state() const;
     void state(uint32 _state);
-    virtual void dispatch(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
-    virtual void dispatch(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
-    virtual void on_connection_shutdown(Server_Connection *server_connection);    
+    virtual void on_connection_shutdown(Server_Connection *server_connection);
     virtual void on_connection_shutdown(Client_Connection *client_connection);
+    virtual void handle_client_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     
 protected:
+    void register_client_connection_msg_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Client_Connection *client_connection, void *data, uint32 size));
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     
@@ -71,6 +71,7 @@ private:
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
     Thread<Server> m_thread;
+    Message_Handler<Client_Connection> m_client_connection_msg_handler;
 };
 
 }

@@ -58,7 +58,7 @@ protected:
 private:
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     virtual void on_shutdown() = 0;    
-    uint32 decode_msg_length();    
+    uint32 decode_msg_length();
     ACE_Message_Queue<ACE_MT_SYNCH> m_recv_queue;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;

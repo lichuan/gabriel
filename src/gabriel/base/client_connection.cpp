@@ -38,7 +38,7 @@ Client_Connection::~Client_Connection()
 
 void Client_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    m_holder->dispatch(this, msg_type, msg_id, data, size);
+    m_holder->handle_message(this, msg_type, msg_id, data, size);
 }
 
 void Client_Connection::on_shutdown()
