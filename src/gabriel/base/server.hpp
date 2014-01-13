@@ -47,6 +47,7 @@ public:
     virtual void on_connection_shutdown(Server_Connection *server_connection);
     virtual void on_connection_shutdown(Client_Connection *client_connection);
     virtual void handle_client_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    virtual void register_msg_handler() = 0;
     
 protected:
     void register_client_connection_msg_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Client_Connection *client_connection, void *data, uint32 size));
@@ -62,9 +63,9 @@ private:
     void do_encode();
     void do_main();
     void do_main_client_connection();
-    virtual void do_decode_server_connection() = 0;
-    virtual void do_encode_server_connection() = 0;
-    virtual void do_main_server_connection() = 0;
+    virtual void do_decode_server_connection();
+    virtual void do_encode_server_connection();
+    virtual void do_main_server_connection();    
     virtual int32 init_hook() = 0;
     virtual void update();
     virtual void fini_hook();

@@ -22,8 +22,8 @@
 
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
-#include "gabriel/game/server.hpp"
-#include "gabriel/game/message/server_internal.hpp"
+#include "gabriel/record/server.hpp"
+#include "gabriel/record/message/server_internal.hpp"
 #include "gabriel/protocol/server/game/msg_type.pb.h"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
 #include "gabriel/protocol/server/center/default.pb.h"
@@ -31,7 +31,7 @@
 using namespace std;
 
 namespace gabriel {
-namespace game {
+namespace record {
 
 Server::Server()
 {
@@ -58,19 +58,16 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 void Server::do_decode_server_connection()
 {
-    m_record_connection.decode();
     m_center_connection.decode();
 }
 
 void Server::do_encode_server_connection()
 {
-    m_record_connection.encode();
     m_center_connection.encode();
 }
 
 void Server::do_main_server_connection()
 {
-    m_record_connection.do_main();
     m_center_connection.do_main();
 }
 
@@ -82,7 +79,7 @@ void Server::update()
 int32 Server::init_hook()
 {
     ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100), true), true);
-    m_acceptor.open(ACE_INET_Addr(20100));
+    m_acceptor.open(ACE_INET_Addr(20003));
     
     return 0;
 }

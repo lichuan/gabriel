@@ -20,14 +20,14 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__GATEWAY__SERVER
-#define GABRIEL__GATEWAY__SERVER
+#ifndef GABRIEL__CENTER__SERVER
+#define GABRIEL__CENTER__SERVER
 
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
 
 namespace gabriel {
-namespace gateway {
+namespace center {
 
 class Server : public gabriel::base::Server
 {
@@ -46,13 +46,12 @@ private:
     virtual int32 init_hook();
     virtual void fini_hook();
     virtual void register_msg_handler();
-    gabriel::base::Server_Connection m_center_connection;
-    gabriel::base::Server_Connection m_record_connection;
+    gabriel::base::Server_Connection m_supercenter_connection;
 };
     
 }
 }
 
-typedef ACE_Singleton<gabriel::gateway::Server, ACE_Null_Mutex> SERVER;
+typedef ACE_Singleton<gabriel::center::Server, ACE_Null_Mutex> SERVER;
 
 #endif

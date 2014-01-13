@@ -20,14 +20,14 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__GATEWAY__SERVER
-#define GABRIEL__GATEWAY__SERVER
+#ifndef GABRIEL__LOGIN__SERVER
+#define GABRIEL__LOGIN__SERVER
 
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
 
 namespace gabriel {
-namespace gateway {
+namespace login {
 
 class Server : public gabriel::base::Server
 {
@@ -53,6 +53,6 @@ private:
 }
 }
 
-typedef ACE_Singleton<gabriel::gateway::Server, ACE_Null_Mutex> SERVER;
+typedef ACE_Singleton<gabriel::login::Server, ACE_Null_Mutex> SERVER;
 
 #endif

@@ -64,6 +64,7 @@ int32 Server::init()
     m_thread.add_executor(this, &Server::do_encode);    
     m_thread.add_executor(this, &Server::do_decode);
     m_thread.add_executor(this, &Server::do_main);
+    register_msg_handler();    
     //daemon(1, 1);
     
     return init_hook();
@@ -93,6 +94,18 @@ void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_con
 {
 }
 
+void Server::do_encode_server_connection()
+{
+}
+
+void Server::do_decode_server_connection()
+{
+}
+
+void Server::do_main_server_connection()
+{
+}
+    
 void Server::do_main_client_connection()
 {
     struct CB : Entity_Exec<Client_Connection>
@@ -192,14 +205,14 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
-void Server::register_handler(uint32 msg_type, uint32 msg_id, void (*handler)(gabriel::base::Client_Connection *, void *, uint32))
+void Server::register_client_connection_msg_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Client_Connection *, void *, uint32))
 {
-    m_msg_handler.register_handler(msg_type, msg_id, handler);
+    m_client_connection_msg_handler.register_handler(msg_type, msg_id, handler);    
 }
-
-void Server::handle_message(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+    
+void Server::handle_client_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    m_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
+    m_client_connection_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
 }
 
 void Server::add_connection(Client_Connection *client_connection)
