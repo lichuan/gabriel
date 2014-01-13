@@ -1,0 +1,3 @@
+Import("env")
+gabriel_login_server = env.Program("gabriel_login_server", Glob("*.cpp") + Glob("message/*.cpp"))
+Return("gabriel_login_server")

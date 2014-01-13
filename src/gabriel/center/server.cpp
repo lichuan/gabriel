@@ -25,8 +25,6 @@
 #include "gabriel/center/server.hpp"
 #include "gabriel/center/message/server_internal.hpp"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
-#include "gabriel/protocol/server/supercenter/msg_type.pb.h"
-#include "gabriel/protocol/server/supercenter/default.pb.h"
 
 using namespace std;
 
