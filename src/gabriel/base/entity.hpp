@@ -161,35 +161,35 @@ protected:
         }        
     }
 
-    template<typename Concrete_Entity>
-    void exec_all(Entity_Exec<Concrete_Entity> &cb)
+    template<typename Concrete_Entity, typename CB>
+    void exec_all(CB cb)
     {
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
         for(typename std::map<Key, Entity<Entity_ID_Type>*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
-            cb.exec(static_cast<Concrete_Entity*>(iter->second));
+            cb(static_cast<Concrete_Entity*>(iter->second));
         }
     }
-
-    template<typename Concrete_Entity>
-    bool exec_until(Entity_Exec<Concrete_Entity> &cb)
+        
+    template<typename Concrete_Entity, typename CB>
+    bool exec_until(CB cb)
     {
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
         for(typename std::map<Key, Entity<Entity_ID_Type>*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
-            if(cb.exec(static_cast<Concrete_Entity*>(iter->second)))
+            if(cb(static_cast<Concrete_Entity*>(iter->second)))
             {
-                return true;                
-            }            
+                return true;
+            }
         }
 
         return false;        
     }
     
-    template<typename Concrete_Entity>
-    bool exec_if(Entity_Exec<Concrete_Entity> &cb)
+    template<typename Concrete_Entity, typename CB>
+    bool exec_if(CB cb)
     {
         bool ret = false;
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
@@ -198,7 +198,7 @@ protected:
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
 
-            if(cb.exec(concrete_entity))
+            if(cb(concrete_entity))
             {
                 ret = true;
             }
@@ -215,8 +215,8 @@ protected:
         }        
     }
     
-    template<typename Concrete_Entity>
-    bool delete_if(Entity_Exec<Concrete_Entity> &cb, std::vector<Concrete_Entity*> &del_vec)
+    template<typename Concrete_Entity, typename If_CB>
+    bool delete_if(If_CB cb, std::vector<Concrete_Entity*> &del_vec)
     {
         if(in_iteration())
         {
@@ -230,9 +230,9 @@ protected:
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
             
-            if(cb.can_delete(concrete_entity))
+            if(cb(concrete_entity))
             {
-                ret = true;                
+                ret = true;
                 del_vec.push_back(concrete_entity);
             }
         }
@@ -384,8 +384,9 @@ public:
 
         return true;
     }
-    
-    bool delete_if(Entity_Exec<Concrete_Entity> &cb)
+
+    template<typename If_CB, typename CB>
+    bool delete_if(If_CB if_cb, CB cb)
     {
         std::vector<Concrete_Entity*> del_vec;
 
@@ -393,14 +394,14 @@ public:
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
             
-            if(!Super1::delete_if(cb, del_vec))
+            if(!Super1::delete_if(if_cb, del_vec))
             {
                 return false;
             }
         }
         else
         {
-            if(!Super1::delete_if(cb, del_vec))
+            if(!Super1::delete_if(if_cb, del_vec))
             {
                 return false;
             }
@@ -415,7 +416,7 @@ public:
                 Concrete_Entity *concrete_entity = *iter;
                 Super1::delete_entity(concrete_entity);
                 Super2::delete_entity(concrete_entity);
-                cb.exec(concrete_entity);
+                cb(concrete_entity);
             }
         }
         else
@@ -424,14 +425,15 @@ public:
             {
                 Concrete_Entity *concrete_entity = *iter;
                 delete_entity(concrete_entity);
-                cb.exec(concrete_entity);
+                cb(concrete_entity);
             }
         }
         
         return true;
     }
 
-    void delete_all(Entity_Exec<Concrete_Entity> &cb)
+    template<typename CB> 
+    void delete_all(CB cb)
     {
         if(lock)
         {
@@ -481,38 +483,41 @@ public:
         return Super1::empty();
     }
 
-    bool exec_until(Entity_Exec<Concrete_Entity> &cb)
+    template<typename CB>    
+    bool exec_until(CB cb)
     {
         if(lock)
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            return Super1::exec_until(cb);
+            return Super1::template exec_until<Concrete_Entity>(cb);
         }
         
-        return Super1::exec_until(cb);
+        return Super1::template exec_until<Concrete_Entity>(cb);
     }
-    
-    bool exec_if(Entity_Exec<Concrete_Entity> &cb)
+
+    template<typename CB>
+    bool exec_if(CB cb)
     {
         if(lock)
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            return Super1::exec_if(cb);
+            return Super1::template exec_if<Concrete_Entity>(cb);
         }
         
-        return Super1::exec_if(cb);
+        return Super1::template exec_if<Concrete_Entity>(cb);
     }
-    
-    void exec_all(Entity_Exec<Concrete_Entity> &cb)
+
+    template<typename Func>
+    void exec_all(Func cb_func)
     {
         if(lock)
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            Super1::exec_all(cb);
+            Super1::template exec_all<Concrete_Entity>(cb_func);
         }
         else
         {
-            Super1::exec_all(cb);
+            Super1::template exec_all<Concrete_Entity>(cb_func);
         }
     }
     

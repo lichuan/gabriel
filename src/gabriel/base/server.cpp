@@ -108,30 +108,22 @@ void Server::do_main_server_connection()
     
 void Server::do_main_client_connection()
 {
-    struct CB : Entity_Exec<Client_Connection>
-    {
-        bool exec(Client_Connection *client_connection)
-        {
-            client_connection->close();
+    delete_if([](Client_Connection *client_connection)
+              {
+                  if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
+                  {
+                      return true;
+                  }
 
-            return true;
-        }
-            
-        bool can_delete(Client_Connection *client_connection)
-        {
-            if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
-            {
-                return true;
-            }
+                  client_connection->do_main();
 
-            client_connection->do_main();
-            
-            return false;
-        }
-    };
-    
-    CB cb;    
-    delete_if(cb);
+                  return false;
+              },
+              [](Client_Connection *client_connection)
+              {
+                  client_connection->close();
+              }
+        );
 }
 
 void Server::do_main()
@@ -162,18 +154,11 @@ void Server::do_encode()
 {
     while(state() != SERVER_STATE::SHUTDOWN)
     {
-        struct CB : Entity_Exec<Client_Connection>
-        {
-            bool exec(Client_Connection *client_connection)
-            {
-                client_connection->encode();
-                
-                return true;
-            }
-        };
-
-        CB cb;
-        exec_all(cb);
+        exec_all([](Client_Connection* client_connection)
+                 {
+                     client_connection->encode();
+                 }
+            );
         do_encode_server_connection();
         sleep_msec(1);
     }
@@ -183,18 +168,11 @@ void Server::do_decode()
 {
     while(state() != SERVER_STATE::SHUTDOWN)
     {
-        struct CB : Entity_Exec<Client_Connection>
-        {
-            bool exec(Client_Connection *client_connection)
-            {
-                client_connection->decode();
-
-                return true;
-            }
-        };
-
-        CB cb;
-        exec_all(cb);
+        exec_all([](Client_Connection *client_connection)
+                 {
+                     client_connection->decode();
+                 }
+            );
         do_decode_server_connection();
         sleep_msec(1);
     }
