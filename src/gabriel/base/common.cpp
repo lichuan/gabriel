@@ -102,6 +102,49 @@ void sleep_usec(uint32 _usec)
 
     ACE_OS::sleep(ACE_Time_Value(sec, usec));
 }
+
+uint32 random_32()
+{
+    static std::random_device rd;
+    static std::mt19937 mt(rd());
+
+    return mt();    
+}
+
+uint64 random_64()
+{
+    uint64 a = random_32();
+    uint64 b = random_32();
+
+    return a << 32 + b;
+}
+
+uint32 random_between(uint32 min, uint32 max)
+{
+    if(min == max)
+    {
+        return min;
+    }
+
+    if(min > max)
+    {
+        std::swap(min, max);
+    }
     
+    const uint32 diff = max - min + 1;
+
+    return min + random_32() % diff;
+}
+
+bool rate_by_percent(uint32 rate)
+{
+    return random_between(1, 100) <= rate;
+}
+
+bool rate_by_thousand(uint32 rate)
+{
+    return random_between(1, 1000) <= rate;
+}
+
 }
 }

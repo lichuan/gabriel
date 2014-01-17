@@ -75,6 +75,11 @@ private:
 void sleep_sec(uint32 sec);
 void sleep_msec(uint32 msec);
 void sleep_usec(uint32 usec);
+uint32 random_between(uint32 min, uint32 max);
+uint32 random_32();
+uint64 random_64();
+bool rate_by_percent(uint32 rate);    
+bool rate_by_thousand(uint32 rate);
 
 }
 }
