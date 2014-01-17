@@ -507,17 +507,17 @@ public:
         return Super1::template exec_if<Concrete_Entity>(cb);
     }
 
-    template<typename Func>
-    void exec_all(Func cb_func)
+    template<typename CB>
+    void exec_all(CB cb)
     {
         if(lock)
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            Super1::template exec_all<Concrete_Entity>(cb_func);
+            Super1::template exec_all<Concrete_Entity>(cb);
         }
         else
         {
-            Super1::template exec_all<Concrete_Entity>(cb_func);
+            Super1::template exec_all<Concrete_Entity>(cb);
         }
     }
     
