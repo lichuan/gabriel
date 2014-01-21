@@ -23,7 +23,6 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/gateway/server.hpp"
-#include "gabriel/gateway/message/server_internal.hpp"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
 #include "gabriel/protocol/server/center/default.pb.h"
 

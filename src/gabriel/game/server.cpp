@@ -23,7 +23,6 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/game/server.hpp"
-#include "gabriel/game/message/server_internal.hpp"
 #include "gabriel/protocol/server/game/msg_type.pb.h"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
 #include "gabriel/protocol/server/center/default.pb.h"
@@ -96,8 +95,6 @@ int32 Server::init_hook()
 
 void Server::register_msg_handler()
 {
-    using namespace protocol::server::center;
-    //m_center_connection.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, );
 }
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
