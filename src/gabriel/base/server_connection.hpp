@@ -49,7 +49,7 @@ private:
     void handle_message(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void on_shutdown();
     ACE_INET_Addr m_addr;
-    Message_Handler<Server_Connection> m_msg_handler;
+    //Message_Handler<Server_Connection> m_msg_handler;
 };
 
 }

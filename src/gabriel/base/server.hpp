@@ -46,11 +46,13 @@ public:
     void state(uint32 _state);
     virtual void on_connection_shutdown(Server_Connection *server_connection);
     virtual void on_connection_shutdown(Client_Connection *client_connection);
-    virtual void handle_client_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    virtual void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
+    virtual void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
     virtual void register_msg_handler() = 0;
+    uint32 zone_id() const;
+    void zone_id(uint32 id);
     
 protected:
-    void register_client_connection_msg_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Client_Connection *client_connection, void *data, uint32 size));
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     
@@ -67,12 +69,13 @@ private:
     virtual void do_encode_server_connection();
     virtual void do_main_server_connection();    
     virtual int32 init_hook() = 0;
+    virtual void init_reactor() = 0;    
     virtual void update();
     virtual void fini_hook();
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
+    uint32 m_zone_id;    
     Thread<Server> m_thread;
-    Message_Handler<Client_Connection> m_client_connection_msg_handler;
 };
 
 }

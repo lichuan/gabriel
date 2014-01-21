@@ -266,7 +266,7 @@ void Connection::shutdown()
     reactor(0);
     recycler(0, 0);
 }
-
+    
 int Connection::handle_output(ACE_HANDLE hd)
 {
     if(m_send_queue_2.is_empty())
@@ -280,7 +280,7 @@ int Connection::handle_output(ACE_HANDLE hd)
     ACE_Message_Block *msg_block;
     m_send_queue_2.dequeue(msg_block);    
     int32 send_size = peer().send(msg_block->rd_ptr(), msg_block->length());
-    
+
     if(send_size > 0)
     {
         msg_block->rd_ptr(send_size);

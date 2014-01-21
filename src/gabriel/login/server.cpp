@@ -78,18 +78,32 @@ void Server::update()
 {
     //游戏循环    
 }
+    
+void Server::init_reactor()
+{
+    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(5000, true), true), true);
+}
 
 int32 Server::init_hook()
 {
-    ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(5000), true), true);
-    m_acceptor.open(ACE_INET_Addr(20002));
+    if(m_acceptor.open(ACE_INET_Addr(20002), ACE_Reactor::instance()) < 0)
+    {
+        return -1;
+    }
     
     return 0;
 }
 
 void Server::register_msg_handler()
 {
-    m_center_connection.register_handler(protocol::server::center::DEFAULT_MSG_TYPE, protocol::server::center::REGISTER_SERVER, &message::register_ret);
+}
+
+void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+}
+
+void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
 }
 
 void Server::fini_hook()

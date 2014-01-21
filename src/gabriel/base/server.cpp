@@ -28,6 +28,7 @@ namespace base {
 
 Server::Server() : m_acceptor(this), m_connector(this)
 {
+    m_zone_id = 0;
 }
 
 Server::~Server()
@@ -50,21 +51,33 @@ uint32 Server::state() const
     return m_state;
 }
 
+uint32 Server::zone_id() const
+{
+    return m_zone_id;
+}
+    
+void Server::zone_id(uint32 id)
+{
+    m_zone_id = id;
+}
+
 void Server::state(uint32 _state)
 {
     m_state = _state;
 }
     
 int32 Server::init()
-{
+{    
     ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     ACE_Sig_Action original_action;
     no_sigpipe.register_action (SIGPIPE, &original_action);
+    init_reactor();
+    m_connector.open(ACE_Reactor::instance());
     m_thread.add_executor(this, &Server::do_reactor);
     m_thread.add_executor(this, &Server::do_encode);    
     m_thread.add_executor(this, &Server::do_decode);
     m_thread.add_executor(this, &Server::do_main);
-    register_msg_handler();    
+    register_msg_handler();
     //daemon(1, 1);
     
     return init_hook();
@@ -182,17 +195,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 {
     return true;
 }
-
-void Server::register_client_connection_msg_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Client_Connection *, void *, uint32))
-{
-    m_client_connection_msg_handler.register_handler(msg_type, msg_id, handler);    
-}
     
-void Server::handle_client_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_client_connection_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
-}
-
 void Server::add_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;

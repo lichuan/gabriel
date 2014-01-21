@@ -29,16 +29,49 @@
 namespace gabriel {
 namespace base{
 
-template<typename Connection_Type>
+template<typename T, typename Connection_Type>
+struct Message_Hanlder_Info
+{
+    T *m_obj;
+    void (T::*m_func)(Connection_Type *connection, void *data, uint32 size);
+};
+
+template<typename T, typename Connection_Type>
 class Message_Handler
 {
 public:
-    void register_handler(uint32 msg_type, uint32 msg_id, void (*handler)(Connection_Type *connection, void *data, uint32 size));
-    void handle_message(uint32 msg_type, uint32 msg_id, Connection_Type *connection, void *data, uint32 size);
+    void register_handler(uint32 msg_type, uint32 msg_id, T *obj, void (T::*handler)(Connection_Type *connection, void *data, uint32 size))
+    {
+        Message_Hanlder_Info<T, Connection_Type> info;
+        info.m_obj = obj;
+        info.m_func = handler;
+        m_handlers[msg_type][msg_id] = info;
+    }
+    
+    void handle_message(uint32 msg_type, uint32 msg_id, Connection_Type *connection, void *data, uint32 size)
+    {
+        typename Handlers::iterator iter = m_handlers.find(msg_type);
+
+        if(iter == m_handlers.end())
+        {
+            return;
+        }
+
+        Msg_Id_Map &msg_id_map = iter->second;
+        typename Msg_Id_Map::iterator iter_func = msg_id_map.find(msg_id);
+
+        if(iter_func == msg_id_map.end())
+        {
+            return;
+        }
+
+        Message_Hanlder_Info<T, Connection_Type> &info = iter_func->second;
+        (info.m_obj->*info.m_func)(connection, data,size);
+    }
     
 private:
-    typedef std::map<uint32, std::map<uint32, void (*)(Connection_Type *connection, void *data, uint32 size)> > Handlers;
-    typedef std::map<uint32, void (*)(Connection_Type *connection, void *data, uint32 size)> Msg_Id_Map;
+    typedef std::map<uint32, std::map<uint32, Message_Hanlder_Info<T, Connection_Type>>> Handlers;
+    typedef std::map<uint32, Message_Hanlder_Info<T, Connection_Type>> Msg_Id_Map;
     Handlers m_handlers;
 };
 
