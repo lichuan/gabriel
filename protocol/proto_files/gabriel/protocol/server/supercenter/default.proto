@@ -1,3 +1,4 @@
+import "gabriel/protocol/server/public.proto";
 package gabriel.protocol.server.supercenter;
 
 enum DEFAULT_MSG
@@ -5,15 +6,12 @@ enum DEFAULT_MSG
     REGISTER_SERVER = 1;
 }
     
-message Server_Info
-{
-    optional uint32 zone_id = 1;
-    optional string outer_addr = 2;
-    optional string inner_addr = 3;
-    optional uint32 port = 4;
-}
-
 message Register
 {
-    optional Server_Info info = 1;
+    optional uint32 zone_id = 1;    
+}
+
+message Register_Rsp
+{
+    repeated gabriel.protocol.server.Server_Info info = 1;    
 }

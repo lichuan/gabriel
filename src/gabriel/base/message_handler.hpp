@@ -50,29 +50,27 @@ public:
     
     void handle_message(uint32 msg_type, uint32 msg_id, Connection_Type *connection, void *data, uint32 size)
     {
-        typename Handlers::iterator iter = m_handlers.find(msg_type);
+        auto iter = m_handlers.find(msg_type);        
 
         if(iter == m_handlers.end())
         {
             return;
         }
 
-        Msg_Id_Map &msg_id_map = iter->second;
-        typename Msg_Id_Map::iterator iter_func = msg_id_map.find(msg_id);
-
+        auto &msg_id_map = iter->second;        
+        auto iter_func = msg_id_map.find(msg_id);
+        
         if(iter_func == msg_id_map.end())
         {
             return;
         }
 
-        Message_Hanlder_Info<T, Connection_Type> &info = iter_func->second;
+        auto &info = iter_func->second;
         (info.m_obj->*info.m_func)(connection, data,size);
     }
     
 private:
-    typedef std::map<uint32, std::map<uint32, Message_Hanlder_Info<T, Connection_Type>>> Handlers;
-    typedef std::map<uint32, Message_Hanlder_Info<T, Connection_Type>> Msg_Id_Map;
-    Handlers m_handlers;
+    std::map<uint32, std::map<uint32, Message_Hanlder_Info<T, Connection_Type>>> m_handlers;
 };
 
 }

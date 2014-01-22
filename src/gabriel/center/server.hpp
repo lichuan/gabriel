@@ -23,8 +23,10 @@
 #ifndef GABRIEL__CENTER__SERVER
 #define GABRIEL__CENTER__SERVER
 
+#include <vector>
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
+#include "gabriel/protocol/server/public.pb.h"
 
 namespace gabriel {
 namespace center {
@@ -52,6 +54,7 @@ private:
     void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
     gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
+    std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;    
 };
     
 }

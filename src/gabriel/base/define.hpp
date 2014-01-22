@@ -55,6 +55,14 @@ typedef ACE_UINT64 uint64;
 
 #define MIN_DOUBLE ACE_DBL_MIN
 #define MAX_DOUBLE ACE_DBL_MAX
+
+#define PARSE_MSG(msg, name, data, size) \
+    msg name; \
+    \
+    if(!name.ParseFromArray(data, size)) \
+    { \
+        return; \
+    }
     
 namespace gabriel {
 namespace base {

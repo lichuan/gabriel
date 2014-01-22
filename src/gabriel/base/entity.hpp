@@ -133,8 +133,8 @@ protected:
 
     Entity<Entity_ID_Type>* get_entity(Key key) const
     {
-        typename std::map<Key, Entity<Entity_ID_Type>*>::const_iterator iter = m_entity_map.find(key);
-
+        auto iter = m_entity_map.find(key);
+        
         if(iter == m_entity_map.end())
         {
             return NULL;
@@ -166,7 +166,7 @@ protected:
     {
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
-        for(typename std::map<Key, Entity<Entity_ID_Type>*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             cb(static_cast<Concrete_Entity*>(iter->second));
         }
@@ -177,7 +177,7 @@ protected:
     {
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
-        for(typename std::map<Key, Entity<Entity_ID_Type>*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             if(cb(static_cast<Concrete_Entity*>(iter->second)))
             {
@@ -194,7 +194,7 @@ protected:
         bool ret = false;
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
-        for(typename std::map<Key, Entity<Entity_ID_Type>*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
 
@@ -226,7 +226,7 @@ protected:
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         bool ret = false;
 
-        for(typename std::map<Key, Entity<Entity_ID_Type>*>::iterator iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
             
@@ -411,7 +411,7 @@ public:
         {
             ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
             
-            for(typename std::vector<Concrete_Entity*>::iterator iter = del_vec.begin(); iter != del_vec.end(); ++iter)
+            for(auto iter = del_vec.begin(); iter != del_vec.end(); ++iter)
             {
                 Concrete_Entity *concrete_entity = *iter;
                 Super1::delete_entity(concrete_entity);
@@ -421,7 +421,7 @@ public:
         }
         else
         {
-            for(typename std::vector<Concrete_Entity*>::iterator iter = del_vec.begin(); iter != del_vec.end(); ++iter)
+            for(auto iter = del_vec.begin(); iter != del_vec.end(); ++iter)
             {
                 Concrete_Entity *concrete_entity = *iter;
                 delete_entity(concrete_entity);

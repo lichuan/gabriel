@@ -61,7 +61,7 @@ void Server::do_decode_server_connection()
 
 void Server::do_encode_server_connection()
 {
-    m_supercenter_connection.encode();    
+    m_supercenter_connection.encode();
 }
 
 void Server::do_main_server_connection()
@@ -81,15 +81,10 @@ void Server::init_reactor()
 
 int32 Server::init_hook()
 {
-    // if(m_acceptor.open(ACE_INET_Addr(20001), ACE_Reactor::instance()) < 0)
-    // {
-    //     return -1;
-    // }
-    
-    m_supercenter_connection.set_addr(20000);
+    zone_id(1);    
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
     
-    if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
+    if(m_connector.connect(tmp, ACE_INET_Addr(20000)) < 0)
     {
         cout << "error: 连接到超级中心服务器失败" << endl;
 
@@ -97,20 +92,18 @@ int32 Server::init_hook()
     }
 
     cout << "连接到超级中心服务器成功" << endl;
-
+    cout << "super ip " << m_supercenter_connection.ip_addr() << " port: " << m_supercenter_connection.port() << endl;
+    
+    
     //register self to supercenter
     using namespace gabriel::protocol::server::supercenter;
     Register msg;
-    msg.mutable_info()->set_zone_id(122);
-    msg.mutable_info()->set_outer_addr("192.168.7.8");
-    char buf[gabriel::base::MSG_SERIALIZE_BUF_HWM];
-    const uint32 byte_size = msg.ByteSize();
-    msg.SerializeToArray(buf, byte_size);
-    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, buf, byte_size);
+    msg.set_zone_id(zone_id());    
+    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
     
     return 0;
 }
-
+    
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server::supercenter;
@@ -120,12 +113,24 @@ void Server::register_msg_handler()
 void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server::supercenter;
-    Register msg;
-    msg.ParseFromArray(data, size);
-    cout << "zone: " << msg.info().zone_id() << endl;
-    cout << "addr: " << msg.info().outer_addr() << endl;
-}
+    PARSE_MSG(Register_Rsp, msg, data, size);
+    
+    for(uint32 i = 0; i != msg.info_size(); ++i)
+    {
+        const auto &info = msg.info(i);
 
+        if(info.server_type() == gabriel::base::CENTER_SERVER)
+        {
+        }
+
+        cout << "type: " << info.server_type() << endl;
+        cout << "id: " << info.server_id() << endl;
+        cout << "ip: " << info.outer_addr() << endl;        
+        cout << "port: " << info.port() << endl;
+        cout << endl;        
+    }
+}
+    
 void Server::fini_hook()
 {
     //停服操作 比如释放资源

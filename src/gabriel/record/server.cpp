@@ -82,7 +82,7 @@ void Server::init_reactor()
 
 int32 Server::init_hook()
 {
-    if(m_acceptor.open(ACE_INET_Addr(20003), ACE_Reactor::instance()) < 0)
+    if(m_acceptor.open(ACE_INET_Addr(20002), ACE_Reactor::instance()) < 0)
     {
         return -1;
     }

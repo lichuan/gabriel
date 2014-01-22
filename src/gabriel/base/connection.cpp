@@ -75,12 +75,20 @@ void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
     m_send_queue_1.enqueue_tail(msg_block);    
 }
 
+void Connection::send(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
+{
+    char buf[gabriel::base::MSG_SERIALIZE_BUF_HWM];
+    const uint32 byte_size = msg.ByteSize();
+    msg.SerializeToArray(buf, byte_size);
+    send(msg_type, msg_id, buf, byte_size);
+}
+    
 void Connection::do_main()
 {
     if(state() == CONNECTION_STATE::SHUTTING_DOWN)
     {
-        on_shutdown();
         state(CONNECTION_STATE::SHUTTING_DOWN_1);
+        on_shutdown();
     }
     else if(state() == CONNECTION_STATE::CONNECTED)
     {
@@ -236,10 +244,31 @@ int Connection::open(void *acceptor_or_connector)
     }
 
     state(CONNECTION_STATE::CONNECTED);
-
+    peer().get_remote_addr(m_addr);
+    
     return 0;
 }
 
+const ACE_INET_Addr& Connection::inet_addr() const
+{
+    return m_addr;
+}
+
+uint16 Connection::port() const
+{
+    return m_addr.get_port_number();
+}
+
+const char* Connection::ip_addr() const
+{
+    return m_addr.get_host_addr();
+}
+
+const char* Connection::host_name() const
+{
+    return m_addr.get_host_name();
+}
+    
 int Connection::handle_input(ACE_HANDLE hd)
 {
     ACE_Message_Block *msg_block = new ACE_Message_Block(RECV_REQUEST_SIZE);

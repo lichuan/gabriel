@@ -51,20 +51,21 @@ int Client_Connection::open(void *acceptor_or_connector)
     typedef Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> Acceptor;
     Acceptor *acceptor = static_cast<Acceptor*>(acceptor_or_connector);
     m_holder = acceptor->holder();
+    int open_ret = Connection::open(acceptor_or_connector);
 
-    if(!m_holder->verify_connection(this))
+    if(open_ret < 0)
     {
         return -1;
     }
     
-    int open_ret = Connection::open(acceptor_or_connector);
-
-    if(open_ret >= 0) //success
+    if(!m_holder->verify_connection(this))
     {
-        m_holder->add_connection(this);
+        return -1;
     }
 
-    return open_ret;
+    m_holder->add_connection(this);
+
+    return 0;    
 }
 
 }

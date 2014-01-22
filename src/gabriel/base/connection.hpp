@@ -25,6 +25,7 @@
 
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
+#include "google/protobuf/message.h"
 #include "gabriel/base/common.hpp"
 #include "gabriel/base/entity.hpp"
 
@@ -49,15 +50,20 @@ public:
     void encode();
     void shutdown();
     void dispatch();    
-    void send(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    void send(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg);
     void do_main();
+    const ACE_INET_Addr& inet_addr() const;
+    uint16 port() const;
+    const char* ip_addr() const;
+    const char* host_name() const;
     
 protected:
     Server *m_holder;
 
 private:
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
-    virtual void on_shutdown() = 0;    
+    virtual void on_shutdown() = 0;
+    void send(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     uint32 decode_msg_length();
     ACE_Message_Queue<ACE_MT_SYNCH> m_recv_queue;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
@@ -65,6 +71,7 @@ private:
     uint32 m_state;
     bool m_cancel_write;
     uint32 m_last_decode_msg_length;
+    ACE_INET_Addr m_addr;
 };
     
 }
