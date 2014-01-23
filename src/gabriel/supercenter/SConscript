@@ -1,3 +1,3 @@
 Import("env")
-gabriel_supercenter_server = env.Program("gabriel_supercenter_server", Glob("*.cpp") + Glob("message/*.cpp"))
+gabriel_supercenter_server = env.Program("gabriel_supercenter_server", Glob("*.cpp"))
 Return("gabriel_supercenter_server")

@@ -34,7 +34,7 @@
 namespace gabriel {
 namespace base {
     
-class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Entity<uint32>
+class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Entity<>
 {
 public:
     Server();
@@ -47,12 +47,14 @@ public:
     virtual void on_connection_shutdown(Server_Connection *server_connection);
     virtual void on_connection_shutdown(Client_Connection *client_connection);
     virtual void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
-    virtual void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
+    virtual void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
     virtual void register_msg_handler() = 0;
     uint32 zone_id() const;
     void zone_id(uint32 id);
     
 protected:
+    const ACE_INET_Addr& supercenter_inet_addr() const;
+    void supercenter_inet_addr(uint16 port, const char *addr);
     Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     
@@ -65,10 +67,11 @@ private:
     void do_encode();
     void do_main();
     void do_main_client_connection();
+    virtual void do_reconnect();
     virtual void do_decode_server_connection();
     virtual void do_encode_server_connection();
     virtual void do_main_server_connection();    
-    virtual int32 init_hook() = 0;
+    virtual int32 init_hook();    
     virtual void init_reactor() = 0;    
     virtual void update();
     virtual void fini_hook();
@@ -76,6 +79,7 @@ private:
     uint32 m_state;
     uint32 m_zone_id;
     Thread<Server> m_thread;
+    ACE_INET_Addr m_supercenter_addr;
 };
 
 }

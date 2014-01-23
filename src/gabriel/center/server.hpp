@@ -44,6 +44,7 @@ private:
     virtual void do_decode_server_connection();
     virtual void do_encode_server_connection();
     virtual void do_main_server_connection();
+    virtual void do_reconnect();    
     virtual void update();
     virtual int32 init_hook();
     virtual void init_reactor();    
@@ -52,6 +53,7 @@ private:
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
     virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
+    void register_req();    
     gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
     std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;    

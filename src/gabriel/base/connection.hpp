@@ -46,6 +46,7 @@ public:
     uint32 state() const;
     void state(uint32 _state);
     bool connected() const;
+    bool lost_connection() const;    
     void decode();
     void encode();
     void shutdown();

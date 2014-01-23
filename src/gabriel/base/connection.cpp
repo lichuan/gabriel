@@ -90,7 +90,7 @@ void Connection::do_main()
         state(CONNECTION_STATE::SHUTTING_DOWN_1);
         on_shutdown();
     }
-    else if(state() == CONNECTION_STATE::CONNECTED)
+    else if(connected())
     {
         dispatch();
     }
@@ -115,6 +115,11 @@ void Connection::dispatch()
     
 void Connection::encode()
 {
+    if(!connected())
+    {
+        return;
+    }
+    
     if(m_send_queue_1.is_empty())
     {
         return;
@@ -181,6 +186,11 @@ uint32 Connection::decode_msg_length()
     
 void Connection::decode()
 {
+    if(!connected())
+    {
+        return;
+    }
+    
     if(decode_msg_length() == 0)
     {
         return;
@@ -286,6 +296,16 @@ int Connection::handle_input(ACE_HANDLE hd)
     }
 
     return 0;
+}
+
+bool Connection::lost_connection() const
+{
+    if(state() == CONNECTION_STATE::INVALID)
+    {
+        return false;
+    }
+
+    return !connected();
 }
 
 void Connection::shutdown()

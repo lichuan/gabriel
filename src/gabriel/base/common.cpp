@@ -54,8 +54,10 @@ uint32 ID_Allocator<uint32>::new_id()
     if(m_id >= MAX_UINT32)
     {
         m_id = 1;
-    }
 
+        return MAX_UINT32;
+    }
+    
     return m_id++;
 }
 
@@ -65,6 +67,8 @@ uint64 ID_Allocator<uint64>::new_id()
     if(m_id >= MAX_UINT64)
     {
         m_id = 1;
+
+        return MAX_UINT64;
     }
 
     return m_id++;

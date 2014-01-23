@@ -40,19 +40,15 @@ public:
     
 private:
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
-    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
-    virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
-    virtual void update();
     virtual int32 init_hook();
     virtual void init_reactor();    
-    virtual void fini_hook();
     virtual void register_msg_handler();
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     void register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
+    void center_addr_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);    
     gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
     std::map<uint32, std::vector<gabriel::protocol::server::Server_Info*>> m_server_infos;
-    std::map<uint32, gabriel::base::Client_Connection*> m_zone_connections;    
+    std::map<uint32, gabriel::base::Client_Connection*> m_zone_connections;
 };
     
 }

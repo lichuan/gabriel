@@ -68,32 +68,42 @@ void Server::state(uint32 _state)
     
 int32 Server::init()
 {    
-    ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
-    ACE_Sig_Action original_action;
-    no_sigpipe.register_action (SIGPIPE, &original_action);
+    // ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
+    // ACE_Sig_Action original_action;
+    // no_sigpipe.register_action (SIGPIPE, &original_action);
+    
     init_reactor();
     m_connector.open(ACE_Reactor::instance());
     m_thread.add_executor(this, &Server::do_reactor);
     m_thread.add_executor(this, &Server::do_encode);    
     m_thread.add_executor(this, &Server::do_decode);
     m_thread.add_executor(this, &Server::do_main);
+    m_thread.add_executor(this, &Server::do_reconnect);    
     register_msg_handler();
     //daemon(1, 1);
     
     return init_hook();
 }
 
+void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+}
+
 void Server::fini_hook()
 {
 }
 
-void Server::fini()
+int32 Server::init_hook()
 {
-    m_thread.wait();    
-    ACE_Reactor::instance()->close_singleton();
-    fini_hook();
+    return 0;
 }
 
+void Server::fini()
+{
+    m_thread.wait();
+    fini_hook();
+}
+    
 void Server::run()
 {
     m_thread.execute();
@@ -154,6 +164,10 @@ void Server::do_main()
     ACE_Reactor::instance()->end_event_loop();
 }
 
+void Server::do_reconnect()
+{
+}
+
 void Server::update()
 {
 }
@@ -202,6 +216,16 @@ void Server::add_connection(Client_Connection *client_connection)
     while(get_entity(unique_id = m_connection_id_allocator.new_id()) != NULL);
     client_connection->id(unique_id);
     add_entity(client_connection);
+}
+
+const ACE_INET_Addr& Server::supercenter_inet_addr() const
+{
+    return m_supercenter_addr;
+}
+
+void Server::supercenter_inet_addr(uint16 port, const char *addr)
+{
+    m_supercenter_addr.set(port, addr);
 }
 
 }

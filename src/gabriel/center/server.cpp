@@ -47,6 +47,7 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
 void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
     //服务器连接掉线
+    cout << "error: 与supercenter服务器失去连接" << endl;
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
@@ -54,6 +55,32 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
+void Server::do_reconnect()
+{
+    using namespace gabriel::base;
+    
+    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    {
+        if(m_supercenter_connection.lost_connection())
+        {
+            Server_Connection *tmp = &m_supercenter_connection;
+
+            if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
+            {
+                cout << "error: 尝试重新连接到supercenter服务器失败" << endl;
+            }
+            else
+            {
+                m_supercenter_connection.state(CONNECTION_STATE::CONNECTED);
+                register_req();
+                cout << "尝试重新连接到supercenter服务器成功" << endl;
+            }
+        }
+        
+        gabriel::base::sleep_sec(2);
+    }
+}
+    
 void Server::do_decode_server_connection()
 {
     m_supercenter_connection.decode();
@@ -78,28 +105,30 @@ void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
 }
-
+    
+void Server::register_req()
+{
+    using namespace gabriel::protocol::server::supercenter;
+    Register msg;
+    msg.set_zone_id(zone_id());
+    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
+}
+    
 int32 Server::init_hook()
 {
-    zone_id(1);    
+    zone_id(1); //暂时定为1区, 以后改为配置
+    supercenter_inet_addr(20000, "127.0.0.1");    
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
     
-    if(m_connector.connect(tmp, ACE_INET_Addr(20000)) < 0)
+    if(m_connector.connect(tmp, supercenter_inet_addr()) < 0)
     {
-        cout << "error: 连接到超级中心服务器失败" << endl;
+        cout << "error: 连接到supercenter服务器失败" << endl;
 
         return -1;
     }
 
-    cout << "连接到超级中心服务器成功" << endl;
-    cout << "super ip " << m_supercenter_connection.ip_addr() << " port: " << m_supercenter_connection.port() << endl;
-    
-    
-    //register self to supercenter
-    using namespace gabriel::protocol::server::supercenter;
-    Register msg;
-    msg.set_zone_id(zone_id());    
-    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
+    cout << "连接到supercenter服务器成功" << endl;
+    register_req();
     
     return 0;
 }
@@ -114,26 +143,50 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
 {
     using namespace gabriel::protocol::server::supercenter;
     PARSE_MSG(Register_Rsp, msg, data, size);
+
+    for(auto info : m_server_infos)
+    {
+        delete info;
+    }
+    
+    m_server_infos.clear();
     
     for(uint32 i = 0; i != msg.info_size(); ++i)
     {
         const auto &info = msg.info(i);
-
+        
         if(info.server_type() == gabriel::base::CENTER_SERVER)
         {
+            if(id() == 0)
+            {
+                id(info.server_id());
+                
+                if(m_acceptor.open(ACE_INET_Addr(info.port(), info.outer_addr().c_str()), ACE_Reactor::instance()) < 0)
+                {
+                    state(gabriel::base::SERVER_STATE::SHUTDOWN);
+                    
+                    return;
+                }
+                
+                cout << "启动center服务器成功" << endl;
+            }
         }
-
-        cout << "type: " << info.server_type() << endl;
-        cout << "id: " << info.server_id() << endl;
-        cout << "ip: " << info.outer_addr() << endl;        
-        cout << "port: " << info.port() << endl;
-        cout << endl;        
-    }
+        else
+        {
+            auto *new_info = new gabriel::protocol::server::Server_Info;
+            new_info->CopyFrom(info);
+            m_server_infos.push_back(new_info);
+        }
+    }    
 }
     
 void Server::fini_hook()
 {
     //停服操作 比如释放资源
+    for(auto info : m_server_infos)
+    {
+        delete info;
+    }
 }
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
@@ -142,10 +195,7 @@ void Server::handle_connection_msg(gabriel::base::Client_Connection *client_conn
 
 void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    if(server_connection == &m_supercenter_connection)
-    {
-        m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-    }
+    m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
 }
 
 }

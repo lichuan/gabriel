@@ -58,6 +58,9 @@ int Server_Connection::open(void *acceptor_or_connector)
 int Server_Connection::close(u_long flags)
 {
     shutdown();
+    state(CONNECTION_STATE::SHUTTING_DOWN_1);
+    
+    return 0;
 }
 
 }
