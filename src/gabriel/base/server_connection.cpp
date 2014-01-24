@@ -48,7 +48,7 @@ void Server_Connection::on_shutdown()
 
 int Server_Connection::open(void *acceptor_or_connector)
 {
-    typedef Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> Connector;
+    typedef Connector<Server_Connection, ACE_SOCK_CONNECTOR> Connector;
     Connector *connector = static_cast<Connector*>(acceptor_or_connector);
     m_holder = connector->holder();
     

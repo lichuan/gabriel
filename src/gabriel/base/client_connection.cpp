@@ -48,7 +48,7 @@ void Client_Connection::on_shutdown()
 
 int Client_Connection::open(void *acceptor_or_connector)
 {
-    typedef Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> Acceptor;
+    typedef Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> Acceptor;
     Acceptor *acceptor = static_cast<Acceptor*>(acceptor_or_connector);
     m_holder = acceptor->holder();
     int open_ret = Connection::open(acceptor_or_connector);

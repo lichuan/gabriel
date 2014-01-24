@@ -28,23 +28,23 @@ namespace gabriel {
 namespace base {
 
 template <typename SVC_HANDLER, typename PEER_CONNECTOR>
-Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::Gabriel_Connector(Server *holder)
+Connector<SVC_HANDLER, PEER_CONNECTOR>::Connector(Server *holder)
 {
     m_holder = holder;
 }
 
 template <typename SVC_HANDLER, typename PEER_CONNECTOR>
-Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::~Gabriel_Connector()
+Connector<SVC_HANDLER, PEER_CONNECTOR>::~Connector()
 {
 }
 
 template <typename SVC_HANDLER, typename PEER_CONNECTOR>
-Server* Gabriel_Connector<SVC_HANDLER, PEER_CONNECTOR>::holder() const    
+Server* Connector<SVC_HANDLER, PEER_CONNECTOR>::holder() const    
 {
     return m_holder;
 }
 
-template class Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR>;
+template class Connector<Server_Connection, ACE_SOCK_CONNECTOR>;
     
 }
 }

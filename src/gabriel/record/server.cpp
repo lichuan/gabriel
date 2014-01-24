@@ -21,11 +21,11 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
-#include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/record/server.hpp"
-#include "gabriel/protocol/server/game/msg_type.pb.h"
 #include "gabriel/protocol/server/supercenter/msg_type.pb.h"
 #include "gabriel/protocol/server/supercenter/default.pb.h"
+#include "gabriel/protocol/server/center/msg_type.pb.h"
+#include "gabriel/protocol/server/center/default.pb.h"
 #include "gabriel/protocol/server/public.pb.h"
 
 using namespace std;
@@ -46,61 +46,9 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
     //客户端连接掉线
 }
 
-void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
-{
-    //服务器连接掉线
-    if(server_connection == &m_center_connection)
-    {
-        cout << "error: 与center服务器失去连接" << endl;
-    }
-}
-
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
     return true;
-}
-
-void Server::do_reconnect()
-{
-    using namespace gabriel::base;
-    
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
-    {
-        if(m_center_connection.lost_connection())
-        {
-            Server_Connection *tmp = &m_center_connection;
-            
-            if(m_connector.connect(tmp, m_center_connection.inet_addr()) < 0)
-            {
-                cout << "error: 尝试重新连接到center服务器失败" << endl;
-            }
-            else
-            {
-                m_center_connection.state(CONNECTION_STATE::CONNECTED);
-                cout << "尝试重新连接到center服务器成功" << endl;
-            }
-        }
-        
-        gabriel::base::sleep_sec(2);
-    }
-}
-
-void Server::do_decode_server_connection()
-{
-    m_center_connection.decode();
-    m_supercenter_connection.decode();
-}
-
-void Server::do_encode_server_connection()
-{
-    m_center_connection.encode();
-    m_supercenter_connection.encode();    
-}
-
-void Server::do_main_server_connection()
-{
-    m_center_connection.do_main();
-    m_supercenter_connection.do_main();
 }
 
 void Server::update()
@@ -108,70 +56,59 @@ void Server::update()
     //游戏循环    
 }
 
-void Server::init_reactor()
+void Server::register_msg_handler_ordinary()
 {
-    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
-    m_center_connection.reactor(ACE_Reactor::instance());
+    using namespace gabriel::protocol::server::center;
+    m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_rsp);
 }
 
-int32 Server::init_hook()
+void Server::register_req()
 {
-    zone_id(1);
-    supercenter_inet_addr(20000, "127.0.0.1");
-    gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-
-    if(m_connector.connect(tmp, supercenter_inet_addr()) < 0)
-    {
-        cout << "error: 连接到supercenter服务器失败" << endl;
-
-        return -1;
-    }
-    
-    cout << "连接到supercenter服务器成功" << endl;
-    using namespace gabriel::protocol::server::supercenter;
-    Center_Addr_Req msg;
-    msg.set_zone_id(zone_id());
-    m_supercenter_connection.send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg);
-    
-    return 0;
-}
-
-void Server::register_msg_handler()
-{
-    using namespace gabriel::protocol::server::supercenter;
-    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Server::center_addr_rsp);
-}
-
-void Server::center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
-{
-    using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Center_Addr, msg, data, size);
-    cout << "成功获取center服务器的地址" << endl;
-    m_supercenter_connection.shutdown();
-    gabriel::base::Server_Connection *tmp = &m_center_connection;
-    
-    if(m_connector.connect(tmp, ACE_INET_Addr(msg.info().port(), msg.info().outer_addr().c_str())) < 0)
-    {
-        cout << "error: 连接到center服务器失败" << endl;
-        state(gabriel::base::SERVER_STATE::SHUTDOWN);
-
-        return;
-    }
-    
-    cout << "连接到center服务器成功" << endl;
+    using namespace gabriel::protocol::server::center;
+    Register msg;
+    msg.set_server_id(id());
+    msg.set_server_type(gabriel::base::RECORD_SERVER);
+    m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
 }
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
 }
 
-void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
-    if(server_connection == &m_supercenter_connection)
+    using namespace gabriel::protocol::server::center;
+    PARSE_MSG(Register_Rsp, msg);
+
+    if(msg.info_size() <= 0)
     {
-        m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
+        state(gabriel::base::SERVER_STATE::SHUTDOWN);
+        cout << "error: 从center服务器接收到的本服务器信息为空" << endl;
+        
+        return;
     }
-    else
+    
+    const gabriel::protocol::server::Server_Info &info = msg.info(0);
+    
+    if(id() == 0)
+    {
+        id(info.server_id());
+        
+        if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
+        {
+            state(gabriel::base::SERVER_STATE::SHUTDOWN);
+            cout << "error: 启动record服务器失败" << endl;
+            
+            return;
+        }
+    }
+    
+    cout << "启动record服务器成功" << endl;
+}
+    
+void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    if(server_connection == &m_center_connection)
     {
         m_center_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
     }
@@ -185,9 +122,4 @@ void Server::fini_hook()
 }
 }
 
-int ACE_MAIN (int argc, char *argv[])
-{    
-    SERVER::instance()->main();
-
-    return 0;
-}
+#include "gabriel/main.cpp"

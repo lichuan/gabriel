@@ -31,11 +31,11 @@ namespace base {
 class Server;
     
 template <typename SVC_HANDLER, typename PEER_CONNECTOR>
-class Gabriel_Connector : public ACE_Connector<SVC_HANDLER, PEER_CONNECTOR>
+class Connector : public ACE_Connector<SVC_HANDLER, PEER_CONNECTOR>
 {
 public:
-    Gabriel_Connector(Server *holder);
-    virtual ~Gabriel_Connector();    
+    Connector(Server *holder);
+    virtual ~Connector();    
     Server* holder() const;
     
 private:

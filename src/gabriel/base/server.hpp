@@ -53,10 +53,8 @@ public:
     void zone_id(uint32 id);
     
 protected:
-    const ACE_INET_Addr& supercenter_inet_addr() const;
-    void supercenter_inet_addr(uint16 port, const char *addr);
-    Gabriel_Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
-    Gabriel_Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
+    Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
+    Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     
 private:    
     int32 init();
@@ -79,7 +77,6 @@ private:
     uint32 m_state;
     uint32 m_zone_id;
     Thread<Server> m_thread;
-    ACE_INET_Addr m_supercenter_addr;
 };
 
 }

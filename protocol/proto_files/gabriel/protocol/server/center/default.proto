@@ -1,28 +1,18 @@
+import "gabriel/protocol/server/public.proto";
 package gabriel.protocol.server.center;
 
 enum DEFAULT_MSG
 {
     REGISTER_SERVER = 1;
-    UPDATE_SERVER = 2;
-}
-    
-message Server_Info
-{
-    optional uint32 id = 1;
-    optional uint32 type = 2;
 }
 
 message Register
 {
-    optional Server_Info info = 1;
+    optional uint32 server_type = 1;
+    optional uint32 server_id = 2;
 }
 
-message Register_Ret
+message Register_Rsp
 {
-    repeated Server_Info infos = 1;
-}
-
-message Update_Server
-{
-    optional Server_Info info = 1;
+    repeated gabriel.protocol.server.Server_Info info = 1;
 }

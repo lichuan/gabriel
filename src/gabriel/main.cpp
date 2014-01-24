@@ -16,35 +16,14 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-12-15 23:48:00                                        *
+ *   @date: 2014-01-24 12:31:16                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "ace/SOCK_Acceptor.h"
-#include "gabriel/base/acceptor.hpp"
-#include "gabriel/base/client_connection.hpp"
+//启动函数
+int ACE_MAIN (int argc, char *argv[])
+{    
+    SERVER::instance()->main();
 
-namespace gabriel {
-namespace base {
-    
-template <typename SVC_HANDLER, typename PEER_ACCEPTOR>
-Acceptor<SVC_HANDLER, PEER_ACCEPTOR>::Acceptor(Server *holder)
-{
-    m_holder = holder;
-}
-
-template <typename SVC_HANDLER, typename PEER_ACCEPTOR>
-Acceptor<SVC_HANDLER, PEER_ACCEPTOR>::~Acceptor()
-{
-}
-    
-template <typename SVC_HANDLER, typename PEER_ACCEPTOR>
-Server* Acceptor<SVC_HANDLER, PEER_ACCEPTOR>::holder() const
-{
-    return m_holder;
-}
-
-template class Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR>;
-
-}
+    return 0;
 }

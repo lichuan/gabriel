@@ -40,6 +40,11 @@ Server::~Server()
 {
 }
 
+bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
+{
+    return true;
+}
+
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
@@ -64,9 +69,7 @@ void Server::init_reactor()
 
 int32 Server::init_hook()
 {
-    supercenter_inet_addr(20000, "127.0.0.1");
-
-    if(m_acceptor.open(supercenter_inet_addr(), ACE_Reactor::instance()) < 0)
+    if(m_acceptor.open(ACE_INET_Addr(20000), ACE_Reactor::instance()) < 0)
     {
         cout << "error: 启动supercenter服务器失败" << endl;
 
@@ -75,45 +78,50 @@ int32 Server::init_hook()
     
     cout << "启动supercenter服务器成功" << endl;
 
+    const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
-    const uint32 zone_id = 1;
     {
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(zone_id * 10000 + 1);
+        info->set_server_id(1);
         info->set_server_type(gabriel::base::CENTER_SERVER);
-        info->set_outer_addr("127.0.0.1");        
+        info->set_outer_addr("127.0.0.1");
+        info->set_inner_addr("127.0.0.1");        
         info->set_port(20001);
         m_server_infos[zone_id].push_back(info);
     }
     {        
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(zone_id * 10000 + 2);
+        info->set_server_id(2);
         info->set_server_type(gabriel::base::RECORD_SERVER);
         info->set_outer_addr("127.0.0.1");
+        info->set_inner_addr("127.0.0.1");
         info->set_port(20002);
         m_server_infos[zone_id].push_back(info);
     }
     {   
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;     
-        info->set_server_id(zone_id * 10000 + 3);
+        info->set_server_id(3);
         info->set_server_type(gabriel::base::LOGIN_SERVER);
         info->set_outer_addr("127.0.0.1");
+        info->set_inner_addr("127.0.0.1");
         info->set_port(20003);
         m_server_infos[zone_id].push_back(info);
     }
     {        
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(zone_id * 10000 + 100);
+        info->set_server_id(100);
         info->set_server_type(gabriel::base::GAME_SERVER);
         info->set_outer_addr("127.0.0.1");
+        info->set_inner_addr("127.0.0.1");
         info->set_port(20100);
         m_server_infos[zone_id].push_back(info);
     }
     {        
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(zone_id * 10000 + 200);
+        info->set_server_id(200);
         info->set_server_type(gabriel::base::GATEWAY_SERVER);
         info->set_outer_addr("127.0.0.1");
+        info->set_inner_addr("127.0.0.1");
         info->set_port(20200);
         m_server_infos[zone_id].push_back(info);
     }
@@ -131,7 +139,7 @@ void Server::register_msg_handler()
 void Server::center_addr_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Center_Addr_Req, msg, data, size);
+    PARSE_MSG(Center_Addr_Req, msg);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
 
@@ -159,7 +167,7 @@ void Server::center_addr_req(gabriel::base::Client_Connection *client_connection
 void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Register, msg, data, size);
+    PARSE_MSG(Register, msg);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
 
@@ -189,9 +197,4 @@ void Server::handle_connection_msg(gabriel::base::Client_Connection *client_conn
 }
 }
 
-int ACE_MAIN (int argc, char *argv[])
-{    
-    SERVER::instance()->main();
-
-    return 0;
-}
+#include "gabriel/main.cpp"

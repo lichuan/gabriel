@@ -31,11 +31,11 @@ namespace base {
 class Server;
 
 template <typename SVC_HANDLER, typename PEER_ACCEPTOR>
-class Gabriel_Acceptor : public ACE_Acceptor<SVC_HANDLER, PEER_ACCEPTOR>
+class Acceptor : public ACE_Acceptor<SVC_HANDLER, PEER_ACCEPTOR>
 {
 public:
-    Gabriel_Acceptor(Server *holder);
-    virtual ~Gabriel_Acceptor();    
+    Acceptor(Server *holder);
+    virtual ~Acceptor();    
     Server* holder() const;
     
 private:

@@ -218,15 +218,5 @@ void Server::add_connection(Client_Connection *client_connection)
     add_entity(client_connection);
 }
 
-const ACE_INET_Addr& Server::supercenter_inet_addr() const
-{
-    return m_supercenter_addr;
-}
-
-void Server::supercenter_inet_addr(uint16 port, const char *addr)
-{
-    m_supercenter_addr.set(port, addr);
-}
-
 }
 }

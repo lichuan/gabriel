@@ -16,55 +16,64 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2014-01-09 12:40:31                                        *
+ *   @date: 2014-01-24 11:53:33                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__CENTER__SERVER
-#define GABRIEL__CENTER__SERVER
+#ifndef GABRIEL__BASE__ORDINARY_SERVER
+#define GABRIEL__BASE__ORDINARY_SERVER
 
-#include <vector>
 #include "gabriel/base/server.hpp"
-#include "gabriel/base/message_handler.hpp"
-#include "gabriel/protocol/server/public.pb.h"
 
 namespace gabriel {
-namespace center {
+namespace base {
 
-class Server : public gabriel::base::Server
+//普通服务器, 也即需要向center服务器注册的其他服务器
+class Ordinary_Server : public Server
 {
 public:
-    Server();
-    virtual ~Server();
+    Ordinary_Server();
+    virtual ~Ordinary_Server();
+
+protected:
+    gabriel::base::Server_Connection m_center_connection;
     
 private:
-    virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
-    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
-    virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
+    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);    
     virtual void do_decode_server_connection();
     virtual void do_encode_server_connection();
     virtual void do_main_server_connection();
-    virtual void do_reconnect();    
-    virtual void update();
+    virtual void do_reconnect();
     virtual int32 init_hook();
-    virtual void fini_hook();
     virtual void init_reactor();    
     virtual void register_msg_handler();
-    virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
     virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
-    void register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
-    void register_req();
-    void clear_server_info();    
+    void center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
+    virtual void on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection);
+    virtual void do_decode_server_connection_ordinary();
+    virtual void do_encode_server_connection_ordinary();
+    virtual void do_main_server_connection_ordinary();
+    virtual void reconnect_ordinary();
+    virtual void init_reactor_ordinary();    
+    virtual int32 init_hook_ordinary();    
+    virtual void register_msg_handler_ordinary();
+    virtual void handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
+    virtual void register_req() = 0;
     gabriel::base::Server_Connection m_supercenter_connection;
-    gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
-    gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
-    std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;    
+    gabriel::base::Message_Handler<Ordinary_Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
 };
     
 }
 }
-
-typedef ACE_Singleton<gabriel::center::Server, ACE_Null_Mutex> SERVER;
-
+        
 #endif
+
+
+
+
+
+
+
+
+
+

@@ -112,9 +112,4 @@ void Server::fini_hook()
 }
 }
 
-int ACE_MAIN (int argc, char *argv[])
-{    
-    SERVER::instance()->main();
-
-    return 0;
-}
+#include "gabriel/main.cpp"

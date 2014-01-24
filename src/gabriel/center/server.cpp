@@ -24,6 +24,8 @@
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/protocol/server/supercenter/msg_type.pb.h"
 #include "gabriel/protocol/server/supercenter/default.pb.h"
+#include "gabriel/protocol/server/center/msg_type.pb.h"
+#include "gabriel/protocol/server/center/default.pb.h"
 #include "gabriel/center/server.hpp"
 
 using namespace std;
@@ -105,7 +107,7 @@ void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
 }
-    
+
 void Server::register_req()
 {
     using namespace gabriel::protocol::server::supercenter;
@@ -117,10 +119,9 @@ void Server::register_req()
 int32 Server::init_hook()
 {
     zone_id(1); //暂时定为1区, 以后改为配置
-    supercenter_inet_addr(20000, "127.0.0.1");    
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
     
-    if(m_connector.connect(tmp, supercenter_inet_addr()) < 0)
+    if(m_connector.connect(tmp, ACE_INET_Addr(20000)) < 0)
     {
         cout << "error: 连接到supercenter服务器失败" << endl;
 
@@ -135,21 +136,38 @@ int32 Server::init_hook()
     
 void Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server::supercenter;
-    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_rsp);
+    namespace proto = gabriel::protocol::server;    
+    m_supercenter_msg_handler.register_handler(proto::supercenter::DEFAULT_MSG_TYPE, proto::supercenter::REGISTER_SERVER, this, &Server::register_rsp);
+    m_client_msg_handler.register_handler(proto::center::DEFAULT_MSG_TYPE, proto::center::REGISTER_SERVER, this, &Server::register_req);
+}
+
+void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server::center;
+    PARSE_MSG(Register, msg);
+    Register_Rsp msg_rsp;
+    
+    for(auto info : m_server_infos)
+    {
+        if(info->server_type() == msg.server_type())
+        {
+            if(info->server_type() == gabriel::base::RECORD_SERVER)
+            {
+                msg_rsp.add_info()->CopyFrom(*info);
+
+                break;                
+            }
+        }        
+    }
+
+    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
 }
 
 void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Register_Rsp, msg, data, size);
-
-    for(auto info : m_server_infos)
-    {
-        delete info;
-    }
-    
-    m_server_infos.clear();
+    PARSE_MSG(Register_Rsp, msg);
+    clear_server_info();
     
     for(uint32 i = 0; i != msg.info_size(); ++i)
     {
@@ -161,9 +179,10 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             {
                 id(info.server_id());
                 
-                if(m_acceptor.open(ACE_INET_Addr(info.port(), info.outer_addr().c_str()), ACE_Reactor::instance()) < 0)
+                if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
                 {
                     state(gabriel::base::SERVER_STATE::SHUTDOWN);
+                    cout << "error: 启动center服务器失败" << endl;
                     
                     return;
                 }
@@ -179,18 +198,26 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
         }
     }    
 }
-    
-void Server::fini_hook()
+
+void Server::clear_server_info()
 {
-    //停服操作 比如释放资源
     for(auto info : m_server_infos)
     {
         delete info;
     }
+
+    m_server_infos.clear();
+}
+
+void Server::fini_hook()
+{
+    //停服操作 比如释放资源
+    clear_server_info();
 }
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);    
 }
 
 void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
@@ -201,9 +228,4 @@ void Server::handle_connection_msg(gabriel::base::Server_Connection *server_conn
 }
 }
 
-int ACE_MAIN (int argc, char *argv[])
-{    
-    SERVER::instance()->main();
-
-    return 0;
-}
+#include "gabriel/main.cpp"
