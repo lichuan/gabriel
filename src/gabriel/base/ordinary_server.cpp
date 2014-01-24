@@ -176,7 +176,7 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_c
     m_supercenter_connection.shutdown();
     gabriel::base::Server_Connection *tmp = &m_center_connection;
     
-    if(m_connector.connect(tmp, ACE_INET_Addr(msg.info().port(), msg.info().outer_addr().c_str())) < 0)
+    if(m_connector.connect(tmp, ACE_INET_Addr(msg.info().port(), msg.info().inner_addr().c_str())) < 0)
     {
         cout << "error: 连接到center服务器失败" << endl;
         state(gabriel::base::SERVER_STATE::SHUTDOWN);

@@ -46,6 +46,7 @@ private:
     virtual void handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_center_msg_handler;
+    gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;    
 };
     
 }

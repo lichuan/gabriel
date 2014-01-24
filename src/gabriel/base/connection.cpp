@@ -59,11 +59,6 @@ bool Connection::connected() const
 
 void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    if(!connected())
-    {
-        return;
-    }
-    
     const uint32 msg_size = sizeof(uint32) * 3 + size;    
     ACE_Message_Block *msg_block = new ACE_Message_Block(msg_size);
     uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());
@@ -77,6 +72,11 @@ void Connection::send(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 
 void Connection::send(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
 {
+    if(!connected())
+    {
+        return;
+    }
+    
     char buf[gabriel::base::MSG_SERIALIZE_BUF_HWM];
     const uint32 byte_size = msg.ByteSize();
     msg.SerializeToArray(buf, byte_size);

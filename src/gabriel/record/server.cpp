@@ -22,11 +22,8 @@
 
 #include <iostream>
 #include "gabriel/record/server.hpp"
-#include "gabriel/protocol/server/supercenter/msg_type.pb.h"
-#include "gabriel/protocol/server/supercenter/default.pb.h"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
 #include "gabriel/protocol/server/center/default.pb.h"
-#include "gabriel/protocol/server/public.pb.h"
 
 using namespace std;
 
@@ -73,8 +70,9 @@ void Server::register_req()
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
 }
-
+    
 void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server::center;
@@ -101,9 +99,9 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             
             return;
         }
+
+        cout << "启动record服务器成功" << id() << endl;
     }
-    
-    cout << "启动record服务器成功" << endl;
 }
     
 void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)

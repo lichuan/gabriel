@@ -35,6 +35,7 @@ namespace center {
 
 Server::Server()
 {
+    m_record_client = NULL;
 }
 
 Server::~Server()
@@ -44,12 +45,25 @@ Server::~Server()
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
+    if(client_connection == m_record_client)
+    {
+        m_record_client = NULL;
+        cout << "record服务器与本服务器断开连接" << endl;
+    }
 }
-
+    
 void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
     //服务器连接掉线
     cout << "error: 与supercenter服务器失去连接" << endl;
+}
+
+void Server::send_to_record(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
+{
+    if(m_record_client != NULL)
+    {
+        m_record_client->send(msg_type, msg_id, msg);
+    }
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
@@ -146,20 +160,61 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     using namespace gabriel::protocol::server::center;
     PARSE_MSG(Register, msg);
     Register_Rsp msg_rsp;
-    
-    for(auto info : m_server_infos)
+
+    if(msg.server_type() == gabriel::base::RECORD_SERVER)
     {
-        if(info->server_type() == msg.server_type())
+        for(auto info : m_server_infos)
         {
-            if(info->server_type() == gabriel::base::RECORD_SERVER)
+            if(info->server_type() == msg.server_type())
             {
                 msg_rsp.add_info()->CopyFrom(*info);
-
+                m_record_client = client_connection;
+                
                 break;                
             }
-        }        
+        }
     }
-
+    else if(msg.server_type() == gabriel::base::LOGIN_SERVER)
+    {
+        for(auto info : m_server_infos)
+        {
+            switch(info->server_type())
+            {
+            case gabriel::base::RECORD_SERVER:
+            case gabriel::base::LOGIN_SERVER:
+                msg_rsp.add_info()->CopyFrom(*info);
+                break;
+            }
+        }
+    }
+    else if(msg.server_type() == gabriel::base::GAME_SERVER)
+    {
+        for(auto info : m_server_infos)
+        {
+            switch(info->server_type())
+            {
+            case gabriel::base::RECORD_SERVER:
+            case gabriel::base::GAME_SERVER:
+                msg_rsp.add_info()->CopyFrom(*info);
+                break;
+            }
+        }
+    }
+    else if(msg.server_type() == gabriel::base::GATEWAY_SERVER)
+    {
+        for(auto info : m_server_infos)
+        {
+            switch(info->server_type())
+            {
+            case gabriel::base::RECORD_SERVER:
+            case gabriel::base::GAME_SERVER:
+            case gabriel::base::GATEWAY_SERVER:
+                msg_rsp.add_info()->CopyFrom(*info);
+                break;
+            }
+        }
+    }
+    
     client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
 }
 

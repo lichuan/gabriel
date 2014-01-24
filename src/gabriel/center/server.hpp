@@ -24,6 +24,7 @@
 #define GABRIEL__CENTER__SERVER
 
 #include <vector>
+#include "google/protobuf/message.h"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
 #include "gabriel/protocol/server/public.pb.h"
@@ -54,12 +55,14 @@ private:
     virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
     void register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
+    void send_to_record(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg);    
     void register_req();
     void clear_server_info();    
     gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
     gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
-    std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;    
+    std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;
+    gabriel::base::Client_Connection *m_record_client;
 };
     
 }
