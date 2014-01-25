@@ -29,6 +29,7 @@ namespace base {
 Server::Server() : m_acceptor(this), m_connector(this)
 {
     m_zone_id = 0;
+    m_type = INVALID_SERVER;    
 }
 
 Server::~Server()
@@ -75,10 +76,8 @@ int32 Server::init()
     init_reactor();
     m_connector.open(ACE_Reactor::instance());
     m_thread.add_executor(this, &Server::do_reactor);
-    m_thread.add_executor(this, &Server::do_encode);    
-    m_thread.add_executor(this, &Server::do_decode);
     m_thread.add_executor(this, &Server::do_main);
-    m_thread.add_executor(this, &Server::do_reconnect);    
+    m_thread.add_executor(this, &Server::do_reconnect);
     register_msg_handler();
     //daemon(1, 1);
     
@@ -111,22 +110,25 @@ void Server::run()
 
 void Server::on_connection_shutdown(Client_Connection *client_connection)
 {
+    client_connection->state(CONNECTION_STATE::SHUTDOWN);
 }
-
+    
 void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
 }
-
-void Server::do_encode_server_connection()
-{
-}
-
-void Server::do_decode_server_connection()
-{
-}
-
+    
 void Server::do_main_server_connection()
 {
+}
+
+void Server::type(gabriel::base::SERVER_TYPE _type)
+{
+    m_type = _type;
+}
+
+SERVER_TYPE Server::type() const
+{
+    return m_type;
 }
     
 void Server::do_main_client_connection()
@@ -175,34 +177,6 @@ void Server::update()
 void Server::do_reactor()
 {
     ACE_Reactor::instance()->run_event_loop();
-}
-
-void Server::do_encode()
-{
-    while(state() != SERVER_STATE::SHUTDOWN)
-    {
-        exec_all([](Client_Connection* client_connection)
-                 {
-                     client_connection->encode();
-                 }
-            );
-        do_encode_server_connection();
-        sleep_msec(1);
-    }
-}
-    
-void Server::do_decode()
-{
-    while(state() != SERVER_STATE::SHUTDOWN)
-    {
-        exec_all([](Client_Connection *client_connection)
-                 {
-                     client_connection->decode();
-                 }
-            );
-        do_decode_server_connection();
-        sleep_msec(1);
-    }
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)

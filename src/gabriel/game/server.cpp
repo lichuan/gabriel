@@ -33,6 +33,7 @@ namespace game {
 
 Server::Server()
 {
+    type(gabriel::base::GAME_SERVER);    
 }
 
 Server::~Server()
@@ -42,6 +43,7 @@ Server::~Server()
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
+    //gabriel::base::Server::on_connection_shutdown(client_connection);    
 }
 
 void Server::on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection)
@@ -86,18 +88,23 @@ void Server::register_msg_handler_ordinary()
     m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_rsp);
 }
 
-void Server::register_req()
+void Server::do_main_server_connection_ordinary()
 {
-    using namespace gabriel::protocol::server::center;
-    Register msg;
-    msg.set_server_id(id());
-    msg.set_server_type(gabriel::base::GAME_SERVER);
-    m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
+    m_record_connection.do_main();
 }
 
-void Server::init_reactor_ordinary()
+int32 Server::init_hook_ordinary()
+{
+    zone_id(1);
+    m_supercenter_addr.set(20000);
+
+    return 0;
+}
+
+void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
+    m_center_connection.reactor(ACE_Reactor::instance());    
     m_record_connection.reactor(ACE_Reactor::instance());
 }
 
@@ -111,10 +118,10 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     using namespace gabriel::protocol::server::center;
     PARSE_MSG(Register_Rsp, msg);
 
-    if(msg.info_size() <= 0)
+    if(msg.info_size() < 2)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);
-        cout << "error: 从center服务器接收到的本服务器信息为空" << endl;
+        cout << "error: 从center服务器接收到的本服务器信息有误" << endl;
         
         return;
     }
@@ -125,20 +132,17 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
 
         if(info.server_type() == gabriel::base::GAME_SERVER)
         {
-            if(id() == 0)
-            {
-                id(info.server_id());
+            id(info.server_id());
                 
-                if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
-                {
-                    state(gabriel::base::SERVER_STATE::SHUTDOWN);
-                    cout << "error: 启动game服务器(id=" << id() << ")失败" << endl;
+            if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
+            {
+                state(gabriel::base::SERVER_STATE::SHUTDOWN);
+                cout << "error: 启动game服务器(id=" << id() << ")失败" << endl;
             
-                    return;
-                }
-
-                cout << "启动game服务器(id=" << id() << ")成功" << endl;
+                return;
             }
+
+            cout << "启动game服务器(id=" << id() << ")成功" << endl;
         }
         else
         {

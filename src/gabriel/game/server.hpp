@@ -37,15 +37,16 @@ public:
     
 private:
     virtual void register_msg_handler_ordinary();
-    virtual void register_req();    
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual void on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void update();
+    virtual void do_main_server_connection_ordinary();
     virtual void fini_hook();
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual void init_reactor_ordinary();
+    virtual void init_reactor();
+    virtual int32 init_hook_ordinary();    
     virtual void reconnect_ordinary();    
     void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
     gabriel::base::Server_Connection m_record_connection;

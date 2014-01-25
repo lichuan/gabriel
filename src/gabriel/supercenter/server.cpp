@@ -33,6 +33,7 @@ namespace supercenter {
 
 Server::Server()
 {
+    type(gabriel::base::SUPERCENTER_SERVER);
 }
 
 Server::~Server()
@@ -47,7 +48,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
-    client_connection->state(gabriel::base::CONNECTION_STATE::SHUTDOWN);
+    gabriel::base::Server::on_connection_shutdown(client_connection);
     
     for(auto iter : m_zone_connections)
     {
@@ -81,29 +82,29 @@ int32 Server::init_hook()
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
     {
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(1);
+        info->set_server_id(2);
         info->set_server_type(gabriel::base::CENTER_SERVER);
         info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");        
-        info->set_port(20001);
+        info->set_port(20002);
         m_server_infos[zone_id].push_back(info);
     }
     {        
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(2);
+        info->set_server_id(3);
         info->set_server_type(gabriel::base::RECORD_SERVER);
         info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");
-        info->set_port(20002);
+        info->set_port(20003);
         m_server_infos[zone_id].push_back(info);
     }
     {   
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;     
-        info->set_server_id(3);
+        info->set_server_id(4);
         info->set_server_type(gabriel::base::LOGIN_SERVER);
         info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");
-        info->set_port(20003);
+        info->set_port(20004);
         m_server_infos[zone_id].push_back(info);
     }
     {        
@@ -128,7 +129,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
         info->set_server_id(200);
         info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("127.0.0.1");
+        info->set_outer_addr("192.168.1.122");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20200);
         m_server_infos[zone_id].push_back(info);

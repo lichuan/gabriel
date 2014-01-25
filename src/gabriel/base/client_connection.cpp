@@ -30,6 +30,7 @@ namespace base {
 
 Client_Connection::Client_Connection()
 {
+    m_type = INVALID_CLIENT;
 }
 
 Client_Connection::~Client_Connection()
@@ -41,6 +42,16 @@ void Client_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uin
     m_holder->handle_connection_msg(this, msg_type, msg_id, data, size);
 }
 
+void Client_Connection::type(gabriel::base::CLIENT_TYPE _type)
+{
+    m_type = _type;    
+}
+
+CLIENT_TYPE Client_Connection::type() const
+{
+    return m_type;
+}
+    
 void Client_Connection::on_shutdown()
 {
     m_holder->on_connection_shutdown(this);    

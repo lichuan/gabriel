@@ -42,15 +42,11 @@ public:
     virtual ~Connection();    
     virtual int open(void *acceptor_or_connector);
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
-    virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     uint32 state() const;
     void state(uint32 _state);
     bool connected() const;
-    bool lost_connection() const;    
-    void decode();
-    void encode();
+    bool lost_connection() const;
     void shutdown();
-    void dispatch();    
     void send(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg);
     void do_main();
     const ACE_INET_Addr& inet_addr() const;
@@ -64,14 +60,9 @@ protected:
 private:
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     virtual void on_shutdown() = 0;
-    void send(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    uint32 decode_msg_length();
-    ACE_Message_Queue<ACE_MT_SYNCH> m_recv_queue;
-    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_1;
-    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue_2;
+    void do_main_i();    
     uint32 m_state;
-    bool m_cancel_write;
-    uint32 m_last_decode_msg_length;
+    uint32 m_last_msg_length;
     ACE_INET_Addr m_addr;
 };
     

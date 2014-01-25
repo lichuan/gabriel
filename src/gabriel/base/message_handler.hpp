@@ -33,44 +33,88 @@ template<typename T, typename Connection_Type>
 struct Message_Hanlder_Info
 {
     T *m_obj;
-    void (T::*m_func)(Connection_Type *connection, void *data, uint32 size);
+    void (T::*m_func_1)(Connection_Type *connection, uint32 msg_id, void *data, uint32 size);
+    void (T::*m_func_2)(Connection_Type *connection, void *data, uint32 size);
 };
 
 template<typename T, typename Connection_Type>
 class Message_Handler
 {
 public:
+    Message_Handler()
+    {
+        m_obj = NULL;
+    }
+
+    void register_handler(uint32 msg_type, uint32 msg_id, T *obj, void (T::*handler)(Connection_Type *connection, uint32 msg_id, void *data, uint32 size))
+    {
+        Message_Hanlder_Info<T, Connection_Type> info;
+        info.m_obj = obj;
+        info.m_func_1 = handler;
+        m_handlers_1[msg_type] = info;
+    }
+    
     void register_handler(uint32 msg_type, uint32 msg_id, T *obj, void (T::*handler)(Connection_Type *connection, void *data, uint32 size))
     {
         Message_Hanlder_Info<T, Connection_Type> info;
         info.m_obj = obj;
-        info.m_func = handler;
-        m_handlers[msg_type][msg_id] = info;
+        info.m_func_2 = handler;
+        m_handlers_2[msg_type][msg_id] = info;
+    }
+
+    void register_handler(T *obj, void (T::*handler)(Connection_Type *connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size))
+    {
+        m_obj = obj;
+        m_func = handler;
     }
     
     void handle_message(uint32 msg_type, uint32 msg_id, Connection_Type *connection, void *data, uint32 size)
     {
-        auto iter = m_handlers.find(msg_type);        
-
-        if(iter == m_handlers.end())
+        if(m_obj != NULL)
         {
+            (m_obj->*m_func)(connection, msg_type, msg_id, data, size);
+
             return;
         }
-
-        auto &msg_id_map = iter->second;        
-        auto iter_func = msg_id_map.find(msg_id);
         
-        if(iter_func == msg_id_map.end())
         {
-            return;
-        }
+            auto iter = m_handlers_1.find(msg_type);
 
-        auto &info = iter_func->second;
-        (info.m_obj->*info.m_func)(connection, data,size);
+            if(iter != m_handlers_1.end())
+            {
+                auto &info = iter->second;
+                (info.m_obj->*info.m_func_1)(connection, msg_id, data, size);
+
+                return;            
+            }
+        }
+        
+        {
+            auto iter = m_handlers_2.find(msg_type);
+
+            if(iter == m_handlers_2.end())
+            {
+                return;
+            }
+
+            auto &msg_id_map = iter->second;
+            auto iter_func = msg_id_map.find(msg_id);
+        
+            if(iter_func == msg_id_map.end())
+            {
+                return;
+            }
+
+            auto &info = iter_func->second;
+            (info.m_obj->*info.m_func_2)(connection, data, size);
+        }
     }
     
 private:
-    std::map<uint32, std::map<uint32, Message_Hanlder_Info<T, Connection_Type>>> m_handlers;
+    T *m_obj;
+    void (T::*m_func)(Connection_Type *connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    std::map<uint32, Message_Hanlder_Info<T, Connection_Type>> m_handlers_1;
+    std::map<uint32, std::map<uint32, Message_Hanlder_Info<T, Connection_Type>>> m_handlers_2;
 };
 
 }

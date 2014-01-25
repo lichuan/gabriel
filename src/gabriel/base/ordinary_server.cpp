@@ -24,6 +24,8 @@
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/protocol/server/supercenter/msg_type.pb.h"
 #include "gabriel/protocol/server/supercenter/default.pb.h"
+#include "gabriel/protocol/server/center/msg_type.pb.h"
+#include "gabriel/protocol/server/center/default.pb.h"
 #include "gabriel/base/ordinary_server.hpp"
 
 using namespace std;
@@ -78,7 +80,11 @@ void Ordinary_Server::do_reconnect()
             {
                 m_center_connection.state(CONNECTION_STATE::CONNECTED);
                 cout << "尝试重新连接到center服务器成功" << endl;
-                register_req();
+
+                if(type() == RECORD_SERVER)
+                {
+                    register_req();
+                }
             }
         }
         
@@ -87,26 +93,13 @@ void Ordinary_Server::do_reconnect()
     }
 }
 
-void Ordinary_Server::do_decode_server_connection()
+void Ordinary_Server::register_req()
 {
-    m_center_connection.decode();
-    m_supercenter_connection.decode();
-    do_decode_server_connection_ordinary();
-}
-
-void Ordinary_Server::do_decode_server_connection_ordinary()
-{
-}
-
-void Ordinary_Server::do_encode_server_connection_ordinary()
-{
-}
-    
-void Ordinary_Server::do_encode_server_connection()
-{
-    m_center_connection.encode();
-    m_supercenter_connection.encode();
-    do_encode_server_connection_ordinary();    
+    using namespace gabriel::protocol::server::center;
+    Register msg;
+    msg.set_server_id(id());
+    msg.set_server_type(type());
+    m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
 }
 
 void Ordinary_Server::do_main_server_connection()
@@ -122,10 +115,14 @@ void Ordinary_Server::do_main_server_connection_ordinary()
 
 int32 Ordinary_Server::init_hook()
 {
-    zone_id(1);
+    if(init_hook_ordinary() < 0)
+    {
+        return -1;
+    }
+    
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-
-    if(m_connector.connect(tmp, ACE_INET_Addr(20000)) < 0)
+    
+    if(m_connector.connect(tmp, m_supercenter_addr) < 0)
     {
         cout << "error: 连接到supercenter服务器失败" << endl;
 
@@ -138,25 +135,9 @@ int32 Ordinary_Server::init_hook()
     msg.set_zone_id(zone_id());
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg);
 
-    return init_hook_ordinary();
-}
-
-int32 Ordinary_Server::init_hook_ordinary()
-{
     return 0;
 }
-
-void Ordinary_Server::init_reactor()
-{
-    init_reactor_ordinary();
-    m_center_connection.reactor(ACE_Reactor::instance());
-}
-
-void Ordinary_Server::init_reactor_ordinary()
-{
-    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
-}
-
+    
 void Ordinary_Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server::supercenter;
@@ -172,7 +153,6 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_c
 {
     using namespace gabriel::protocol::server::supercenter;
     PARSE_MSG(Center_Addr, msg);
-    cout << "成功获取center服务器的地址" << endl;
     m_supercenter_connection.shutdown();
     gabriel::base::Server_Connection *tmp = &m_center_connection;
     

@@ -21,6 +21,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
+#include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/record/server.hpp"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
 #include "gabriel/protocol/server/center/default.pb.h"
@@ -32,6 +33,7 @@ namespace record {
 
 Server::Server()
 {
+    type(gabriel::base::RECORD_SERVER);
 }
 
 Server::~Server()
@@ -41,11 +43,26 @@ Server::~Server()
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
+    gabriel::base::Server::on_connection_shutdown(client_connection);
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
     return true;
+}
+
+void Server::init_reactor()
+{
+    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
+    m_center_connection.reactor(ACE_Reactor::instance());    
+}
+
+int32 Server::init_hook_ordinary()
+{
+    zone_id(1);
+    m_supercenter_addr.set(20000);
+
+    return 0;
 }
 
 void Server::update()
@@ -59,15 +76,6 @@ void Server::register_msg_handler_ordinary()
     m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_rsp);
 }
 
-void Server::register_req()
-{
-    using namespace gabriel::protocol::server::center;
-    Register msg;
-    msg.set_server_id(id());
-    msg.set_server_type(gabriel::base::RECORD_SERVER);
-    m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
-}
-
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
@@ -78,30 +86,31 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     using namespace gabriel::protocol::server::center;
     PARSE_MSG(Register_Rsp, msg);
 
-    if(msg.info_size() <= 0)
+    if(id() > 0)
+    {
+        return;
+    }
+    
+    if(msg.info_size() != 1)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);
-        cout << "error: 从center服务器接收到的本服务器信息为空" << endl;
+        cout << "error: 从center服务器接收到的本服务器信息有误" << endl;
         
         return;
     }
     
     const gabriel::protocol::server::Server_Info &info = msg.info(0);
+    id(info.server_id());
     
-    if(id() == 0)
+    if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
     {
-        id(info.server_id());
-        
-        if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
-        {
-            state(gabriel::base::SERVER_STATE::SHUTDOWN);
-            cout << "error: 启动record服务器失败" << endl;
+        state(gabriel::base::SERVER_STATE::SHUTDOWN);
+        cout << "error: 启动record服务器失败" << endl;
             
-            return;
-        }
-
-        cout << "启动record服务器成功" << id() << endl;
+        return;
     }
+
+    cout << "启动record服务器成功" << endl;
 }
     
 void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)

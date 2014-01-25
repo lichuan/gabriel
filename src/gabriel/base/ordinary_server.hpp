@@ -28,7 +28,8 @@
 namespace gabriel {
 namespace base {
 
-//普通服务器, 也即需要向center服务器注册的其他服务器
+/* 普通服务器类(即向center服务器注册的其他服务器种类)
+ * 抽取出这些服务器的共有行为和数据，减少代码重复度。*/
 class Ordinary_Server : public Server
 {
 public:
@@ -37,28 +38,23 @@ public:
 
 protected:
     gabriel::base::Server_Connection m_center_connection;
+    ACE_INET_Addr m_supercenter_addr;
     
 private:
-    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);    
-    virtual void do_decode_server_connection();
-    virtual void do_encode_server_connection();
+    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
     virtual void do_main_server_connection();
     virtual void do_reconnect();
     virtual int32 init_hook();
-    virtual void init_reactor();    
     virtual void register_msg_handler();
     virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     void center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
     virtual void on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection);
-    virtual void do_decode_server_connection_ordinary();
-    virtual void do_encode_server_connection_ordinary();
     virtual void do_main_server_connection_ordinary();
     virtual void reconnect_ordinary();
-    virtual void init_reactor_ordinary();    
-    virtual int32 init_hook_ordinary();    
+    virtual int32 init_hook_ordinary() = 0;    
     virtual void register_msg_handler_ordinary();
-    virtual void handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
-    virtual void register_req() = 0;
+    virtual void handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
+    void register_req();    
     gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::Message_Handler<Ordinary_Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
 };

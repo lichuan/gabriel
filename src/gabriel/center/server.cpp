@@ -36,6 +36,7 @@ namespace center {
 Server::Server()
 {
     m_record_client = NULL;
+    type(gabriel::base::CENTER_SERVER);
 }
 
 Server::~Server()
@@ -45,6 +46,8 @@ Server::~Server()
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
+    gabriel::base::Server::on_connection_shutdown(client_connection);
+    
     if(client_connection == m_record_client)
     {
         m_record_client = NULL;
@@ -96,16 +99,6 @@ void Server::do_reconnect()
         gabriel::base::sleep_sec(2);
     }
 }
-    
-void Server::do_decode_server_connection()
-{
-    m_supercenter_connection.decode();
-}
-
-void Server::do_encode_server_connection()
-{
-    m_supercenter_connection.encode();
-}
 
 void Server::do_main_server_connection()
 {
@@ -134,7 +127,7 @@ int32 Server::init_hook()
 {
     zone_id(1); //暂时定为1区, 以后改为配置
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-    
+
     if(m_connector.connect(tmp, ACE_INET_Addr(20000)) < 0)
     {
         cout << "error: 连接到supercenter服务器失败" << endl;
@@ -160,17 +153,19 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     using namespace gabriel::protocol::server::center;
     PARSE_MSG(Register, msg);
     Register_Rsp msg_rsp;
-
+    client_connection->type(static_cast<gabriel::base::CLIENT_TYPE>(msg.server_type()));
+    bool found_one = false;
+    
     if(msg.server_type() == gabriel::base::RECORD_SERVER)
     {
         for(auto info : m_server_infos)
         {
-            if(info->server_type() == msg.server_type())
+            if(info->server_type() == gabriel::base::RECORD_SERVER)
             {
                 msg_rsp.add_info()->CopyFrom(*info);
                 m_record_client = client_connection;
                 
-                break;                
+                break;
             }
         }
     }
@@ -183,6 +178,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
             case gabriel::base::RECORD_SERVER:
             case gabriel::base::LOGIN_SERVER:
                 msg_rsp.add_info()->CopyFrom(*info);
+                cout << "login register" << endl;                
                 break;
             }
         }
@@ -191,12 +187,34 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     {
         for(auto info : m_server_infos)
         {
-            switch(info->server_type())
+            if(info->server_type() == gabriel::base::RECORD_SERVER)
             {
-            case gabriel::base::RECORD_SERVER:
-            case gabriel::base::GAME_SERVER:
                 msg_rsp.add_info()->CopyFrom(*info);
-                break;
+            }
+            else if(info->server_type() == gabriel::base::GAME_SERVER)
+            {
+                if(found_one)
+                {
+                    continue;
+                }
+                
+                if(msg.server_id() > 0)
+                {
+                    if(info->server_id() == msg.server_id())
+                    {
+                        msg_rsp.add_info()->CopyFrom(*info);
+                        found_one = true;
+                    }
+                }
+                else if(info->inner_addr() == client_connection->ip_addr()
+                        || info->inner_addr() == client_connection->host_name()
+                        || info->outer_addr() == client_connection->ip_addr()
+                        || info->outer_addr() == client_connection->host_name())
+                {
+                    //适配服务器
+                    msg_rsp.add_info()->CopyFrom(*info);
+                    found_one = true;
+                }                
             }
         }
     }
@@ -204,13 +222,34 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     {
         for(auto info : m_server_infos)
         {
-            switch(info->server_type())
+            if(info->server_type() == gabriel::base::RECORD_SERVER || info->server_type() == gabriel::base::GAME_SERVER)
             {
-            case gabriel::base::RECORD_SERVER:
-            case gabriel::base::GAME_SERVER:
-            case gabriel::base::GATEWAY_SERVER:
                 msg_rsp.add_info()->CopyFrom(*info);
-                break;
+            }
+            else if(info->server_type() == gabriel::base::GATEWAY_SERVER)
+            {
+                if(found_one)
+                {
+                    continue;
+                }
+                
+                if(msg.server_id() > 0)
+                {
+                    if(info->server_id() == msg.server_id())
+                    {
+                        msg_rsp.add_info()->CopyFrom(*info);
+                        found_one = true;
+                    }
+                }
+                else if(info->inner_addr() == client_connection->ip_addr()
+                        || info->inner_addr() == client_connection->host_name()
+                        || info->outer_addr() == client_connection->ip_addr()
+                        || info->outer_addr() == client_connection->host_name())
+                {
+                    //适配服务器
+                    msg_rsp.add_info()->CopyFrom(*info);
+                    found_one = true;
+                }                
             }
         }
     }

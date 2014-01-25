@@ -33,6 +33,7 @@ namespace gateway {
 
 Server::Server()
 {
+    type(gabriel::base::GATEWAY_SERVER);    
 }
 
 Server::~Server()
@@ -42,11 +43,15 @@ Server::~Server()
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
+    gabriel::base::Server::on_connection_shutdown(client_connection);
 }
 
-void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+void Server::on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection)
 {
-    //服务器连接掉线
+    if(server_connection == &m_record_connection)
+    {
+        cout << "error: 与record服务器失去连接" << endl;
+    }
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
@@ -54,54 +59,121 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
-void Server::do_decode_server_connection()
-{
-    m_record_connection.decode();
-    m_center_connection.decode();
-}
-
-void Server::do_encode_server_connection()
-{
-    m_record_connection.encode();
-    m_center_connection.encode();
-}
-
-void Server::do_main_server_connection()
-{
-    m_record_connection.do_main();
-    m_center_connection.do_main();
-}
-
 void Server::update()
 {
     //游戏循环    
 }
 
+void Server::reconnect_ordinary()
+{
+    if(m_record_connection.lost_connection())
+    {
+        gabriel::base::Server_Connection *tmp = &m_record_connection;
+            
+        if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
+        {
+            cout << "error: 尝试重新连接到record服务器失败" << endl;
+        }
+        else
+        {
+            m_record_connection.state(gabriel::base::CONNECTION_STATE::CONNECTED);
+            cout << "尝试重新连接到record服务器成功" << endl;
+        }
+    }
+}
+    
+void Server::register_msg_handler_ordinary()
+{
+    using namespace gabriel::protocol::server::center;
+    m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_rsp);
+}
+
 void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(5000, true), true), true);
+    m_center_connection.reactor(ACE_Reactor::instance());    
+    m_record_connection.reactor(ACE_Reactor::instance());
 }
 
-int32 Server::init_hook()
+int32 Server::init_hook_ordinary()
 {
-    if(m_acceptor.open(ACE_INET_Addr(20200), ACE_Reactor::instance()) < 0)
-    {
-        return -1;
-    }
-    
+    zone_id(1);
+    m_supercenter_addr.set(20000);
+
     return 0;
-}
-
-void Server::register_msg_handler()
-{
 }
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
 }
 
-void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+void Server::do_main_server_connection_ordinary()
 {
+    m_record_connection.do_main();
+}
+
+void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server::center;
+    PARSE_MSG(Register_Rsp, msg);
+
+    if(msg.info_size() < 3)
+    {
+        state(gabriel::base::SERVER_STATE::SHUTDOWN);
+        cout << "error: 从center服务器接收到的本服务器信息有误" << endl;
+        
+        return;
+    }
+    
+    for(uint32 i = 0; i != msg.info_size(); ++i)
+    {
+        const auto &info = msg.info(i);
+
+        if(info.server_type() == gabriel::base::GATEWAY_SERVER)
+        {
+            id(info.server_id());
+            
+            if(m_acceptor.open(ACE_INET_Addr(info.port(), info.outer_addr().c_str()), ACE_Reactor::instance()) < 0)
+            {
+                state(gabriel::base::SERVER_STATE::SHUTDOWN);
+                cout << "error: 启动gateway服务器(id=" << id() << ")失败" << endl;
+            
+                return;
+            }
+
+            cout << "启动gateway服务器(id=" << id() << ")成功" << endl;
+        }
+        else if(info.server_type() == gabriel::base::RECORD_SERVER)
+        {
+            gabriel::base::Server_Connection *tmp = &m_record_connection;
+            
+            if(m_connector.connect(tmp, ACE_INET_Addr(info.port(), info.inner_addr().c_str())) < 0)
+            {
+                cout << "error: 连接到record服务器失败" << endl;
+                state(gabriel::base::SERVER_STATE::SHUTDOWN);
+            }
+            else
+            {
+                cout << "连接到record服务器成功" << endl;
+            }
+        }
+        else
+        {
+        }
+    }
+}
+    
+void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    if(server_connection == &m_center_connection)
+    {
+        m_center_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
+    }
+    else if(server_connection == &m_record_connection)
+    {
+        m_record_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
+    }
 }
 
 void Server::fini_hook()
