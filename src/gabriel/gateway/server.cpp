@@ -204,7 +204,6 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             {
                 cout << "连接到game服务器(id=" << info.server_id() << ")成功" << endl;
             }
-
         }
     }
 }

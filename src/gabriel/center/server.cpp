@@ -237,9 +237,9 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                     }
                 }
                 else if((info->inner_addr() == client_connection->ip_addr()
-                        || info->inner_addr() == client_connection->host_name()
-                        || info->outer_addr() == client_connection->ip_addr()
-                        || info->outer_addr() == client_connection->host_name())
+                         || info->inner_addr() == client_connection->host_name()
+                         || info->outer_addr() == client_connection->ip_addr()
+                         || info->outer_addr() == client_connection->host_name())
                         && m_allocated_game_ids.find(info->server_id()) == m_allocated_game_ids.end())
                 {
                     //适配服务器
