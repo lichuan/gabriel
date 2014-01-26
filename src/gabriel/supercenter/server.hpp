@@ -41,7 +41,8 @@ public:
 private:
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual int32 init_hook();
-    virtual void init_reactor();    
+    virtual void init_reactor();
+    virtual void fini_hook();    
     virtual void register_msg_handler();
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);

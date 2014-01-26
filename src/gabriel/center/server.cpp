@@ -53,8 +53,32 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
         m_record_client = NULL;
         cout << "record服务器与本服务器断开连接" << endl;
     }
+    else if(client_connection->type() == gabriel::base::GAME_CLIENT)
+    {
+        auto iter = m_allocated_game_map.find(client_connection->id());
+        
+        if(iter != m_allocated_game_map.end())
+        {
+            m_allocated_game_ids.erase(iter->second);
+            cout << "game服务器(id=" << iter->second << ")与本服务器断开连接" << endl;
+        }
+    }
+    else if(client_connection->type() == gabriel::base::GATEWAY_CLIENT)
+    {
+        auto iter = m_allocated_gateway_map.find(client_connection->id());
+
+        if(iter != m_allocated_gateway_map.end())
+        {
+            m_allocated_gateway_ids.erase(iter->second);
+            cout << "gateway服务器(id=" << iter->second << ")与本服务器断开连接" << endl;
+        }
+    }
+    else
+    {
+        cout << "login服务器与本服务器断开连接" << endl;
+    }
 }
-    
+
 void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
     //服务器连接掉线
@@ -90,7 +114,6 @@ void Server::do_reconnect()
             }
             else
             {
-                m_supercenter_connection.state(CONNECTION_STATE::CONNECTED);
                 register_req();
                 cout << "尝试重新连接到supercenter服务器成功" << endl;
             }
@@ -155,9 +178,12 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     Register_Rsp msg_rsp;
     client_connection->type(static_cast<gabriel::base::CLIENT_TYPE>(msg.server_type()));
     bool found_one = false;
+    char server_name[256] {0};
     
     if(msg.server_type() == gabriel::base::RECORD_SERVER)
     {
+        ACE_OS::sprintf(server_name, "record服务器");
+        
         for(auto info : m_server_infos)
         {
             if(info->server_type() == gabriel::base::RECORD_SERVER)
@@ -171,6 +197,8 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     }
     else if(msg.server_type() == gabriel::base::LOGIN_SERVER)
     {
+        ACE_OS::sprintf(server_name, "login服务器");        
+        
         for(auto info : m_server_infos)
         {
             switch(info->server_type())
@@ -178,7 +206,6 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
             case gabriel::base::RECORD_SERVER:
             case gabriel::base::LOGIN_SERVER:
                 msg_rsp.add_info()->CopyFrom(*info);
-                cout << "login register" << endl;                
                 break;
             }
         }
@@ -200,22 +227,37 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                 
                 if(msg.server_id() > 0)
                 {
-                    if(info->server_id() == msg.server_id())
+                    if(info->server_id() == msg.server_id() && m_allocated_game_ids.find(info->server_id()) == m_allocated_game_ids.end())
                     {
                         msg_rsp.add_info()->CopyFrom(*info);
+                        m_allocated_game_ids.insert(info->server_id());
+                        m_allocated_game_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                        ACE_OS::sprintf(server_name, "game服务器(id=%u)", info->server_id());                        
                         found_one = true;
                     }
                 }
-                else if(info->inner_addr() == client_connection->ip_addr()
+                else if((info->inner_addr() == client_connection->ip_addr()
                         || info->inner_addr() == client_connection->host_name()
                         || info->outer_addr() == client_connection->ip_addr()
                         || info->outer_addr() == client_connection->host_name())
+                        && m_allocated_game_ids.find(info->server_id()) == m_allocated_game_ids.end())
                 {
                     //适配服务器
                     msg_rsp.add_info()->CopyFrom(*info);
+                    m_allocated_game_ids.insert(info->server_id());
+                    m_allocated_game_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                    ACE_OS::sprintf(server_name, "game服务器(id=%u)", info->server_id());                    
                     found_one = true;
-                }                
+                }
             }
+        }
+
+        if(!found_one)
+        {
+            msg_rsp.Clear();
+            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
+            
+            return;
         }
     }
     else if(msg.server_type() == gabriel::base::GATEWAY_SERVER)
@@ -235,25 +277,41 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                 
                 if(msg.server_id() > 0)
                 {
-                    if(info->server_id() == msg.server_id())
+                    if(info->server_id() == msg.server_id() && m_allocated_gateway_ids.find(info->server_id()) == m_allocated_gateway_ids.end())
                     {
                         msg_rsp.add_info()->CopyFrom(*info);
+                        m_allocated_gateway_ids.insert(info->server_id());
+                        m_allocated_gateway_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                        ACE_OS::sprintf(server_name, "gateway服务器(id=%u)", info->server_id());                        
                         found_one = true;
                     }
                 }
-                else if(info->inner_addr() == client_connection->ip_addr()
-                        || info->inner_addr() == client_connection->host_name()
-                        || info->outer_addr() == client_connection->ip_addr()
-                        || info->outer_addr() == client_connection->host_name())
+                else if((info->inner_addr() == client_connection->ip_addr()
+                         || info->inner_addr() == client_connection->host_name()
+                         || info->outer_addr() == client_connection->ip_addr()
+                         || info->outer_addr() == client_connection->host_name())
+                        && m_allocated_gateway_ids.find(info->server_id()) == m_allocated_gateway_ids.end())
                 {
                     //适配服务器
                     msg_rsp.add_info()->CopyFrom(*info);
+                    m_allocated_gateway_ids.insert(info->server_id());
+                    m_allocated_gateway_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                    ACE_OS::sprintf(server_name, "gateway服务器(id=%u)", info->server_id());                    
                     found_one = true;
                 }                
             }
         }
+        
+        if(!found_one)
+        {
+            msg_rsp.Clear();
+            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
+            
+            return;
+        }
     }
     
+    cout << "收到" << server_name << "的注册请求，ip:" << client_connection->ip_addr() << " hostname:" << client_connection->host_name() << endl;
     client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
 }
 

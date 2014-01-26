@@ -182,6 +182,19 @@ void Server::center_addr_req(gabriel::base::Client_Connection *client_connection
     client_connection->send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg_rsp);
 }
 
+void Server::fini_hook()
+{
+    for(auto iter : m_server_infos)
+    {
+        for(auto &info : iter.second)
+        {
+            delete info;
+        }
+    }
+
+    m_server_infos.clear();
+}
+
 void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server::supercenter;

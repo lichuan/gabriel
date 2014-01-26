@@ -23,6 +23,7 @@
 #ifndef GABRIEL__GATEWAY__SERVER
 #define GABRIEL__GATEWAY__SERVER
 
+#include <map>
 #include "gabriel/base/ordinary_server.hpp"
 #include "gabriel/base/message_handler.hpp"
 
@@ -52,7 +53,9 @@ private:
     gabriel::base::Server_Connection m_record_connection;
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_center_msg_handler;
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_record_msg_handler;
-    gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;    
+    gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
+    gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_game_msg_handler;
+    std::map<uint32, gabriel::base::Server_Connection*> m_game_connections;
 };
     
 }

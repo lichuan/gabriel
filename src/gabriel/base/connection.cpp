@@ -133,7 +133,7 @@ void Connection::do_main_i()
         m_last_msg_length = ACE_NTOHL(m_last_msg_length);
     }
 
-    if(m_last_msg_length <= 3 * sizeof(uint32))
+    if(m_last_msg_length < 3 * sizeof(uint32))
     {
         return;
     }

@@ -78,13 +78,8 @@ void Ordinary_Server::do_reconnect()
             }
             else
             {
-                m_center_connection.state(CONNECTION_STATE::CONNECTED);
                 cout << "尝试重新连接到center服务器成功" << endl;
-
-                if(type() == RECORD_SERVER)
-                {
-                    register_req();
-                }
+                register_req();
             }
         }
         

@@ -43,7 +43,7 @@ Server::~Server()
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
     //客户端连接掉线
-    //gabriel::base::Server::on_connection_shutdown(client_connection);    
+    gabriel::base::Server::on_connection_shutdown(client_connection);    
 }
 
 void Server::on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection)
@@ -76,7 +76,6 @@ void Server::reconnect_ordinary()
         }
         else
         {
-            m_record_connection.state(gabriel::base::CONNECTION_STATE::CONNECTED);
             cout << "尝试重新连接到record服务器成功" << endl;
         }
     }
@@ -118,6 +117,11 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     using namespace gabriel::protocol::server::center;
     PARSE_MSG(Register_Rsp, msg);
 
+    if(id() > 0)
+    {
+        return;
+    }
+    
     if(msg.info_size() < 2)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);

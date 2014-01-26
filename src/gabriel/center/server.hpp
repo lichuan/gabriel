@@ -24,6 +24,8 @@
 #define GABRIEL__CENTER__SERVER
 
 #include <vector>
+#include <set>
+#include <map>
 #include "google/protobuf/message.h"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
@@ -61,6 +63,10 @@ private:
     gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
     std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;
     gabriel::base::Client_Connection *m_record_client;
+    std::set<uint32> m_allocated_gateway_ids;
+    std::set<uint32> m_allocated_game_ids;
+    std::map<uint32, uint32> m_allocated_game_map;
+    std::map<uint32, uint32> m_allocated_gateway_map;
 };
     
 }
