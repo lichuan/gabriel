@@ -23,13 +23,14 @@
 #ifndef GABRIEL__GAME__SERVER
 #define GABRIEL__GAME__SERVER
 
+#include "gabriel/base/timer.hpp"
 #include "gabriel/base/ordinary_server.hpp"
 #include "gabriel/base/message_handler.hpp"
 
 namespace gabriel {
 namespace game {
 
-class Server : public gabriel::base::Ordinary_Server
+class Server : public gabriel::base::Ordinary_Server, public gabriel::base::Timer_Capability
 {
 public:
     Server();

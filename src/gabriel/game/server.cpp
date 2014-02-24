@@ -23,6 +23,7 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/game/server.hpp"
+#include "gabriel/game/astar.hpp"
 #include "gabriel/protocol/server/center/msg_type.pb.h"
 #include "gabriel/protocol/server/center/default.pb.h"
 
@@ -96,7 +97,7 @@ int32 Server::init_hook_ordinary()
 {
     zone_id(1);
     m_supercenter_addr.set(20000);
-
+    
     return 0;
 }
 

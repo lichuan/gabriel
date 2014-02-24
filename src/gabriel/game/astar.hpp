@@ -236,7 +236,7 @@ private:
         }
         
         //反向查找
-        const Astar_Node *node = new Astar_Node(dest_pos, 0, h_value(dest_pos, src_pos), NULL);
+        Astar_Node *node = new Astar_Node(dest_pos, 0, h_value(dest_pos, src_pos), NULL);
         m_open_map.insert(std::make_pair(dest_pos.hash(), node));        
         m_iter_map.insert(std::make_pair(node, m_order_by_f_map.insert(m_order_by_f_map.begin(), std::make_pair(node->m_f, node))));
         int32 num = 0;        
@@ -300,7 +300,7 @@ public:
     }
 };
 
-typedef ACE_Singleton<Astar<1000>, ACE_Null_Mutex> ASTAR_1000;
+typedef ACE_Singleton<Astar<1000>, ACE_Null_Mutex> ASTAR;
     
 } //end namespace base
 } //end namespace gabriel
