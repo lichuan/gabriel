@@ -35,12 +35,12 @@ namespace base {
 class Timer_Handler : public ACE_Event_Handler
 {
 public:
-    Timer_Handler(std::function<void()> &call);
+    Timer_Handler(std::function<void()> call);
     virtual int handle_timeout (const ACE_Time_Value &current_time, const void *act = 0);
     void timer_id(int32 timer_id);
     
 private:
-    std::function<void()> &m_call;
+    std::function<void()> m_call;
     int32 m_timer_id;
 };
 
@@ -52,7 +52,7 @@ public:
     Timer_Capability();
     ~Timer_Capability();
     
-    int32 schedule_timer(std::function<void()> &call, uint32 interval, uint32 delay = 0);
+    int32 schedule_timer(std::function<void()> call, uint32 interval, uint32 delay = 0);
     void cancel_timer(int32 timer_id);
     
 private:

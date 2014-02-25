@@ -26,8 +26,9 @@
 namespace gabriel {
 namespace base {
 
-Timer_Handler::Timer_Handler(std::function<void()> &call) : m_call(call)
+Timer_Handler::Timer_Handler(std::function<void()> call)
 {
+    m_call = call;    
     m_timer_id = -1;
 }
 
@@ -61,7 +62,7 @@ Timer_Capability::~Timer_Capability()
     }
 }
 
-int32 Timer_Capability::schedule_timer(std::function<void()> &call, uint32 interval, uint32 delay)
+int32 Timer_Capability::schedule_timer(std::function<void()> call, uint32 interval, uint32 delay)
 {
     ACE_Time_Value future_time = TIMER_MGR::instance()->current_time();
     uint32 delay_sec = delay / 1000;

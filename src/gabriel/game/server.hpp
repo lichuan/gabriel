@@ -42,6 +42,7 @@ private:
     virtual void on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void update();
+    void test_timer(std::string what);    
     virtual void do_main_server_connection_ordinary();
     virtual void fini_hook();
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);

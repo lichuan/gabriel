@@ -22,6 +22,7 @@
 
 #include "ace/Signal.h"
 #include "gabriel/base/server.hpp"
+#include "gabriel/base/timer.hpp"
 
 namespace gabriel {
 namespace base {
@@ -159,7 +160,7 @@ void Server::do_main()
     {
         do_main_server_connection();
         do_main_client_connection();
-        update();
+        update_i();
         sleep_msec(1);
     }
     
@@ -168,6 +169,12 @@ void Server::do_main()
 
 void Server::do_reconnect()
 {
+}
+
+void Server::update_i()
+{
+    TIMER_MGR::instance()->expire();
+    update();    
 }
 
 void Server::update()

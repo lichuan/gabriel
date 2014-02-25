@@ -93,10 +93,17 @@ void Server::do_main_server_connection_ordinary()
     m_record_connection.do_main();
 }
 
+void Server::test_timer(std::string what)
+{
+    cout << "timerout: " << what << endl;
+}
+    
 int32 Server::init_hook_ordinary()
 {
     zone_id(1);
     m_supercenter_addr.set(20000);
+    cout << "init timeout..........." << endl;    
+    schedule_timer(std::bind(&Server::test_timer, this, "test timerrrrrrrrrrrrrrr"), 1000, 1000);
     
     return 0;
 }

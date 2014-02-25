@@ -70,6 +70,7 @@ private:
     virtual int32 init_hook();    
     virtual void init_reactor() = 0;    
     virtual void update();
+    void update_i();    
     virtual void fini_hook();
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
