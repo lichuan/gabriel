@@ -160,7 +160,7 @@ void Server::do_main()
     {
         do_main_server_connection();
         do_main_client_connection();
-        update_i();
+        update();
         sleep_msec(1);
     }
     
@@ -171,16 +171,12 @@ void Server::do_reconnect()
 {
 }
 
-void Server::update_i()
-{
-    TIMER_MGR::instance()->expire();
-    update();    
-}
-
 void Server::update()
 {
+    TIMER_MGR::instance()->expire();
+    update_hook();
 }
-
+    
 void Server::do_reactor()
 {
     ACE_Reactor::instance()->run_event_loop();

@@ -41,7 +41,7 @@ private:
     virtual void on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void do_main_server_connection_ordinary();
-    virtual void update();
+    virtual void update_hook();
     virtual void fini_hook();
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);

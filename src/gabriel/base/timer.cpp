@@ -40,13 +40,15 @@ void Timer_Handler::timer_id(int32 timer_id)
 int Timer_Handler::handle_timeout (const ACE_Time_Value &current_time, const void *act)
 {
     void *obj = const_cast<void*>(act);    
-    Timer_Capability *holder = reinterpret_cast<Timer_Capability*>(obj);
+    Timer_Capability *holder = static_cast<Timer_Capability*>(obj);
     m_call();
     
     if(m_timer_id != -1)
     {
         holder->cancel_timer(m_timer_id);
     }
+
+    return 0;
 }
     
 Timer_Capability::Timer_Capability()

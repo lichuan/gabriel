@@ -39,7 +39,7 @@ private:
     virtual void register_msg_handler_ordinary();
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
-    virtual void update();
+    virtual void update_hook();
     virtual void fini_hook();
     virtual void init_reactor();
     virtual int32 init_hook_ordinary();    

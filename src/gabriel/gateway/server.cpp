@@ -71,7 +71,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
-void Server::update()
+void Server::update_hook()
 {
     //游戏循环    
 }

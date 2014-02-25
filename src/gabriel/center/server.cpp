@@ -128,7 +128,7 @@ void Server::do_main_server_connection()
     m_supercenter_connection.do_main();
 }
 
-void Server::update()
+void Server::update_hook()
 {
     //游戏循环    
 }

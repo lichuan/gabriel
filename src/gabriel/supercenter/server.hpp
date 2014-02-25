@@ -39,9 +39,11 @@ public:
     virtual ~Server();
     
 private:
+    void test_timer(std::string arg_str);    
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual int32 init_hook();
     virtual void init_reactor();
+    virtual void update_hook();
     virtual void fini_hook();    
     virtual void register_msg_handler();
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);

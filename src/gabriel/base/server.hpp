@@ -28,13 +28,14 @@
 #include "gabriel/base/connector.hpp"
 #include "gabriel/base/acceptor.hpp"
 #include "gabriel/base/thread.hpp"
+#include "gabriel/base/timer.hpp"
 #include "gabriel/base/client_connection.hpp"
 #include "gabriel/base/server_connection.hpp"
 
 namespace gabriel {
 namespace base {
     
-class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Entity<>
+class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Entity<>, public Timer_Capability
 {
 public:
     Server();
@@ -69,8 +70,8 @@ private:
     virtual void do_main_server_connection();
     virtual int32 init_hook();    
     virtual void init_reactor() = 0;    
-    virtual void update();
-    void update_i();    
+    virtual void update_hook() = 0;
+    void update();    
     virtual void fini_hook();
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;

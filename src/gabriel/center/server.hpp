@@ -46,7 +46,7 @@ private:
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void do_main_server_connection();
     virtual void do_reconnect();
-    virtual void update();
+    virtual void update_hook();
     virtual int32 init_hook();
     virtual void fini_hook();
     virtual void init_reactor();    

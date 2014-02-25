@@ -72,7 +72,7 @@ int32 Server::init_hook_ordinary()
     return 0;
 }
 
-void Server::update()
+void Server::update_hook()
 {
     //游戏循环
 }

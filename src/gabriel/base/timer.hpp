@@ -25,7 +25,6 @@
 
 #include <map>
 #include "ace/Singleton.h"
-#include "ace/Event_Handler.h"
 #include "ace/Timer_Heap.h"
 #include "gabriel/base/define.hpp"
 
@@ -34,12 +33,11 @@ namespace base {
 
 class Timer_Handler : public ACE_Event_Handler
 {
-public:
+private:
+    friend class Timer_Capability;    
     Timer_Handler(std::function<void()> call);
     virtual int handle_timeout (const ACE_Time_Value &current_time, const void *act = 0);
     void timer_id(int32 timer_id);
-    
-private:
     std::function<void()> m_call;
     int32 m_timer_id;
 };
