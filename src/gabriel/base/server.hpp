@@ -68,11 +68,11 @@ private:
     void do_main_client_connection();
     virtual void do_reconnect();
     virtual void do_main_server_connection();
-    virtual int32 init_hook();    
+    virtual int32 init_hook() = 0;
+    virtual void fini_hook() = 0;
     virtual void init_reactor() = 0;    
     virtual void update_hook() = 0;
     void update();    
-    virtual void fini_hook();
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
     SERVER_TYPE m_type;    

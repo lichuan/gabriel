@@ -88,16 +88,7 @@ int32 Server::init()
 void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
 }
-
-void Server::fini_hook()
-{
-}
-
-int32 Server::init_hook()
-{
-    return 0;
-}
-
+    
 void Server::fini()
 {
     m_thread.wait();
@@ -173,8 +164,8 @@ void Server::do_reconnect()
 
 void Server::update()
 {
-    TIMER_MGR::instance()->expire();
     update_hook();
+    TIMER_MGR::instance()->expire();
 }
     
 void Server::do_reactor()
