@@ -73,38 +73,17 @@ private:
     ID_Type m_id;
     std::string m_name;
 };
-
-//对所有子元素进行回调
-template<typename Concrete_Entity>
-class Entity_Exec
-{
-public:
-    Entity_Exec()
-    {
-    }
-
-    virtual ~Entity_Exec()
-    {
-    }
-
-    virtual bool exec(Concrete_Entity *entity) = 0;
     
-    virtual bool can_delete(Concrete_Entity *entity)
-    {
-        return true;
-    }
-};
-
 template<typename Key, typename Entity_ID_Type>
-class Entity_Map
+class Entity_Dict
 {
 protected:
-    Entity_Map()
+    Entity_Dict()
     {
         m_in_iteration = false;        
     }
 
-    ~Entity_Map()
+    ~Entity_Dict()
     {
     }
 
@@ -121,21 +100,21 @@ protected:
             return false;
         }
         
-        if(m_entity_map.find(key) != m_entity_map.end())
+        if(m_entity_dict.find(key) != m_entity_dict.end())
         {
             return false;
         }
         
-        m_entity_map[key] = entity;
+        m_entity_dict[key] = entity;
 
         return true;        
     }
 
     Entity<Entity_ID_Type>* get_entity(Key key) const
     {
-        auto iter = m_entity_map.find(key);
+        auto iter = m_entity_dict.find(key);
         
-        if(iter == m_entity_map.end())
+        if(iter == m_entity_dict.end())
         {
             return NULL;
         }
@@ -145,19 +124,19 @@ protected:
 
     uint32 size() const
     {
-        return m_entity_map.size();
+        return m_entity_dict.size();
     }
 
     bool empty() const
     {
-        return m_entity_map.empty();
+        return m_entity_dict.empty();
     }
 
     void clear()
     {
         if(!in_iteration())
         {
-            m_entity_map.clear();
+            m_entity_dict.clear();
         }        
     }
 
@@ -166,7 +145,7 @@ protected:
     {
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
-        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_dict.begin(); iter != m_entity_dict.end(); ++iter)
         {
             cb(static_cast<Concrete_Entity*>(iter->second));
         }
@@ -177,7 +156,7 @@ protected:
     {
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
-        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_dict.begin(); iter != m_entity_dict.end(); ++iter)
         {
             if(cb(static_cast<Concrete_Entity*>(iter->second)))
             {
@@ -194,7 +173,7 @@ protected:
         bool ret = false;
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         
-        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_dict.begin(); iter != m_entity_dict.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
 
@@ -211,7 +190,7 @@ protected:
     {
         if(!in_iteration())
         {
-            m_entity_map.erase(key);
+            m_entity_dict.erase(key);
         }        
     }
     
@@ -226,7 +205,7 @@ protected:
         Guard_Scope_Value<bool> scope_value(m_in_iteration, true, false);
         bool ret = false;
 
-        for(auto iter = m_entity_map.begin(); iter != m_entity_map.end(); ++iter)
+        for(auto iter = m_entity_dict.begin(); iter != m_entity_dict.end(); ++iter)
         {
             Concrete_Entity *concrete_entity = static_cast<Concrete_Entity*>(iter->second);
             
@@ -241,15 +220,15 @@ protected:
     }
     
 private:
-    std::map<Key, Entity<Entity_ID_Type>*> m_entity_map;
+    std::map<Key, Entity<Entity_ID_Type>*> m_entity_dict;
     bool m_in_iteration;    
 };
 
 template<typename Concrete_Entity>
-class KEY_ID : protected Entity_Map<typename Concrete_Entity::Entity_ID_Type, typename Concrete_Entity::Entity_ID_Type>
+class KEY_ID : protected Entity_Dict<typename Concrete_Entity::Entity_ID_Type, typename Concrete_Entity::Entity_ID_Type>
 {
 protected:
-    typedef Entity_Map<typename Concrete_Entity::Entity_ID_Type, typename Concrete_Entity::Entity_ID_Type> Super;
+    typedef Entity_Dict<typename Concrete_Entity::Entity_ID_Type, typename Concrete_Entity::Entity_ID_Type> Super;
     
     KEY_ID()
     {
@@ -267,10 +246,10 @@ protected:
 };
 
 template<typename Concrete_Entity>
-class KEY_NAME : protected Entity_Map<typename Concrete_Entity::Entity_Name_Type, typename Concrete_Entity::Entity_ID_Type>
+class KEY_NAME : protected Entity_Dict<typename Concrete_Entity::Entity_Name_Type, typename Concrete_Entity::Entity_ID_Type>
 {
 protected:
-    typedef Entity_Map<typename Concrete_Entity::Entity_Name_Type, typename Concrete_Entity::Entity_ID_Type> Super;
+    typedef Entity_Dict<typename Concrete_Entity::Entity_Name_Type, typename Concrete_Entity::Entity_ID_Type> Super;
     
     KEY_NAME()
     {
@@ -310,16 +289,6 @@ protected:
     }    
 };
 
-template<typename Concrete_Entity>
-class KEY_NONE_1 : public KEY_NONE<Concrete_Entity>
-{
-};
-
-template<typename Concrete_Entity>
-class KEY_NONE_2 : public KEY_NONE<Concrete_Entity>
-{
-};
-
 //提取基类的trait
 template<typename Concrete_Entity, typename T>
 struct Get_Super
@@ -338,48 +307,29 @@ struct Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_Name_Type>
     typedef KEY_NAME<Concrete_Entity> Super;    
 };
 
-template<typename Concrete_Entity, template<typename> class Super_T_1, bool lock = false, template<typename> class Super_T_2 = KEY_NONE>
+template<typename Concrete_Entity, template<typename> class Super_T_1, template<typename> class Super_T_2 = KEY_NONE>
 class Entity_Manager : private Super_T_1<Concrete_Entity>, private Super_T_2<Concrete_Entity>
 {
 public:
     typedef Super_T_1<Concrete_Entity> Super1;
     typedef Super_T_2<Concrete_Entity> Super2;
-    
+
     Entity_Manager()
     {
     }
-    
+
     bool add_entity(Concrete_Entity *entity)
     {
-        if(lock)
+        if(!Super1::add_entity(entity))
         {
-            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
-
-            if(!Super1::add_entity(entity))
-            {
-                return false;
-            }
-
-            if(!Super2::add_entity(entity))
-            {
-                Super1::delete_entity(entity);
-
-                return false;
-            }
+            return false;
         }
-        else
-        {        
-            if(!Super1::add_entity(entity))
-            {
-                return false;
-            }
-            
-            if(!Super2::add_entity(entity))
-            {
-                Super1::delete_entity(entity);
 
-                return false;
-            }
+        if(!Super2::add_entity(entity))
+        {
+            Super1::delete_entity(entity);
+
+            return false;
         }
 
         return true;
@@ -390,7 +340,114 @@ public:
     {
         std::vector<Concrete_Entity*> del_vec;
 
-        if(lock)
+        if(!Super1::delete_if(if_cb, del_vec))
+        {
+            return false;
+        }
+
+        for(auto iter = del_vec.begin(); iter != del_vec.end(); ++iter)
+        {
+            Concrete_Entity *concrete_entity = *iter;
+            delete_entity(concrete_entity);
+            cb(concrete_entity);
+        }
+
+        return true;
+    }
+
+    template<typename CB> 
+    void delete_all(CB cb)
+    {
+        exec_all(cb);
+        clear();
+    }
+
+    Concrete_Entity* get_entity(typename Concrete_Entity::Entity_ID_Type key) const
+    {
+        return static_cast<Concrete_Entity*>(Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_ID_Type>::Super::get_entity(key));
+    }
+
+    Concrete_Entity* get_entity(typename Concrete_Entity::Entity_Name_Type key) const
+    {
+        return static_cast<Concrete_Entity*>(Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_Name_Type>::Super::get_entity(key));
+    }
+
+    void delete_entity(Concrete_Entity *entity)
+    {
+        Super1::delete_entity(entity);
+        Super2::delete_entity(entity);
+    }
+
+    uint32 size() const
+    {
+        return Super1::size();
+    }
+
+    bool empty() const
+    {
+        return Super1::empty();
+    }
+
+    template<typename CB>    
+    bool exec_until(CB cb)
+    {
+        return Super1::template exec_until<Concrete_Entity>(cb);
+    }
+
+    template<typename CB>
+    bool exec_if(CB cb)
+    {
+        return Super1::template exec_if<Concrete_Entity>(cb);
+    }
+
+    template<typename CB>
+    void exec_all(CB cb)
+    {
+        Super1::template exec_all<Concrete_Entity>(cb);
+    }
+
+private:
+    void clear()
+    {
+        Super1::clear();
+        Super2::clear();
+    }
+};
+
+template<typename Concrete_Entity, template<typename> class Super_T_1, template<typename> class Super_T_2 = KEY_NONE>
+class Locked_Entity_Manager : private Super_T_1<Concrete_Entity>, private Super_T_2<Concrete_Entity>
+{
+public:
+    typedef Super_T_1<Concrete_Entity> Super1;
+    typedef Super_T_2<Concrete_Entity> Super2;
+    
+    Locked_Entity_Manager()
+    {
+    }
+    
+    bool add_entity(Concrete_Entity *entity)
+    {
+        ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+
+        if(!Super1::add_entity(entity))
+        {
+            return false;
+        }
+
+        if(!Super2::add_entity(entity))
+        {
+            Super1::delete_entity(entity);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    template<typename If_CB, typename CB>
+    bool delete_if(If_CB if_cb, CB cb)
+    {
+        std::vector<Concrete_Entity*> del_vec;        
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
             
@@ -398,16 +455,7 @@ public:
             {
                 return false;
             }
-        }
-        else
-        {
-            if(!Super1::delete_if(if_cb, del_vec))
-            {
-                return false;
-            }
-        }
-
-        if(lock)
+        }        
         {
             ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
             
@@ -419,15 +467,6 @@ public:
                 cb(concrete_entity);
             }
         }
-        else
-        {
-            for(auto iter = del_vec.begin(); iter != del_vec.end(); ++iter)
-            {
-                Concrete_Entity *concrete_entity = *iter;
-                delete_entity(concrete_entity);
-                cb(concrete_entity);
-            }
-        }
         
         return true;
     }
@@ -435,17 +474,9 @@ public:
     template<typename CB> 
     void delete_all(CB cb)
     {
-        if(lock)
-        {
-            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
-            exec_all(cb);
-            clear();
-        }
-        else
-        {
-            exec_all(cb);
-            clear();
-        }
+        ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+        exec_all(cb);
+        clear();
     }
     
     Concrete_Entity* get_entity(typename Concrete_Entity::Entity_ID_Type key) const
@@ -460,17 +491,9 @@ public:
     
     void delete_entity(Concrete_Entity *entity)
     {
-        if(lock)
-        {
-            ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
-            Super1::delete_entity(entity);
-            Super2::delete_entity(entity);
-        }
-        else
-        {
-            Super1::delete_entity(entity);
-            Super2::delete_entity(entity);
-        }
+        ACE_Write_Guard<ACE_RW_Mutex> guard(m_lock);
+        Super1::delete_entity(entity);
+        Super2::delete_entity(entity);
     }
     
     uint32 size() const
@@ -486,39 +509,22 @@ public:
     template<typename CB>    
     bool exec_until(CB cb)
     {
-        if(lock)
-        {
-            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            return Super1::template exec_until<Concrete_Entity>(cb);
-        }
-        
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         return Super1::template exec_until<Concrete_Entity>(cb);
     }
 
     template<typename CB>
     bool exec_if(CB cb)
     {
-        if(lock)
-        {
-            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            return Super1::template exec_if<Concrete_Entity>(cb);
-        }
-        
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         return Super1::template exec_if<Concrete_Entity>(cb);
     }
 
     template<typename CB>
     void exec_all(CB cb)
     {
-        if(lock)
-        {
-            ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
-            Super1::template exec_all<Concrete_Entity>(cb);
-        }
-        else
-        {
-            Super1::template exec_all<Concrete_Entity>(cb);
-        }
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
+        Super1::template exec_all<Concrete_Entity>(cb);
     }
     
 private:

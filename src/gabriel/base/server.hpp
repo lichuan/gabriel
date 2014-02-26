@@ -35,7 +35,7 @@
 namespace gabriel {
 namespace base {
     
-class Server : public Entity_Manager<Client_Connection, KEY_ID, true>, public Entity<>, public Timer_Capability
+class Server : public Locked_Entity_Manager<Client_Connection, KEY_ID>, public Entity<>, public Timer_Capability
 {
 public:
     Server();
