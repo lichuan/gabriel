@@ -64,7 +64,7 @@ public:
         return 0;        
     }
     
-    void set_execute_context(T *object, void (T::*executor)(), int32 num_thread)
+    void set_execute_info(T *object, void (T::*executor)(), int32 num_thread)
     {
         m_object = object;
         m_executor = executor;
@@ -120,7 +120,7 @@ public:
             return -1;
         }
 
-        m_executor_list[m_cur_executor_idx].set_execute_context(object, executor, num_thread);
+        m_executor_list[m_cur_executor_idx].set_execute_info(object, executor, num_thread);
         m_executor_list[m_cur_executor_idx].execute();
 
         return m_cur_executor_idx++;
@@ -133,7 +133,7 @@ public:
             return -1;
         }
     
-        m_executor_list[m_cur_executor_idx++].set_execute_context(object, executor, num_thread);
+        m_executor_list[m_cur_executor_idx++].set_execute_info(object, executor, num_thread);
     }
 
 private:

@@ -45,13 +45,13 @@ env.Install("build/bin", gabriel_supercenter_server)
 gabriel_center_server = SConscript("src/gabriel/center/SConscript", variant_dir="build/center", duplicate=0)
 env.Install("build/bin", gabriel_center_server)
 
-#login
-gabriel_login_server = SConscript("src/gabriel/login/SConscript", variant_dir="build/login", duplicate=0)
-env.Install("build/bin", gabriel_login_server)
-
 #record
 gabriel_record_server = SConscript("src/gabriel/record/SConscript", variant_dir="build/record", duplicate=0)
 env.Install("build/bin", gabriel_record_server)
+
+#login
+gabriel_login_server = SConscript("src/gabriel/login/SConscript", variant_dir="build/login", duplicate=0)
+env.Install("build/bin", gabriel_login_server)
 
 #game
 gabriel_game_server = SConscript("src/gabriel/game/SConscript", variant_dir="build/game", duplicate=0)
