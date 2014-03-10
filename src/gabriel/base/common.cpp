@@ -21,6 +21,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "ace/OS.h"
+#include "ace/UUID.h"
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
@@ -126,6 +127,14 @@ bool rate_by_percent(uint32 rate)
 bool rate_by_thousand(uint32 rate)
 {
     return random_between(1, 1000) <= rate;
+}
+
+std::string gen_uuid()
+{
+    ACE_Utils::UUID uuid;
+    ACE_Utils::UUID_GENERATOR::instance()->generate_UUID(uuid);
+
+    return uuid.to_string()->c_str();
 }
 
 }

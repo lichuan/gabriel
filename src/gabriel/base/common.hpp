@@ -23,6 +23,7 @@
 #ifndef GABRIEL__BASE__COMMON
 #define GABRIEL__BASE__COMMON
 
+#include <string>
 #include "gabriel/base/define.hpp"
 
 namespace gabriel {
@@ -70,7 +71,7 @@ uint32 random_32();
 uint64 random_64();
 bool rate_by_percent(uint32 rate);    
 bool rate_by_thousand(uint32 rate);
-
+std::string gen_uuid();
 }
 }
 

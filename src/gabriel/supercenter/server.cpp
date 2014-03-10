@@ -70,7 +70,7 @@ void Server::init_reactor()
     
 int32 Server::init_hook()
 {
-    gabriel::base::Log_Msg::instance()->init("./");
+    gabriel::base::LOG_MSG::instance()->init("./log_supercenter/");
     
     if(m_acceptor.open(ACE_INET_Addr(20000), ACE_Reactor::instance()) < 0)
     {
@@ -78,10 +78,8 @@ int32 Server::init_hook()
 
         return -1;
     }
-    
-    cout << "启动supercenter服务器成功" << endl;
 
-    LOG_DEBUG("firstttttttttttttt debug %d", 882);
+    cout << "启动supercenter服务器成功" << endl;
     
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。

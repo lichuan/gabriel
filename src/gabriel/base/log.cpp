@@ -22,6 +22,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <fstream>
 #include "ace/Date_Time.h"
 #include "ace/Guard_T.h"
 #include "ace/ACE.h"
@@ -33,14 +34,25 @@ namespace base {
 
 Log_Callback::Log_Callback()
 {
-    m_hour = -1;
 }
 
 Log_Callback::~Log_Callback()
 {
-    m_file.close();    
 }
 
+void Log_Callback::init(std::string log_path)
+{
+    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
+    ACE_LOG_MSG->open("server", ACE_Log_Msg::MSG_CALLBACK);
+    m_log_path = log_path;    
+    ACE_LOG_MSG->msg_callback(this);
+    
+    if(ACE_OS::access(log_path.c_str(), F_OK) != 0)
+    {
+        ACE_OS::mkdir(log_path.c_str());
+    }
+}
+    
 std::string Log_Callback::to_string(ACE_Log_Priority priority)
 {
     if(priority == LM_DEBUG)
@@ -50,7 +62,7 @@ std::string Log_Callback::to_string(ACE_Log_Priority priority)
 
     if(priority == LM_INFO)
     {
-        return "[info] ";
+        return "[info ] ";
     }
 
     if(priority == LM_ERROR)
@@ -68,64 +80,54 @@ std::string Log_Callback::to_string(ACE_Log_Priority priority)
 
 void Log_Callback::log(ACE_Log_Record &log_record)
 {
+    if(ACE_LOG_MSG->msg_callback() == 0)
+    {
+        return;
+    }
+    
     using namespace std;
+    static int32 cur_hour = -1;
+    static fstream file;
+    static std::string cur_day_path;    
     ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
     ACE_Date_Time now;
     ostringstream ost;
     ost << now.year() << "-" << setw(2) << setfill('0') << now.month() << "-" << setw(2) << setfill('0') << now.day();
     std::string day_path = m_log_path + ost.str();
-    ost << " " << setw(2) << setfill('0') << now.hour() << ":" << setw(2) << setfill('0') << now.minute() << ":" << setw(2) << setfill('0') << now.second() << " ";
-    std::string time_prefix = ost.str();    
+    ost << " " << setw(2) << setfill('0') << now.hour() << ":" << setw(2) << setfill('0') << now.minute() << ":" << setw(2) << setfill('0') << now.second();
+    std::string time_prefix = ost.str();
+    time_prefix = std::string("[") + time_prefix + "] ";    
     bool file_changed = false;
     
-    if(m_day_path != day_path)
+    if(cur_day_path != day_path)
     {
         if(ACE_OS::access(day_path.c_str(), F_OK) != 0)
         {
             ACE_OS::mkdir(day_path.c_str());
         }
 
-        m_day_path = day_path;
+        cur_day_path = day_path;
         file_changed = true;
     }
 
-    if(m_hour != now.hour())
+    if(cur_hour != now.hour())
     {
         file_changed = true;
+        cur_hour = now.hour();
     }
 
     ost.str("");
-    ost << setw(2) << setfill('0') << now.hour();    
-    std::string hour_path = m_day_path + ACE_DIRECTORY_SEPARATOR_STR + ost.str();
-    
+    ost << setw(2) << setfill('0') << cur_hour << ".log";    
+    std::string hour_path = cur_day_path + ACE_DIRECTORY_SEPARATOR_STR + ost.str();
+
     if(file_changed)
     {
-        m_file.close();
-        m_file.open(hour_path, fstream::app);
+        file.close();
+        file.open(hour_path, fstream::app | fstream::out);        
     }
     
-    m_file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << time_prefix << log_record.msg_data();
+    file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << time_prefix << log_record.msg_data() << std::flush;    
 }
-
-void Log_Msg::init(std::string log_path)
-{
-    open("server", ACE_Log_Msg::MSG_CALLBACK);
-    Log_Callback *callback = log_callback();
-    callback->m_log_path = log_path;
-    msg_callback(callback);
-
-    if(ACE_OS::access(log_path.c_str(), F_OK) != 0)
-    {
-        ACE_OS::mkdir(log_path.c_str());
-    }
-}
-
-Log_Callback* Log_Msg::log_callback()
-{
-    static Log_Callback obj;
     
-    return &obj;    
-}
-
 }
 }
