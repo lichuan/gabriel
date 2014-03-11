@@ -33,8 +33,9 @@ namespace base {
 
 class Timer_Handler : public ACE_Event_Handler
 {
+    friend class Timer_Capability;
+    
 private:
-    friend class Timer_Capability;    
     Timer_Handler(std::function<void()> call);
     virtual int handle_timeout (const ACE_Time_Value &current_time, const void *act = 0);
     void timer_id(int32 timer_id);

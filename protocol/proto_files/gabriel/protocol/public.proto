@@ -1,0 +1,7 @@
+//共享消息定义
+package gabriel.protocol;
+
+// message Msg_Shared_Between_Client_And_Server
+// {
+//     optional int32 id = 1;
+// }

@@ -26,28 +26,6 @@
 namespace gabriel {
 namespace base {
 
-Point::Point(int32 x, int32 y)
-{
-    m_x = x;
-    m_y = y;
-}
-
-Point::Point()
-{
-    m_x = 0;
-    m_y = 0;
-}
-
-int32 Point::hash() const
-{
-    return m_x * 10000 + m_y;        
-}
-
-bool Point::operator==(const Point &pos) const
-{
-    return m_x == pos.m_x && m_y == pos.m_y;
-}
-
 template<>
 uint32 ID_Allocator<uint32>::new_id()
 {

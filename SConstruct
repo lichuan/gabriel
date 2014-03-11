@@ -25,7 +25,8 @@ libs = [
   get_static_library_name(gabriel_base_lib),
   get_static_library_name(gabriel_protocol_lib),
   "ACE",
-  "protobuf"
+  "protobuf",
+  "pthread"
 ]
 
 lib_path = [

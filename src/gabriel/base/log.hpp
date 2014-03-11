@@ -16,60 +16,53 @@
  *   @email: 308831759@qq.com                                          *
  *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 09:00:01                                        *
+ *   @date: 2014-03-11 22:19:35                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__COMMON
-#define GABRIEL__BASE__COMMON
+#ifndef GABRIEL__BASE__LOG
+#define GABRIEL__BASE__LOG
 
+#include <string>
+#include <fstream>
+#include "ace/Log_Msg_Callback.h"
+#include "ace/Recursive_Thread_Mutex.h"
+#include "ace/Log_Record.h"
+#include "ace/Log_Msg.h"
 #include "gabriel/base/define.hpp"
 
 namespace gabriel {
 namespace base {
 
-template<typename T>
-class Guard_Scope_Value
+class Gabriel_Log_Callback : public ACE_Log_Msg_Callback
 {
-public:
-    Guard_Scope_Value(T &value, T in_value, T out_value) : m_value(value)
-    {
-        m_value = value;
-        m_out_value = out_value;
-    }
-    
-    ~Guard_Scope_Value()
-    {
-        m_value = m_out_value;
-    }
-            
-    T &m_value;
-    T m_out_value;    
-};
-
-template<typename T = uint32>
-class ID_Allocator
-{
-public:
-    ID_Allocator()
-    {
-        m_id = 1;
-    }
-
-    T new_id();    
+    friend class Gabriel_Log_Msg;
     
 private:
-    T m_id;    
+    Gabriel_Log_Callback();
+    virtual ~Gabriel_Log_Callback();
+    virtual void log (ACE_Log_Record &log_record);
+    static std::string to_string(ACE_Log_Priority priority);
+    ACE_Recursive_Thread_Mutex m_lock;
+    std::string m_log_path;
+    int32 m_hour;    
+    fstream m_file;    
+};
+    
+class Gabriel_Log_Msg : public ACE_Log_Msg
+{
+public:
+    static Gabriel_Log_Callback* log_callback();
+    void init(std::string program_name, std::string log_path);
 };
 
-void sleep_sec(uint32 sec);
-void sleep_msec(uint32 msec);
-void sleep_usec(uint32 usec);
-uint32 random_between(uint32 min, uint32 max);
-uint32 random_32();
-uint64 random_64();
-bool rate_by_percent(uint32 rate);    
-bool rate_by_thousand(uint32 rate);
+#define LOG_DEBUG(...) \
+    do { \
+    int const __ace_error = ACE_Log_Msg::last_error_adapter (); \
+    Gabriel_Log_Msg *ace___ = Gabriel_Log_Msg::instance (); \
+    ace___->conditional_set (__FILE__, __LINE__, 0, __ace_error); \
+    ace___->log(LM_DEBUG, __VA_ARGS__); \
+  } while (0)
 
 }
 }
