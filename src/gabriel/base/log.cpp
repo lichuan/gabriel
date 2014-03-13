@@ -24,21 +24,24 @@
 #include <iomanip>
 #include "ace/Date_Time.h"
 #include "ace/Guard_T.h"
+#include "ace/ACE.h"
+#include "ace/OS_NS_unistd.h"
 #include "gabriel/base/log.hpp"
 
 namespace gabriel {
 namespace base {
 
-Gabriel_Log_Callback::Gabriel_Log_Callback()
+Log_Callback::Log_Callback()
 {
     m_hour = -1;
 }
 
-Gabriel_Log_Callback::~Gabriel_Log_Callback()
+Log_Callback::~Log_Callback()
 {
+    m_file.close();    
 }
 
-std::string Gabriel_Log_Callback::to_string(ACE_Log_Priority priority)
+std::string Log_Callback::to_string(ACE_Log_Priority priority)
 {
     if(priority == LM_DEBUG)
     {
@@ -63,50 +66,66 @@ std::string Gabriel_Log_Callback::to_string(ACE_Log_Priority priority)
     return "[unknown] ";    
 }
 
-void Gabriel_Log_Callback::log(ACE_Log_Record &log_record)
+void Log_Callback::log(ACE_Log_Record &log_record)
 {
-    using std::setw;
-    using std::setfill;
-    using std::ostringstream;    
-    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);    
+    using namespace std;
+    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
     ACE_Date_Time now;
     ostringstream ost;
-    ost << m_log_path << "/";
+    ost << now.year() << "-" << setw(2) << setfill('0') << now.month() << "-" << setw(2) << setfill('0') << now.day();
+    std::string day_path = m_log_path + ost.str();
+    ost << " " << setw(2) << setfill('0') << now.hour() << ":" << setw(2) << setfill('0') << now.minute() << ":" << setw(2) << setfill('0') << now.second() << " ";
+    std::string time_prefix = ost.str();    
+    bool file_changed = false;
     
-    if(m_hour != -1)
+    if(m_day_path != day_path)
     {
-        if(m_hour == now.hour())
+        if(ACE_OS::access(day_path.c_str(), F_OK) != 0)
         {
-            m_file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << log_record.msg_data();
-
-            return;
+            ACE_OS::mkdir(day_path.c_str());
         }
-        
-        if(m_hour < 23)
-        {
-            m_hour = now.hour();
-            ost << now.year() << "-" << setw(2) << setfill('0') << now.month() << setw(2) << setfill('0') << now.day();            
-        }        
+
+        m_day_path = day_path;
+        file_changed = true;
+    }
+
+    if(m_hour != now.hour())
+    {
+        file_changed = true;
+    }
+
+    ost.str("");
+    ost << setw(2) << setfill('0') << now.hour();    
+    std::string hour_path = m_day_path + ACE_DIRECTORY_SEPARATOR_STR + ost.str();
+    
+    if(file_changed)
+    {
+        m_file.close();
+        m_file.open(hour_path, fstream::app);
+    }
+    
+    m_file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << time_prefix << log_record.msg_data();
+}
+
+void Log_Msg::init(std::string log_path)
+{
+    open("server", ACE_Log_Msg::MSG_CALLBACK);
+    Log_Callback *callback = log_callback();
+    callback->m_log_path = log_path;
+    msg_callback(callback);
+
+    if(ACE_OS::access(log_path.c_str(), F_OK) != 0)
+    {
+        ACE_OS::mkdir(log_path.c_str());
     }
 }
 
-void Gabriel_Log_Msg::init(std::string program_name, std::string log_path)
+Log_Callback* Log_Msg::log_callback()
 {
-    open(program_name.c_str(), ACE_Log_Msg::MSG_CALLBACK);
-    Gabriel_Log_Callback *callback = log_callback();
-    callback->m_log_path = log_path;
-    msg_callback(callback);
-}
-
-Gabriel_Log_Callback* Gabriel_Log_Msg::log_callback()
-{
-    static Gabriel_Log_Callback obj;
+    static Log_Callback obj;
     
     return &obj;    
 }
 
 }
 }
-
-
-

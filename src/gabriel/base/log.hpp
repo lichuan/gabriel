@@ -34,36 +34,61 @@
 namespace gabriel {
 namespace base {
 
-class Gabriel_Log_Callback : public ACE_Log_Msg_Callback
+class Log_Callback : public ACE_Log_Msg_Callback
 {
-    friend class Gabriel_Log_Msg;
+    friend class Log_Msg;
     
 private:
-    Gabriel_Log_Callback();
-    virtual ~Gabriel_Log_Callback();
+    Log_Callback();
+    virtual ~Log_Callback();
     virtual void log (ACE_Log_Record &log_record);
     static std::string to_string(ACE_Log_Priority priority);
     ACE_Recursive_Thread_Mutex m_lock;
     std::string m_log_path;
+    std::string m_day_path;
     int32 m_hour;    
     fstream m_file;    
 };
     
-class Gabriel_Log_Msg : public ACE_Log_Msg
+class Log_Msg : public ACE_Log_Msg
 {
 public:
-    static Gabriel_Log_Callback* log_callback();
-    void init(std::string program_name, std::string log_path);
+    static Log_Callback* log_callback();
+    void init(std::string log_path);
 };
-
+    
 #define LOG_DEBUG(...) \
     do { \
     int const __ace_error = ACE_Log_Msg::last_error_adapter (); \
-    Gabriel_Log_Msg *ace___ = Gabriel_Log_Msg::instance (); \
+    gabriel::base::Log_Msg *ace___ = gabriel::base::Log_Msg::instance (); \
     ace___->conditional_set (__FILE__, __LINE__, 0, __ace_error); \
     ace___->log(LM_DEBUG, __VA_ARGS__); \
   } while (0)
 
+#define LOG_INFO(...) \
+    do { \
+    int const __ace_error = ACE_Log_Msg::last_error_adapter (); \
+    gabriel::base::Log_Msg *ace___ = gabriel::base::Log_Msg::instance (); \
+    ace___->conditional_set (__FILE__, __LINE__, 0, __ace_error); \
+    ace___->log(LM_INFO, __VA_ARGS__); \
+  } while (0)
+
+#define LOG_ERROR(...) \
+    do { \
+    int const __ace_error = ACE_Log_Msg::last_error_adapter (); \
+    gabriel::base::Log_Msg *ace___ = gabriel::base::Log_Msg::instance (); \
+    ace___->conditional_set (__FILE__, __LINE__, -1, __ace_error); \
+    ace___->log(LM_ERROR, __VA_ARGS__); \
+  } while (0)
+
+#define LOG_FATAL(...) \
+    do { \
+    int const __ace_error = ACE_Log_Msg::last_error_adapter (); \
+    gabriel::base::Log_Msg *ace___ = gabriel::base::Log_Msg::instance (); \
+    ace___->conditional_set (__FILE__, __LINE__, 0, __ace_error); \
+    ace___->log(LM_CRITICAL, __VA_ARGS__); \
+  } while (0)
+    
 }
 }
 

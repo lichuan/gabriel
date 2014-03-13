@@ -23,6 +23,7 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
+#include "gabriel/base/log.hpp"
 #include "gabriel/protocol/server/supercenter/msg_type.pb.h"
 #include "gabriel/protocol/server/supercenter/default.pb.h"
 
@@ -66,14 +67,11 @@ void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(1000, true), true), true);
 }
-
-void Server::test_timer(std::string arg_str)
-{
-    cout << "timer arg_str: " << arg_str << endl;
-}
     
 int32 Server::init_hook()
 {
+    gabriel::base::Log_Msg::instance()->init("./");
+    
     if(m_acceptor.open(ACE_INET_Addr(20000), ACE_Reactor::instance()) < 0)
     {
         cout << "error: 启动supercenter服务器失败" << endl;
@@ -83,8 +81,7 @@ int32 Server::init_hook()
     
     cout << "启动supercenter服务器成功" << endl;
 
-    //test timer
-    schedule_timer(std::bind(&Server::test_timer, this, "yours timer"), 1000);    
+    LOG_DEBUG("firstttttttttttttt debug %d", 882);
     
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
