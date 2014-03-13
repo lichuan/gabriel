@@ -10,7 +10,6 @@ def get_shared_library_name(node):
 env = Environment(CCFLAGS='-g -std=c++11', CPPPATH=[
         "#src",
         "#3rd-party/ACE_wrappers",
-        "#3rd-party/protobuf/src",
         "#protocol/generated",
         ])
 
@@ -32,7 +31,6 @@ libs = [
 lib_path = [
   "#build/base",
   "#build/protocol",
-  "#3rd-party/protobuf/lib",
   os.environ["ACE_ROOT"] + "/lib"
 ]
 
