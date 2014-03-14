@@ -51,9 +51,14 @@ void Server::main(int argc, char* argv[])
     fini();
 }
 
-void Server::rename_proc_name(const char *proc_name)
+void Server::set_proc_name_and_log_dir(const char *format, ...)
 {
+    char proc_name[128];
+    va_list args_list;
+    va_start(args_list, format);
+    ACE_OS::vsprintf(proc_name, format, args_list);
     strncpy(m_proc_name, proc_name, 128);
+    LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
 }
     
 uint32 Server::state() const

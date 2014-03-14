@@ -148,10 +148,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             }
 
             cout << "启动game服务器(id=" << id() << ")成功" << endl;
-            char proc_name[128];
-            ACE_OS::sprintf(proc_name, "gabriel_game_server___%u___%u", zone_id(), id());
-            rename_proc_name(proc_name);    
-            gabriel::base::LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
+            set_proc_name_and_log_dir("gabriel_game_server___%u___%u", zone_id(), id());
         }
         else
         {

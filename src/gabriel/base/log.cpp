@@ -40,6 +40,13 @@ Log_Callback::~Log_Callback()
 {
 }
 
+void Log_Callback::init()
+{
+    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
+    ACE_LOG_MSG->open("server", ACE_Log_Msg::MSG_CALLBACK);
+    ACE_LOG_MSG->msg_callback(this);
+}
+
 void Log_Callback::init(std::string log_path)
 {
     ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
@@ -81,8 +88,8 @@ std::string Log_Callback::to_string(ACE_Log_Priority priority)
 void Log_Callback::log(ACE_Log_Record &log_record)
 {
     ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
-    
-    if(ACE_LOG_MSG->msg_callback() == 0)
+
+    if(m_log_path.empty())
     {
         return;
     }

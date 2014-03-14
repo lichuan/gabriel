@@ -77,10 +77,7 @@ int32 Server::init_hook()
     }
 
     cout << "启动supercenter服务器成功" << endl;
-    char proc_name[128];
-    ACE_OS::sprintf(proc_name, "gabriel_supercenter_server");
-    rename_proc_name(proc_name);    
-    gabriel::base::LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
+    set_proc_name_and_log_dir("gabriel_supercenter_server");
     
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。

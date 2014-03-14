@@ -59,7 +59,7 @@ public:
 protected:
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
-    void rename_proc_name(const char *proc_name);    
+    void set_proc_name_and_log_dir(const char *format, ...);    
     std::string m_log_dir;
     
 private:    
