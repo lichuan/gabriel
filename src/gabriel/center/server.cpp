@@ -23,7 +23,6 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/protocol/server/msg_type.pb.h"
-#include "gabriel/protocol/server/default.pb.h"
 #include "gabriel/center/server.hpp"
 
 using namespace std;
@@ -343,7 +342,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
         }
         else
         {
-            auto *new_info = new gabriel::protocol::server::Server_Info;
+            auto *new_info = new Server_Info;
             new_info->CopyFrom(info);
             m_server_infos.push_back(new_info);
         }

@@ -24,7 +24,6 @@
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
-#include "gabriel/protocol/server/default.pb.h"
 
 using namespace std;
 

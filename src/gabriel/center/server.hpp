@@ -29,7 +29,7 @@
 #include "google/protobuf/message.h"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
-#include "gabriel/protocol/server/public.pb.h"
+#include "gabriel/protocol/server/default.pb.h"
 
 namespace gabriel {
 namespace center {
