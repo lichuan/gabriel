@@ -22,10 +22,8 @@
 
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
-#include "gabriel/protocol/server/supercenter/msg_type.pb.h"
-#include "gabriel/protocol/server/supercenter/default.pb.h"
-#include "gabriel/protocol/server/center/msg_type.pb.h"
-#include "gabriel/protocol/server/center/default.pb.h"
+#include "gabriel/protocol/server/msg_type.pb.h"
+#include "gabriel/protocol/server/default.pb.h"
 #include "gabriel/center/server.hpp"
 
 using namespace std;
@@ -140,10 +138,10 @@ void Server::init_reactor()
 
 void Server::register_req()
 {
-    using namespace gabriel::protocol::server::supercenter;
-    Register msg;
+    using namespace gabriel::protocol::server;    
+    Register_Center msg;
     msg.set_zone_id(zone_id());
-    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
+    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg);
 }
     
 int32 Server::init_hook()
@@ -166,16 +164,16 @@ int32 Server::init_hook()
     
 void Server::register_msg_handler()
 {
-    namespace proto = gabriel::protocol::server;    
-    m_supercenter_msg_handler.register_handler(proto::supercenter::DEFAULT_MSG_TYPE, proto::supercenter::REGISTER_SERVER, this, &Server::register_rsp);
-    m_client_msg_handler.register_handler(proto::center::DEFAULT_MSG_TYPE, proto::center::REGISTER_SERVER, this, &Server::register_req);
+    using namespace gabriel::protocol::server;
+    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_rsp);
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_req);
 }
 
 void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server::center;
-    PARSE_MSG(Register, msg);
-    Register_Rsp msg_rsp;
+    using namespace gabriel::protocol::server;    
+    PARSE_MSG(Register_Ordinary, msg);
+    Register_Ordinary_Rsp msg_rsp;
     client_connection->type(static_cast<gabriel::base::CLIENT_TYPE>(msg.server_type()));
     bool found_one = false;
     char server_name[256] {0};
@@ -255,7 +253,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
         if(!found_one)
         {
             msg_rsp.Clear();
-            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
+            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
             
             return;
         }
@@ -305,20 +303,20 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
         if(!found_one)
         {
             msg_rsp.Clear();
-            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
+            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
             
             return;
         }
     }
     
     cout << "收到" << server_name << "的注册请求，ip:" << client_connection->ip_addr() << " hostname:" << client_connection->host_name() << endl;
-    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
+    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
 }
 
 void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Register_Rsp, msg);
+    using namespace gabriel::protocol::server;    
+    PARSE_MSG(Register_Center_Rsp, msg);
     clear_server_info();
     
     for(uint32 i = 0; i != msg.info_size(); ++i)
@@ -350,13 +348,6 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             m_server_infos.push_back(new_info);
         }
     }
-
-    for(int i =0 ; i < 500; ++i)
-    {
-        LOG_DEBUG("11111111111111111111111");
-        LOG_INFO("2222222222222222222");
-        LOG_ERROR("3333333333333");        
-    }    
 }
 
 void Server::clear_server_info()

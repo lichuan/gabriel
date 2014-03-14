@@ -23,8 +23,8 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
-#include "gabriel/protocol/server/supercenter/msg_type.pb.h"
-#include "gabriel/protocol/server/supercenter/default.pb.h"
+#include "gabriel/protocol/server/msg_type.pb.h"
+#include "gabriel/protocol/server/default.pb.h"
 
 using namespace std;
 
@@ -150,14 +150,14 @@ int32 Server::init_hook()
 
 void Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server::supercenter;
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_req);
+    using namespace gabriel::protocol::server;    
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_req);
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Server::center_addr_req);
 }
 
 void Server::center_addr_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server::supercenter;
+    using namespace gabriel::protocol::server;    
     PARSE_MSG(Center_Addr_Req, msg);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
@@ -168,7 +168,7 @@ void Server::center_addr_req(gabriel::base::Client_Connection *client_connection
     }
 
     auto &infos = iter->second;    
-    Center_Addr msg_rsp;
+    Center_Addr_Rsp msg_rsp;
 
     for(auto info : infos)
     {
@@ -202,8 +202,8 @@ void Server::fini_hook()
 
 void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Register, msg);
+    using namespace gabriel::protocol::server;    
+    PARSE_MSG(Register_Center, msg);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
 
@@ -213,14 +213,14 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     }
     
     auto &infos = iter->second;
-    Register_Rsp msg_rsp;
+    Register_Center_Rsp msg_rsp;
     
     for(auto info : infos)
     {
         msg_rsp.add_info()->CopyFrom(*info);
     }
 
-    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg_rsp);
+    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg_rsp);
     m_zone_connections[zone_id] = client_connection;
     cout << zone_id << "区center服务器注册到本服务器" << endl;
 }

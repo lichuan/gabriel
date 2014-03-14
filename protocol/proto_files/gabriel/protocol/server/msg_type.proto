@@ -1,4 +1,4 @@
-package gabriel.protocol.server.supercenter;
+package gabriel.protocol.server;
 
 enum MSG_TYPE
 {

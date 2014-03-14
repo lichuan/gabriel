@@ -1,7 +1,0 @@
-package gabriel.protocol.server.game;
-
-enum DEFAULT_MSG
-{
-    QUERY_MAP_INFO = 1;
-}
-    

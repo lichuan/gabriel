@@ -22,10 +22,8 @@
 
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
-#include "gabriel/protocol/server/supercenter/msg_type.pb.h"
-#include "gabriel/protocol/server/supercenter/default.pb.h"
-#include "gabriel/protocol/server/center/msg_type.pb.h"
-#include "gabriel/protocol/server/center/default.pb.h"
+#include "gabriel/protocol/server/msg_type.pb.h"
+#include "gabriel/protocol/server/default.pb.h"
 #include "gabriel/base/ordinary_server.hpp"
 
 using namespace std;
@@ -90,11 +88,11 @@ void Ordinary_Server::do_reconnect()
 
 void Ordinary_Server::register_req()
 {
-    using namespace gabriel::protocol::server::center;
-    Register msg;
+    using namespace gabriel::protocol::server;    
+    Register_Ordinary msg;
     msg.set_server_id(id());
     msg.set_server_type(type());
-    m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_SERVER, msg);
+    m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg);
 }
 
 void Ordinary_Server::do_main_server_connection()
@@ -125,7 +123,7 @@ int32 Ordinary_Server::init_hook()
     }
     
     cout << "连接到supercenter服务器成功" << endl;
-    using namespace gabriel::protocol::server::supercenter;
+    using namespace gabriel::protocol::server;    
     Center_Addr_Req msg;
     msg.set_zone_id(zone_id());
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg);
@@ -135,7 +133,7 @@ int32 Ordinary_Server::init_hook()
     
 void Ordinary_Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server::supercenter;
+    using namespace gabriel::protocol::server;    
     m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Ordinary_Server::center_addr_rsp);
     register_msg_handler_ordinary();
 }
@@ -146,8 +144,8 @@ void Ordinary_Server::register_msg_handler_ordinary()
     
 void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server::supercenter;
-    PARSE_MSG(Center_Addr, msg);
+    using namespace gabriel::protocol::server;    
+    PARSE_MSG(Center_Addr_Rsp, msg);
     m_supercenter_connection.shutdown();
     gabriel::base::Server_Connection *tmp = &m_center_connection;
     

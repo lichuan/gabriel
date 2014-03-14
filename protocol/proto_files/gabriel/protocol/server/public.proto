@@ -1,4 +1,4 @@
-//共享消息定义
+//shared by server internal
 package gabriel.protocol.server;
 
 message Server_Info

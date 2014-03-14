@@ -23,8 +23,8 @@
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/login/server.hpp"
-#include "gabriel/protocol/server/center/msg_type.pb.h"
-#include "gabriel/protocol/server/center/default.pb.h"
+#include "gabriel/protocol/server/msg_type.pb.h"
+#include "gabriel/protocol/server/default.pb.h"
 
 using namespace std;
 
@@ -96,8 +96,8 @@ void Server::reconnect_ordinary()
     
 void Server::register_msg_handler_ordinary()
 {
-    using namespace gabriel::protocol::server::center;
-    m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SERVER, this, &Server::register_rsp);
+    using namespace gabriel::protocol::server;    
+    m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_rsp);
 }
     
 void Server::init_reactor()
@@ -114,8 +114,8 @@ void Server::handle_connection_msg(gabriel::base::Client_Connection *client_conn
 
 void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server::center;
-    PARSE_MSG(Register_Rsp, msg);
+    using namespace gabriel::protocol::server;    
+    PARSE_MSG(Register_Ordinary_Rsp, msg);
 
     if(id() > 0)
     {

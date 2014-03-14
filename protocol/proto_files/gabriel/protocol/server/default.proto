@@ -1,0 +1,40 @@
+import "gabriel/protocol/server/public.proto";
+package gabriel.protocol.server;
+
+enum DEFAULT_MSG
+{
+    REGISTER_ORDINARY_SERVER = 1;
+    REGISTER_CENTER_SERVER = 2;
+    CENTER_ADDR_REQ = 3;
+}
+    
+message Register_Ordinary
+{
+    optional uint32 server_type = 1;
+    optional uint32 server_id = 2;
+}
+
+message Register_Ordinary_Rsp
+{
+    repeated gabriel.protocol.server.Server_Info info = 1;
+}
+    
+message Register_Center
+{
+    optional uint32 zone_id = 1;
+}
+
+message Register_Center_Rsp
+{
+    repeated gabriel.protocol.server.Server_Info info = 1;    
+}
+
+message Center_Addr_Req
+{
+    optional uint32 zone_id = 1;
+}
+
+message Center_Addr_Rsp
+{
+    optional gabriel.protocol.server.Server_Info info = 1;
+}
