@@ -340,7 +340,10 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
                 }
                 
                 cout << "启动center服务器成功" << endl;
-                rename_proc_name("gabriel_center_server___%u___%u", zone_id(), id());
+                char proc_name[128];
+                ACE_OS::sprintf(proc_name, "gabriel_center_server___%u___%u", zone_id(), id());
+                rename_proc_name(proc_name);
+                gabriel::base::LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
             }
         }
         else
@@ -349,7 +352,9 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             new_info->CopyFrom(info);
             m_server_infos.push_back(new_info);
         }
-    }    
+    }
+
+    LOG_DEBUG("11111111111111111111111");    
 }
 
 void Server::clear_server_info()

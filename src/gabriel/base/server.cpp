@@ -51,14 +51,9 @@ void Server::main(int argc, char* argv[])
     fini();
 }
 
-void Server::rename_proc_name(const char *format, ...)
+void Server::rename_proc_name(const char *proc_name)
 {
-    char buf[128];
-    va_list list;
-    va_start(list, format);
-    vsprintf(buf, format, list);
-    va_end(list);
-    strncpy(m_proc_name, buf, 128);
+    strncpy(m_proc_name, proc_name, 128);
 }
     
 uint32 Server::state() const
@@ -94,6 +89,7 @@ int32 Server::init()
     m_thread.add_executor(this, &Server::do_reconnect);
     register_msg_handler();
     daemon(1, 1);
+    m_log_dir = std::string("log") + ACE_DIRECTORY_SEPARATOR_STR;
     
     return init_hook();
 }

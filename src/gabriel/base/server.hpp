@@ -31,6 +31,7 @@
 #include "gabriel/base/timer.hpp"
 #include "gabriel/base/client_connection.hpp"
 #include "gabriel/base/server_connection.hpp"
+#include "gabriel/base/log.hpp"
 
 namespace gabriel {
 namespace base {
@@ -58,7 +59,8 @@ public:
 protected:
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
-    void rename_proc_name(const char *format, ...);
+    void rename_proc_name(const char *proc_name);    
+    std::string m_log_dir;
     
 private:    
     int32 init();

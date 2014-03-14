@@ -21,10 +21,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
-#include <sys/prctl.h>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
-#include "gabriel/base/log.hpp"
 #include "gabriel/protocol/server/supercenter/msg_type.pb.h"
 #include "gabriel/protocol/server/supercenter/default.pb.h"
 
@@ -71,8 +69,6 @@ void Server::init_reactor()
     
 int32 Server::init_hook()
 {
-    gabriel::base::LOG_MSG::instance()->init("./log_supercenter/");
-    
     if(m_acceptor.open(ACE_INET_Addr(20001), ACE_Reactor::instance()) < 0)
     {
         cout << "error: 启动supercenter服务器失败" << endl;
@@ -81,7 +77,10 @@ int32 Server::init_hook()
     }
 
     cout << "启动supercenter服务器成功" << endl;
-    rename_proc_name("gabriel_supercenter_server");
+    char proc_name[128];
+    ACE_OS::sprintf(proc_name, "gabriel_supercenter_server");
+    rename_proc_name(proc_name);    
+    gabriel::base::LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
     
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
