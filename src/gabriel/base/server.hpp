@@ -42,7 +42,7 @@ public:
     virtual ~Server();
     void add_connection(Client_Connection *client_connection);
     virtual bool verify_connection(Client_Connection *client_connection);
-    void main();
+    void main(int argc, char* argv[]);
     uint32 state() const;
     void state(uint32 _state);
     void type(SERVER_TYPE _type);
@@ -58,6 +58,7 @@ public:
 protected:
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
+    void rename_proc_name(const char *format, ...);
     
 private:    
     int32 init();
@@ -78,6 +79,7 @@ private:
     SERVER_TYPE m_type;    
     uint32 m_zone_id;
     Thread<Server> m_thread;
+    char *m_proc_name;
 };
 
 }

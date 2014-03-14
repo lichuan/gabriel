@@ -80,6 +80,8 @@ std::string Log_Callback::to_string(ACE_Log_Priority priority)
 
 void Log_Callback::log(ACE_Log_Record &log_record)
 {
+    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
+    
     if(ACE_LOG_MSG->msg_callback() == 0)
     {
         return;
@@ -89,7 +91,6 @@ void Log_Callback::log(ACE_Log_Record &log_record)
     static int32 cur_hour = -1;
     static fstream file;
     static std::string cur_day_path;    
-    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
     ACE_Date_Time now;
     ostringstream ost;
     ost << now.year() << "-" << setw(2) << setfill('0') << now.month() << "-" << setw(2) << setfill('0') << now.day();
@@ -126,7 +127,7 @@ void Log_Callback::log(ACE_Log_Record &log_record)
         file.open(hour_path, fstream::app | fstream::out);        
     }
     
-    file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << time_prefix << log_record.msg_data() << std::flush;    
+    file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << time_prefix << log_record.msg_data() << endl;
 }
     
 }

@@ -151,7 +151,7 @@ int32 Server::init_hook()
     zone_id(1); //暂时定为1区, 以后改为配置
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
 
-    if(m_connector.connect(tmp, ACE_INET_Addr(20000)) < 0)
+    if(m_connector.connect(tmp, ACE_INET_Addr(20001)) < 0)
     {
         cout << "error: 连接到supercenter服务器失败" << endl;
 
@@ -340,6 +340,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
                 }
                 
                 cout << "启动center服务器成功" << endl;
+                rename_proc_name("gabriel_center_server___%u___%u", zone_id(), id());
             }
         }
         else

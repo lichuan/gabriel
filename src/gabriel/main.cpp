@@ -23,7 +23,7 @@
 //启动函数
 int ACE_MAIN (int argc, char *argv[])
 {    
-    SERVER::instance()->main();
+    SERVER::instance()->main(argc, argv);
 
     return 0;
 }

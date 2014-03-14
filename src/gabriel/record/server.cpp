@@ -60,7 +60,7 @@ void Server::init_reactor()
 int32 Server::init_hook_ordinary()
 {
     zone_id(1);
-    m_supercenter_addr.set(20000);
+    m_supercenter_addr.set(20001);
 
     return 0;
 }
@@ -111,6 +111,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     }
 
     cout << "启动record服务器成功" << endl;
+    rename_proc_name("gabriel_record_server___%u___%u", zone_id(), id());
 }
     
 void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)

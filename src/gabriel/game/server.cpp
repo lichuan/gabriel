@@ -96,7 +96,7 @@ void Server::do_main_server_connection_ordinary()
 int32 Server::init_hook_ordinary()
 {
     zone_id(1);
-    m_supercenter_addr.set(20000);
+    m_supercenter_addr.set(20001);
     
     return 0;
 }
@@ -148,6 +148,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             }
 
             cout << "启动game服务器(id=" << id() << ")成功" << endl;
+            rename_proc_name("gabriel_game_server___%u___%u", zone_id(), id());
         }
         else
         {

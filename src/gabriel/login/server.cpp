@@ -67,7 +67,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 int32 Server::init_hook_ordinary()
 {
     zone_id(1);
-    m_supercenter_addr.set(20000);
+    m_supercenter_addr.set(20001);
 
     return 0;
 }
@@ -146,7 +146,8 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
                 return;
             }
 
-            cout << "启动login服务器成功" << endl;    
+            cout << "启动login服务器成功" << endl;
+            rename_proc_name("gabriel_login_server___%u___%u", zone_id(), id());
         }
         else
         {

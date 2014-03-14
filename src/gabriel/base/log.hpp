@@ -43,7 +43,7 @@ public:
     virtual ~Log_Callback();
 
 private:
-    virtual void log (ACE_Log_Record &log_record);
+    virtual void log(ACE_Log_Record &log_record);
     static std::string to_string(ACE_Log_Priority priority);
     std::string m_log_path;
     ACE_Recursive_Thread_Mutex m_lock;

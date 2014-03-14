@@ -126,16 +126,16 @@ public:
         return m_cur_executor_idx++;
     }
     
-    int32 add_executor(T *object, void (T::*executor)(), int32 num_thread = 1)
+    void add_executor(T *object, void (T::*executor)(), int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
-            return -1;
+            return;
         }
-    
+
         m_executor_list[m_cur_executor_idx++].set_execute_info(object, executor, num_thread);
     }
-
+    
 private:
     Executor<T> m_executor_list[MAX_EXECUTOR];
     int32 m_cur_executor_idx;    

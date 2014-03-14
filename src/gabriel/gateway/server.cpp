@@ -126,7 +126,7 @@ void Server::init_reactor()
 int32 Server::init_hook_ordinary()
 {
     zone_id(1);
-    m_supercenter_addr.set(20000);
+    m_supercenter_addr.set(20001);
 
     return 0;
 }
@@ -176,6 +176,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             }
 
             cout << "启动gateway服务器(id=" << id() << ")成功" << endl;
+            rename_proc_name("gabriel_gateway_server___%u___%u", zone_id(), id());
         }
         else if(info.server_type() == gabriel::base::RECORD_SERVER)
         {

@@ -20,6 +20,7 @@
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#include <cstdarg>
 #include "ace/Signal.h"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/timer.hpp"
@@ -30,15 +31,17 @@ namespace base {
 Server::Server() : m_acceptor(this), m_connector(this)
 {
     m_zone_id = 0;
-    m_type = INVALID_SERVER;    
+    m_type = INVALID_SERVER;
 }
 
 Server::~Server()
 {
 }
 
-void Server::main()
+void Server::main(int argc, char* argv[])
 {
+    m_proc_name = argv[0];
+    
     if(init() < 0)
     {
         return;
@@ -48,6 +51,16 @@ void Server::main()
     fini();
 }
 
+void Server::rename_proc_name(const char *format, ...)
+{
+    char buf[128];
+    va_list list;
+    va_start(list, format);
+    vsprintf(buf, format, list);
+    va_end(list);
+    strncpy(m_proc_name, buf, 128);
+}
+    
 uint32 Server::state() const
 {
     return m_state;
@@ -80,7 +93,7 @@ int32 Server::init()
     m_thread.add_executor(this, &Server::do_main);
     m_thread.add_executor(this, &Server::do_reconnect);
     register_msg_handler();
-    //daemon(1, 1);
+    daemon(1, 1);
     
     return init_hook();
 }

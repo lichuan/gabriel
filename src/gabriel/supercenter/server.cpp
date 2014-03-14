@@ -21,6 +21,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
+#include <sys/prctl.h>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/base/log.hpp"
@@ -72,7 +73,7 @@ int32 Server::init_hook()
 {
     gabriel::base::LOG_MSG::instance()->init("./log_supercenter/");
     
-    if(m_acceptor.open(ACE_INET_Addr(20000), ACE_Reactor::instance()) < 0)
+    if(m_acceptor.open(ACE_INET_Addr(20001), ACE_Reactor::instance()) < 0)
     {
         cout << "error: 启动supercenter服务器失败" << endl;
 
@@ -80,6 +81,7 @@ int32 Server::init_hook()
     }
 
     cout << "启动supercenter服务器成功" << endl;
+    rename_proc_name("gabriel_supercenter_server");
     
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
@@ -105,7 +107,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;     
         info->set_server_id(4);
         info->set_server_type(gabriel::base::LOGIN_SERVER);
-        info->set_outer_addr("127.0.0.1");
+        info->set_outer_addr("192.168.1.83");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20004);
         m_server_infos[zone_id].push_back(info);
@@ -132,7 +134,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
         info->set_server_id(200);
         info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("192.168.1.122");
+        info->set_outer_addr("192.168.1.83");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20200);
         m_server_infos[zone_id].push_back(info);
@@ -141,7 +143,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
         info->set_server_id(201);
         info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("127.0.0.1");
+        info->set_outer_addr("192.168.1.83");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20201);
         m_server_infos[zone_id].push_back(info);
