@@ -93,7 +93,7 @@ int32 Server::init()
     m_thread.add_executor(this, &Server::do_main);
     m_thread.add_executor(this, &Server::do_reconnect);
     register_msg_handler();
-    daemon(1, 1);
+    //daemon(1, 1);
     m_log_dir = std::string("log") + ACE_DIRECTORY_SEPARATOR_STR;
     
     return init_hook();

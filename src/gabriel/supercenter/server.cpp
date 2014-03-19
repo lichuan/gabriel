@@ -74,7 +74,7 @@ int32 Server::init_hook()
 
         return -1;
     }
-
+    
     cout << "启动supercenter服务器成功" << endl;
     set_proc_name_and_log_dir("gabriel_supercenter_server");
     
