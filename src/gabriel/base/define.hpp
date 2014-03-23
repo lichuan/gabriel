@@ -67,11 +67,10 @@ typedef ACE_UINT64 uint64;
 namespace gabriel {
 namespace base {
 
-const uint32 RECV_REQUEST_SIZE = 4096;
-const uint32 MSG_QUEUE_HWM = 512 * 1024;
+const uint32 RECV_REQUEST_SIZE = 512 * 1024;
+const uint32 MSG_QUEUE_HWM = 2 * 1024 * 1024;
 const uint32 MSG_QUEUE_LWM = MSG_QUEUE_HWM;
-const uint32 MSG_SERIALIZE_BUF_HWM = 512 * 1024;
-    
+
 enum SERVER_TYPE
 {
     INVALID_SERVER = 0,

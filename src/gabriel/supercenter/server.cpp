@@ -102,7 +102,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;     
         info->set_server_id(4);
         info->set_server_type(gabriel::base::LOGIN_SERVER);
-        info->set_outer_addr("192.168.1.83");
+        info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20004);
         m_server_infos[zone_id].push_back(info);
@@ -129,7 +129,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
         info->set_server_id(200);
         info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("192.168.1.83");
+        info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20200);
         m_server_infos[zone_id].push_back(info);
@@ -138,7 +138,7 @@ int32 Server::init_hook()
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
         info->set_server_id(201);
         info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("192.168.1.83");
+        info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");
         info->set_port(20201);
         m_server_infos[zone_id].push_back(info);

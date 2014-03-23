@@ -266,7 +266,7 @@ protected:
     }    
 };
 
-//占位基类
+//占位类
 template<typename Concrete_Entity>
 class KEY_NONE
 {

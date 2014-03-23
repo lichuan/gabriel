@@ -36,12 +36,18 @@ class Server;
     
 class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>
 {
+    struct Message
+    {
+        uint32 m_msg_type;
+        uint32 m_msg_id;
+        ACE_Message_Block *m_msg_block;
+    };
+    
     typedef ACE_Svc_Handler Super;    
 public:
     Connection();
     virtual ~Connection();    
     virtual int open(void *acceptor_or_connector);
-    virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     uint32 state() const;
     void state(uint32 _state);
     bool connected() const;
@@ -58,12 +64,17 @@ protected:
     Server *m_holder;
 
 private:
+    virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
+    virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     virtual void on_shutdown() = 0;
     void do_main_i();    
     uint32 m_state;
     uint32 m_last_msg_length;
     ACE_INET_Addr m_addr;
+    ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue;
+    ACE_Message_Queue_Ex<Message, ACE_MT_SYNCH> m_dispatch_queue;
+    bool m_write_disable;    
 };
     
 }
