@@ -1,6 +1,6 @@
 package gabriel.protocol.server;
 
-enum DEFAULT_MSG
+enum DEFAULT_MSG_ID
 {
     REGISTER_ORDINARY_SERVER = 1;
     REGISTER_CENTER_SERVER = 2;

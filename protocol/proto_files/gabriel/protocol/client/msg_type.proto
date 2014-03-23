@@ -4,5 +4,5 @@ enum MSG_TYPE
 {
     DEFAULT_MSG_TYPE = 1;
     SKILL_MSG_TYPE = 2;
-    BATTLE_MSG_TYPE = 3;    
+    BATTLE_MSG_TYPE = 3;
 }

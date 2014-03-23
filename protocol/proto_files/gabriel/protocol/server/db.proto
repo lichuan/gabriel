@@ -1,0 +1,13 @@
+package gabriel.protocol.server;
+
+enum DB_MSG_ID
+{
+    LOAD_CHARACTER = 1;
+    SAVE_CHARACTER = 2;    
+}
+
+message DB_Context
+{
+    optional uint32 seq = 1;
+    optional uint32 client_id = 2;
+}

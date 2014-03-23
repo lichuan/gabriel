@@ -1,6 +1,6 @@
 package gabriel.protocol.client;
 
-enum SKILL_MSG
+enum SKILL_MSG_ID
 {
     CREATE_SKILL = 1;
 }

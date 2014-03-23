@@ -2,5 +2,6 @@ package gabriel.protocol.server;
 
 enum MSG_TYPE
 {
-    DEFAULT_MSG_TYPE = 1; 
+    DEFAULT_MSG_TYPE = 1;
+    DB_MSG_TYPE = 2;
 }
