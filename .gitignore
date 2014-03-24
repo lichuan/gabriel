@@ -3,5 +3,6 @@
 /3rd-party/*
 /cscope*
 /protocol/generated
+/src/3rd-party
 
 
