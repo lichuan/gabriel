@@ -41,6 +41,12 @@ class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public
         uint32 m_msg_type;
         uint32 m_msg_id;
         ACE_Message_Block *m_msg_block;
+
+        void release()
+        {
+            delete m_msg_block;
+            delete this;            
+        }        
     };
     
     typedef ACE_Svc_Handler Super;    

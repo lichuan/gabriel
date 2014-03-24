@@ -101,7 +101,7 @@ void Connection::do_main_i()
     Message *msg;
     m_dispatch_queue.dequeue(msg);
     dispatch(msg->m_msg_type, msg->m_msg_id, msg->m_msg_block->rd_ptr(), msg->m_msg_block->length());
-    delete msg;
+    msg->release();
 }
     
 int Connection::open(void *acceptor_or_connector)
