@@ -24,6 +24,7 @@
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
+#include "gabriel/base/db.hpp"
 
 using namespace std;
 
@@ -68,7 +69,7 @@ void Server::init_reactor()
     
 int32 Server::init_hook()
 {
-    if(m_acceptor.open(ACE_INET_Addr(20001), ACE_Reactor::instance()) < 0)
+    if(m_acceptor.open(ACE_INET_Addr(20001, "192.168.1.122"), ACE_Reactor::instance()) < 0)
     {
         cout << "error: 启动supercenter服务器失败" << endl;
 
@@ -77,7 +78,7 @@ int32 Server::init_hook()
     
     cout << "启动supercenter服务器成功" << endl;
     set_proc_name_and_log_dir("gabriel_supercenter_server");
-    
+
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
     {
@@ -227,6 +228,10 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
+}
+
+void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
 }
 
 }

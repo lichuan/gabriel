@@ -47,6 +47,7 @@ private:
     virtual void register_msg_handler();
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
     void register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
     void center_addr_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);    
     gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;

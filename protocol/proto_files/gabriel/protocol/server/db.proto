@@ -5,6 +5,10 @@ enum DB_MSG_ID
     LOAD_CHARACTER = 1;
     SAVE_CHARACTER = 2;    
 }
+    
+message Query
+{
+    optional uint32 
 
 message DB_Context
 {

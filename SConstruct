@@ -11,6 +11,8 @@ env = Environment(CCFLAGS='-g -std=c++11', CPPPATH=[
         "#src",
         "#3rd-party/ACE_wrappers",
         "#protocol/generated",
+        "/usr/include/mysql",
+        "/usr/include/mysql++"
         ])
 
 #base lib
@@ -25,7 +27,8 @@ libs = [
   get_static_library_name(gabriel_protocol_lib),
   "ACE",
   "protobuf",
-  "pthread"
+  "pthread",
+  "mysqlpp"
 ]
 
 lib_path = [

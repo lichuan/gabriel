@@ -23,14 +23,30 @@
 #ifndef GABRIEL__BASE__DB
 #define GABRIEL__BASE__DB
 
+#include "mysql++.h"
+#include "gabriel/base/thread.hpp"
+
 namespace gabriel {
 namespace base {
 
-class DBConn
+class DB_Handler : public mysqlpp::Connection, public Thread<DB_Handler>
 {
 public:
-    DBConn();
-    ~DBConn();
+    DB_Handler(const char* db, const char* server = 0, const char* user = 0, const char* password = 0, unsigned int port = 0) :
+        mysqlpp::Connection(db, server, user, password, port)
+    {
+    }
+
+    void run()
+    {
+    }
+};
+    
+class DB_Handler_Pool
+{
+public:
+    DB_Handler_Pool();
+    void init(uint32 num_of_handler);
 };
     
 }

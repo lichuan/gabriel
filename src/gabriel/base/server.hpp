@@ -50,8 +50,8 @@ public:
     SERVER_TYPE type() const;    
     virtual void on_connection_shutdown(Server_Connection *server_connection);
     virtual void on_connection_shutdown(Client_Connection *client_connection);
-    virtual void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
-    virtual void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
+    virtual void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
+    virtual void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     virtual void register_msg_handler() = 0;
     uint32 zone_id() const;
     void zone_id(uint32 id);

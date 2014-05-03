@@ -98,10 +98,6 @@ int32 Server::init()
     
     return init_hook();
 }
-
-void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-}
     
 void Server::fini()
 {

@@ -50,7 +50,6 @@ class Timer_Capability
 public:
     Timer_Capability();
     ~Timer_Capability();
-    
     int32 schedule_timer(std::function<void()> call, uint32 interval, uint32 delay = 0);
     void cancel_timer(int32 timer_id);
     
