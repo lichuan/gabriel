@@ -6,10 +6,6 @@ enum DB_MSG_ID
     SAVE_CHARACTER = 2;    
 }
     
-message Query
-{
-    optional uint32 
-
 message DB_Context
 {
     optional uint32 seq = 1;
