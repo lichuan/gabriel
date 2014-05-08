@@ -1,0 +1,8 @@
+package gabriel.protocol;
+
+message OnePubMsg
+{
+    optional int32 id= 1;
+    optional int32 len =2;    
+}
+
