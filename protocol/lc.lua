@@ -23,5 +23,10 @@ msg.pubouter.outername = "outername"
 msg.pubinner.innerid = 29323
 msg.pubinner.innername = "innername"
 msg.pubinnerenum = msg.pubouter.ENUM_PUBINNER_2
+local st = msg:SerializeToString()
 print(msg)
+print(string.len(st))
+
+
+
 
