@@ -1,5 +1,6 @@
 #!/usr/bin/env lua
 
+
 package.cpath = "./protobuf/?.so"
 package.path = "./generated/?.lua;./protobuf/?.lua;"
 require("gabriel.protocol.server.db_pb")
@@ -26,6 +27,16 @@ msg.pubinnerenum = msg.pubouter.ENUM_PUBINNER_2
 local st = msg:SerializeToString()
 print(msg)
 print(string.len(st))
+
+function tst(data)
+   local msg = gabriel.protocol.server.db_pb.DB_Msg()
+   msg:ParseFromString(data)
+   print("begin............................")
+   print(msg)
+   print(string.len(data))
+   print("end..............................")
+   return st
+end
 
 
 
