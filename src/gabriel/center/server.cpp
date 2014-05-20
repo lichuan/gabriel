@@ -148,7 +148,7 @@ int32 Server::init_hook()
     zone_id(1); //暂时定为1区, 以后改为配置
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
 
-    if(m_connector.connect(tmp, ACE_INET_Addr(20001)) < 0)
+    if(m_connector.connect(tmp, ACE_INET_Addr(20001, "106.186.20.182")) < 0)
     {
         cout << "error: 连接到supercenter服务器失败" << endl;
 

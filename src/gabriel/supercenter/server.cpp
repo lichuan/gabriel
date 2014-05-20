@@ -69,7 +69,7 @@ void Server::init_reactor()
     
 int32 Server::init_hook()
 {
-    if(m_acceptor.open(ACE_INET_Addr(20001, "192.168.1.122"), ACE_Reactor::instance()) < 0)
+    if(m_acceptor.open(ACE_INET_Addr(20001, "106.186.20.182"), ACE_Reactor::instance()) < 0)
     {
         cout << "error: 启动supercenter服务器失败" << endl;
 
