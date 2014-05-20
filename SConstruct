@@ -9,6 +9,7 @@ def get_shared_library_name(node):
 
 env = Environment(CCFLAGS='-g -std=c++11', CPPPATH=[
         "#src",
+        "#script",
         "#3rd-party/ACE_wrappers",
         "#protocol/generated",
         "/usr/include/mysql",

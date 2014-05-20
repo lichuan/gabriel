@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+Projdir = "/home/lichuan/repos/gabriel"
+Dir.chdir(Projdir)
+
+if not $*[0].nil? and $*[0] == "-c"
+  system("scons -c")
+else
+  system("scons -j4")
+end
+
+system("rm -rf #{Projdir}/build/bin/script")
+system("mkdir #{Projdir}/build/bin/script")
+system("rm -rf #{Projdir}/build/bin/script/protocol")
+system("mkdir #{Projdir}/build/bin/script/protocol")
+system("cp -r #{Projdir}/script/gabriel #{Projdir}/build/bin/script")
+system("cp -r #{Projdir}/protocol/generated #{Projdir}/build/bin/script/protocol")
+system("cp -r #{Projdir}/protocol/protobuf #{Projdir}/build/bin/script/protocol")

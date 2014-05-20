@@ -25,6 +25,8 @@
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/base/db.hpp"
+#include "lua.hpp"    
+#include "lua2cpp.cpp"
 
 using namespace std;
 
@@ -66,9 +68,6 @@ void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(1000, true), true), true);
 }
-
-#include "lua.hpp"    
-#include "script/lua2cpp.cpp"
     
 int32 Server::init_hook()
 {
@@ -87,7 +86,7 @@ int32 Server::init_hook()
     luaL_openlibs(lua_state);
     register_lua(lua_state);
     
-    if(luaL_dofile(lua_state, "script/gabriel/main.lua") != 0)
+    if(luaL_dofile(lua_state, "script/gabriel/script/main.lua") != 0)
     {
         cout << "err: " << lua_tostring(lua_state, -1) << endl;
     }
