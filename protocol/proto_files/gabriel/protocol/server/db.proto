@@ -1,6 +1,4 @@
 package gabriel.protocol.server;
-import "gabriel/protocol/shared.proto";
-import "gabriel/protocol/pub.proto";
 
 message Monster
 {
@@ -43,10 +41,4 @@ message DB_Msg
     optional Outer outer = 4;
     optional Outer.InnerEnum innerenum = 5;
     optional Outer.Inner inner = 6;
-    optional gabriel.protocol.PubMsg pubmsg =7;
-    optional gabriel.protocol.PubEnum pubenum = 8;
-    optional gabriel.protocol.PubOuter pubouter = 9;
-    optional gabriel.protocol.PubOuter.PubInner pubinner = 10;
-    optional gabriel.protocol.PubOuter.PubInnerEnum pubinnerenum = 11;
-    optional gabriel.protocol.OnePubMsg onepubmsg = 12;    
 }

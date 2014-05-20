@@ -66,6 +66,9 @@ void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(1000, true), true), true);
 }
+
+#include "lua.hpp"    
+#include "script/lua2cpp.cpp"
     
 int32 Server::init_hook()
 {
@@ -79,6 +82,17 @@ int32 Server::init_hook()
     cout << "启动supercenter服务器成功" << endl;
     set_proc_name_and_log_dir("gabriel_supercenter_server");
 
+    ////////////////////////////////////
+    lua_State *lua_state = luaL_newstate();
+    luaL_openlibs(lua_state);
+    register_lua(lua_state);
+    
+    if(luaL_dofile(lua_state, "script/gabriel/main.lua") != 0)
+    {
+        cout << "err: " << lua_tostring(lua_state, -1) << endl;
+    }
+    ////////////////////////////////////
+    
     const uint32 zone_id = 1;    
     //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
     {

@@ -12,7 +12,8 @@ env = Environment(CCFLAGS='-g -std=c++11', CPPPATH=[
         "#3rd-party/ACE_wrappers",
         "#protocol/generated",
         "/usr/include/mysql",
-        "/usr/include/mysql++"
+        "/usr/include/mysql++",
+        "/usr/include/lua5.2"
         ])
 
 #base lib
@@ -28,13 +29,15 @@ libs = [
   "ACE",
   "protobuf",
   "pthread",
-  "mysqlpp"
+  "mysqlpp",
+  "lua5.2"
 ]
 
 lib_path = [
   "#build/base",
   "#build/protocol",
-  os.environ["ACE_ROOT"] + "/lib"
+  os.environ["ACE_ROOT"] + "/lib",
+  "/usr/lib/x86_64-linux-gnu"
 ]
 
 env.Replace(LIBS=libs, LIBPATH=lib_path)
