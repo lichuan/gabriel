@@ -1,4 +1,11 @@
 _gabriel._supercenter.Server
 {
-    ()
+    () 
 }
+_gabriel._supercenter
+{
+    string test_yield()
+}
+
+
+

@@ -42,7 +42,6 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    //客户端连接掉线
     gabriel::base::Server::on_connection_shutdown(client_connection);
 }
 
@@ -67,7 +66,6 @@ int32 Server::init_hook_ordinary()
 
 void Server::update_hook()
 {
-    //游戏循环    
 }
 
 void Server::register_msg_handler_ordinary()
@@ -94,7 +92,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     if(msg.info_size() != 1)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);
-        cout << "error: 从center服务器接收到的本服务器信息有误" << endl;
+        cout << "error: information of this server received from center server is wrong" << endl;
         
         return;
     }
@@ -105,12 +103,12 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);
-        cout << "error: 启动record服务器失败" << endl;
+        cout << "error: start record server failed" << endl;
             
         return;
     }
 
-    cout << "启动record服务器成功" << endl;
+    cout << "start record server ok" << endl;
     set_proc_name_and_log_dir("gabriel_record_server___%u___%u", zone_id(), id());
 }
     
@@ -124,7 +122,6 @@ void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *se
 
 void Server::fini_hook()
 {
-    //停服操作 比如释放资源
 }
 
 }

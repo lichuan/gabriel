@@ -8,8 +8,8 @@
 
   Gabriel server engine is developed just by myself, It will cost me much time and much energy. so, I need your
   
-  support and help. my bitcoin address is: 
-  
-  1ETqfaEHqyfPxofRiCkozwNTsVaDXsMjP
+  support and help. my bitcoin address is:
+
+  1Mjm73R6omsED7mHS8m7tfHQvTPAqAGos1
   
   You can pay some bitcoin to support me, thank you!

@@ -41,10 +41,9 @@ Ordinary_Server::~Ordinary_Server()
     
 void Ordinary_Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
-    //服务器连接掉线
     if(server_connection == &m_center_connection)
     {
-        cout << "error: 与center服务器失去连接" << endl;
+        cout << "error: disconnected from center server" << endl;
     }
     else
     {
@@ -72,11 +71,11 @@ void Ordinary_Server::do_reconnect()
             
             if(m_connector.connect(tmp, m_center_connection.inet_addr()) < 0)
             {
-                cout << "error: 尝试重新连接到center服务器失败" << endl;
+                cout << "error: reconnect to center server failed" << endl;
             }
             else
             {
-                cout << "尝试重新连接到center服务器成功" << endl;
+                cout << "reconnect to center server ok" << endl;
                 register_req();
             }
         }
@@ -117,12 +116,12 @@ int32 Ordinary_Server::init_hook()
     
     if(m_connector.connect(tmp, m_supercenter_addr) < 0)
     {
-        cout << "error: 连接到supercenter服务器失败" << endl;
+        cout << "error: connect to supercenter server failed" << endl;
 
         return -1;
     }
     
-    cout << "连接到supercenter服务器成功" << endl;
+    cout << "connect to supercenter server ok" << endl;
     using namespace gabriel::protocol::server;    
     Center_Addr_Req msg;
     msg.set_zone_id(zone_id());
@@ -151,13 +150,13 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_c
     
     if(m_connector.connect(tmp, ACE_INET_Addr(msg.info().port(), msg.info().inner_addr().c_str())) < 0)
     {
-        cout << "error: 连接到center服务器失败" << endl;
+        cout << "error: connect to center server failed" << endl;
         state(gabriel::base::SERVER_STATE::SHUTDOWN);
 
         return;
     }
     
-    cout << "连接到center服务器成功" << endl;
+    cout << "connect to center server ok" << endl;
     register_req();
 }
 

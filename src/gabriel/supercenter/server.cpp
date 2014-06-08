@@ -21,6 +21,7 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
+#include <string>
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
@@ -49,7 +50,6 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    //客户端连接掉线
     gabriel::base::Server::on_connection_shutdown(client_connection);
     
     for(auto iter : m_zone_connections)
@@ -57,7 +57,7 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
         if(iter.second == client_connection)
         {
             m_zone_connections.erase(iter.first);
-            cout << iter.first << "区center服务器与本服务器断开连接" << endl;
+            cout << "zone: " << iter.first << " center server disconnected from this server" << endl;
             
             break;
         }
@@ -73,12 +73,12 @@ int32 Server::init_hook()
 {
     if(m_acceptor.open(ACE_INET_Addr(20001, "106.186.20.182"), ACE_Reactor::instance()) < 0)
     {
-        cout << "error: 启动supercenter服务器失败" << endl;
+        cout << "error: start supercenter server failed" << endl;
 
         return -1;
     }
     
-    cout << "启动supercenter服务器成功" << endl;
+    cout << "start supercenter server ok" << endl;
     set_proc_name_and_log_dir("gabriel_supercenter_server");
 
     ////////////////////////////////////
@@ -90,10 +90,18 @@ int32 Server::init_hook()
     {
         cout << "err: " << lua_tostring(lua_state, -1) << endl;
     }
-    ////////////////////////////////////
+
+    string str;
+    str = "abcdefg";
+    cout << "str size: " << str.size() << endl;
+    str[2] = '\0';
+    cout << "str size: " << str.length() << endl;
+    cout << str << endl;
+    
+
+    ////////////////////////////////////////
     
     const uint32 zone_id = 1;    
-    //先手写服务器的相关配置数据，以后改成配置或数据库读取方式。
     {
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
         info->set_server_id(2);
@@ -235,7 +243,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
 
     client_connection->send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg_rsp);
     m_zone_connections[zone_id] = client_connection;
-    cout << zone_id << "区center服务器注册到本服务器" << endl;
+    cout << "zone: " << zone_id << " center server register to this server" << endl;
 }
     
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)

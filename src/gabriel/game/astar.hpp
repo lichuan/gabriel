@@ -59,7 +59,6 @@ struct Astar_Point
     int32 m_y;
 };
     
-//路径节点
 struct Astar_Node
 {
     Astar_Node(const Astar_Point &pos, int32 g, int32 h, const Astar_Node *parent)
@@ -71,11 +70,11 @@ struct Astar_Node
         m_parent = parent;        
     }
 
-    Astar_Point m_pos; //节点的坐标
-    int32 m_g; //缓存g值
-    int32 m_h; //缓存h    
-    int32 m_f; //缓存f值
-    const Astar_Node *m_parent; //该节点的前置节点
+    Astar_Point m_pos;    
+    int32 m_g;
+    int32 m_h;
+    int32 m_f;
+    const Astar_Node *m_parent;
 };
 
 class Astar_Point_Check
@@ -89,7 +88,6 @@ public:
     }    
 };
 
-//A星寻路实现
 template<int32 MAX_NODE>
 class Astar_Impl
 {
@@ -173,14 +171,14 @@ private:
             v2 = x_diff;
         }
 
-        return v1 * 10 + v2 * 14; //横竖方向的权重10，斜方向的权重14
+        return v1 * 10 + v2 * 14;
     }
 
     const Astar_Node* add_around_node_to_open(const Astar_Node *cur_node, const Astar_Point &dest_pos)
     {
         static const int32 around_offset[8][2] = {
-            {0, -1}, //top
-            {1, -1}, //top-right
+            {0, -1},
+            {1, -1},
             {1, 0},
             {1, 1},
             {0, 1},
@@ -213,7 +211,6 @@ private:
 
             g_inc = 10;
             
-            //判断斜方向的两边是否有阻挡
             if(i % 2 == 1)
             {
                 const int32 idx_1 = (i - 1) % 8;
@@ -263,7 +260,6 @@ private:
             return pos_list;
         }
         
-        //反向查找
         Astar_Node *node = new Astar_Node(dest_pos, 0, h_value(dest_pos, src_pos), NULL);
         m_open_map.insert(std::make_pair(dest_pos.hash(), node));        
         m_iter_map.insert(std::make_pair(node, m_order_by_f_map.insert(m_order_by_f_map.begin(), std::make_pair(node->m_f, node))));
@@ -311,7 +307,6 @@ template<int32 MAX_NODE>
 class Astar
 {
 public:
-    //对每一次查找单独创建一个A星实现类，以支持在多线程环境中进行A星寻路
     std::list<Astar_Point> find_path(const Astar_Point_Check &point_check, const Astar_Point &src_pos, const Astar_Point &dest_pos) const
     {
         Astar_Impl<MAX_NODE> impl(point_check);
@@ -330,7 +325,7 @@ public:
 
 typedef ACE_Singleton<Astar<1000>, ACE_Null_Mutex> ASTAR;
     
-} //end namespace base
-} //end namespace gabriel
+}
+}
 
 #endif

@@ -86,8 +86,7 @@ protected:
     ~Entity_Dict()
     {
     }
-
-    //是否正在迭代中, 用于禁止在迭代map时进行删除迭代器等操作
+    
     bool in_iteration() const
     {
         return m_in_iteration;
@@ -266,7 +265,6 @@ protected:
     }    
 };
 
-//占位类
 template<typename Concrete_Entity>
 class KEY_NONE
 {
@@ -289,7 +287,6 @@ protected:
     }    
 };
 
-//提取基类的trait
 template<typename Concrete_Entity, typename T>
 struct Get_Super
 {

@@ -42,7 +42,6 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    //客户端连接掉线
     gabriel::base::Server::on_connection_shutdown(client_connection);
 }
 
@@ -50,7 +49,7 @@ void Server::on_connection_shutdown_ordinary(gabriel::base::Server_Connection *s
 {
     if(server_connection == &m_record_connection)
     {
-        cout << "error: 与record服务器失去连接" << endl;
+        cout << "error: disconnected from record server" << endl;
     }
 }
 
@@ -74,7 +73,6 @@ int32 Server::init_hook_ordinary()
 
 void Server::update_hook()
 {
-    //游戏循环
 }
 
 void Server::reconnect_ordinary()
@@ -85,11 +83,11 @@ void Server::reconnect_ordinary()
             
         if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
         {
-            cout << "error: 尝试重新连接到record服务器失败" << endl;
+            cout << "error: reconnect to record server failed" << endl;
         }
         else
         {
-            cout << "尝试重新连接到record服务器成功" << endl;
+            cout << "reconnect to record server ok" << endl;
         }
     }
 }
@@ -125,7 +123,7 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
     if(msg.info_size() != 2)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);
-        cout << "error: 从center服务器接收到的本服务器信息有误" << endl;
+        cout << "error: information of this server received from center server is wrong" << endl;
         
         return;
     }
@@ -141,12 +139,12 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
             if(m_acceptor.open(ACE_INET_Addr(info.port(), info.outer_addr().c_str()), ACE_Reactor::instance()) < 0)
             {
                 state(gabriel::base::SERVER_STATE::SHUTDOWN);
-                cout << "error: 启动login服务器失败" << endl;
+                cout << "error: start login server failed" << endl;
             
                 return;
             }
 
-            cout << "启动login服务器成功" << endl;
+            cout << "start login server ok" << endl;
             set_proc_name_and_log_dir("gabriel_login_server___%u___%u", zone_id(), id());
         }
         else
@@ -155,12 +153,12 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
 
             if(m_connector.connect(tmp, ACE_INET_Addr(info.port(), info.inner_addr().c_str())) < 0)
             {
-                cout << "error: 连接到record服务器失败" << endl;
+                cout << "error: connect to record server failed" << endl;
                 state(gabriel::base::SERVER_STATE::SHUTDOWN);
             }
             else
             {
-                cout << "连接到record服务器成功" << endl;
+                cout << "connect to record server ok" << endl;
             }
         }
     }
@@ -180,7 +178,6 @@ void Server::handle_connection_msg_ordinary(gabriel::base::Server_Connection *se
 
 void Server::fini_hook()
 {
-    //停服操作 比如释放资源
 }
 
 }

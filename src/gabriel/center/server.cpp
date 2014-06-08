@@ -42,13 +42,12 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    //客户端连接掉线
     gabriel::base::Server::on_connection_shutdown(client_connection);
     
     if(client_connection == m_record_client)
     {
         m_record_client = NULL;
-        cout << "record服务器与本服务器断开连接" << endl;
+        cout << "record server disconnected from this server" << endl;
     }
     else if(client_connection->type() == gabriel::base::GAME_CLIENT)
     {
@@ -57,7 +56,7 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
         if(iter != m_allocated_game_map.end())
         {
             m_allocated_game_ids.erase(iter->second);
-            cout << "game服务器(id=" << iter->second << ")与本服务器断开连接" << endl;
+            cout << "game server (id=" << iter->second << ") disconnected from this server" << endl;
         }
     }
     else if(client_connection->type() == gabriel::base::GATEWAY_CLIENT)
@@ -67,19 +66,18 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
         if(iter != m_allocated_gateway_map.end())
         {
             m_allocated_gateway_ids.erase(iter->second);
-            cout << "gateway服务器(id=" << iter->second << ")与本服务器断开连接" << endl;
+            cout << "gateway server (id=" << iter->second << ")disconnected from this server" << endl;
         }
     }
     else
     {
-        cout << "login服务器与本服务器断开连接" << endl;
+        cout << "login server disconnected from this server" << endl;
     }
 }
 
 void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
-    //服务器连接掉线
-    cout << "error: 与supercenter服务器失去连接" << endl;
+    cout << "error: disconnected from supercenter server" << endl;
 }
 
 void Server::send_to_record(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
@@ -107,12 +105,12 @@ void Server::do_reconnect()
 
             if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
             {
-                cout << "error: 尝试重新连接到supercenter服务器失败" << endl;
+                cout << "error: reconnect to supercenter server failed" << endl;
             }
             else
             {
                 register_req();
-                cout << "尝试重新连接到supercenter服务器成功" << endl;
+                cout << "reconnect to supercenter server ok" << endl;
             }
         }
         
@@ -127,7 +125,6 @@ void Server::do_main_server_connection()
 
 void Server::update_hook()
 {
-    //游戏循环    
 }
 
 void Server::init_reactor()
@@ -145,17 +142,17 @@ void Server::register_req()
     
 int32 Server::init_hook()
 {
-    zone_id(1); //暂时定为1区, 以后改为配置
+    zone_id(1);    
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-
+    
     if(m_connector.connect(tmp, ACE_INET_Addr(20001, "106.186.20.182")) < 0)
     {
-        cout << "error: 连接到supercenter服务器失败" << endl;
+        cout << "error: connect to supercenter server failed" << endl;
 
         return -1;
     }
 
-    cout << "连接到supercenter服务器成功" << endl;
+    cout << "connect to supercenter server ok" << endl;
     register_req();
     
     return 0;
@@ -179,7 +176,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     
     if(msg.server_type() == gabriel::base::RECORD_SERVER)
     {
-        ACE_OS::sprintf(server_name, "record服务器");
+        ACE_OS::sprintf(server_name, "record server");
         
         for(auto info : m_server_infos)
         {
@@ -194,7 +191,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     }
     else if(msg.server_type() == gabriel::base::LOGIN_SERVER)
     {
-        ACE_OS::sprintf(server_name, "login服务器");        
+        ACE_OS::sprintf(server_name, "login server");        
         
         for(auto info : m_server_infos)
         {
@@ -229,7 +226,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                         msg_rsp.add_info()->CopyFrom(*info);
                         m_allocated_game_ids.insert(info->server_id());
                         m_allocated_game_map.insert(std::make_pair(client_connection->id(), info->server_id()));
-                        ACE_OS::sprintf(server_name, "game服务器(id=%u)", info->server_id());                        
+                        ACE_OS::sprintf(server_name, "game server (id=%u)", info->server_id());                        
                         found_one = true;
                     }
                 }
@@ -239,11 +236,10 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                          || info->outer_addr() == client_connection->host_name())
                         && m_allocated_game_ids.find(info->server_id()) == m_allocated_game_ids.end())
                 {
-                    //适配服务器
                     msg_rsp.add_info()->CopyFrom(*info);
                     m_allocated_game_ids.insert(info->server_id());
                     m_allocated_game_map.insert(std::make_pair(client_connection->id(), info->server_id()));
-                    ACE_OS::sprintf(server_name, "game服务器(id=%u)", info->server_id());                    
+                    ACE_OS::sprintf(server_name, "game server (id=%u)", info->server_id());                    
                     found_one = true;
                 }
             }
@@ -279,7 +275,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                         msg_rsp.add_info()->CopyFrom(*info);
                         m_allocated_gateway_ids.insert(info->server_id());
                         m_allocated_gateway_map.insert(std::make_pair(client_connection->id(), info->server_id()));
-                        ACE_OS::sprintf(server_name, "gateway服务器(id=%u)", info->server_id());                        
+                        ACE_OS::sprintf(server_name, "gateway server (id=%u)", info->server_id());                        
                         found_one = true;
                     }
                 }
@@ -289,11 +285,10 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
                          || info->outer_addr() == client_connection->host_name())
                         && m_allocated_gateway_ids.find(info->server_id()) == m_allocated_gateway_ids.end())
                 {
-                    //适配服务器
                     msg_rsp.add_info()->CopyFrom(*info);
                     m_allocated_gateway_ids.insert(info->server_id());
                     m_allocated_gateway_map.insert(std::make_pair(client_connection->id(), info->server_id()));
-                    ACE_OS::sprintf(server_name, "gateway服务器(id=%u)", info->server_id());                    
+                    ACE_OS::sprintf(server_name, "gateway server (id=%u)", info->server_id());                    
                     found_one = true;
                 }                
             }
@@ -308,7 +303,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
         }
     }
     
-    cout << "收到" << server_name << "的注册请求，ip:" << client_connection->ip_addr() << " hostname:" << client_connection->host_name() << endl;
+    cout << "received register request from " << server_name << " ip:" << client_connection->ip_addr() << " hostname:" << client_connection->host_name() << endl;
     client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
 }
 
@@ -331,12 +326,12 @@ void Server::register_rsp(gabriel::base::Server_Connection *server_connection, v
                 if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)
                 {
                     state(gabriel::base::SERVER_STATE::SHUTDOWN);
-                    cout << "error: 启动center服务器失败" << endl;
+                    cout << "error: start center server failed" << endl;
                     
                     return;
                 }
                 
-                cout << "启动center服务器成功" << endl;
+                cout << "start center server ok" << endl;
                 set_proc_name_and_log_dir("gabriel_center_server___%u___%u", zone_id(), id());
             }
         }
@@ -361,7 +356,6 @@ void Server::clear_server_info()
 
 void Server::fini_hook()
 {
-    //停服操作 比如释放资源
     clear_server_info();
 }
 

@@ -28,8 +28,6 @@
 namespace gabriel {
 namespace base {
 
-/* 普通服务器类(即向center服务器注册的其他服务器种类)
- * 抽取出这些服务器的共有行为和数据，减少代码重复度。*/
 class Ordinary_Server : public Server
 {
 public:

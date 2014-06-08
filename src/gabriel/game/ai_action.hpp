@@ -34,7 +34,6 @@ class Ai_Action;
 class Ai_Entity;
 class Ai_Controller;
     
-//ai后续行为链
 class Ai_Action_List
 {
 public:
@@ -55,7 +54,6 @@ private:
     std::vector<Ai_Action*> m_actions;
 };
 
-//ai行为基类
 class Ai_Action
 {
 public:
@@ -95,7 +93,6 @@ public:
     virtual bool on_leave();
 };
 
-//跟随行为
 class Follow_Ai_Action : public Ai_Action
 {
 public:
@@ -108,7 +105,6 @@ private:
     Ai_Entity *m_follow_entity;
 };
 
-//ai 控制器
 class Ai_Controller
 {
 public:
@@ -116,16 +112,13 @@ public:
     ~Ai_Controller();
     void doing();
     
-    //分配行为
     void build_ai_action(uint32 ai_id);
     
-    //组装ai
     void build_ai_0();    
     void build_ai_1();
     void build_ai_2();
     void build_ai_3();
     
-    //释放行为
     void delete_action();
     void add_action(Ai_Action *action);
     
@@ -142,7 +135,7 @@ public:
 private:
     void register_build_func();
     Ai_Entity *m_holder;
-    Ai_Action_List m_first_action_list; //第一条ai行为链
+    Ai_Action_List m_first_action_list;
     std::set<Ai_Action*> m_all_actions;
     void (Ai_Controller::*m_build_funcs[10])();
     Ai_Action_List build_action_list(Ai_Action **action_arr, uint32 arr_length);
