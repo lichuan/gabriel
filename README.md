@@ -6,10 +6,10 @@
 
 ##DONATE
 
-  Gabriel server engine is developed just by myself, It will cost me much time and much energy. so, I need your
+  Gabriel server engine is developed just by myself, It will cost me much time and much energy, If you 
   
-  support and help. my bitcoin address is:
-
+  are interested in this engine, You can support me by sending some bitcoins to my wallet address:
+  
   1Mjm73R6omsED7mHS8m7tfHQvTPAqAGos1
   
-  You can pay some bitcoin to support me, thank you!
+  thank you!
