@@ -69,13 +69,13 @@ void Server::init_reactor()
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(1000, true), true), true);
 }
     
-int32 Server::init_hook()
+bool Server::init_hook()
 {
     if(m_acceptor.open(ACE_INET_Addr(20001, "106.186.20.182"), ACE_Reactor::instance()) < 0)
     {
         cout << "error: start supercenter server failed" << endl;
 
-        return -1;
+        return false;
     }
     
     cout << "start supercenter server ok" << endl;
@@ -165,18 +165,18 @@ int32 Server::init_hook()
         info->set_port(20201);
         m_server_infos[zone_id].push_back(info);
     }
-    
-    return 0;
+
+    return true;
 }
 
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;    
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_req);
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Server::center_addr_req);
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_req_from);
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Server::center_addr_req_from);
 }
 
-void Server::center_addr_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::center_addr_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Center_Addr_Req, msg);
@@ -221,7 +221,7 @@ void Server::fini_hook()
     m_server_infos.clear();
 }
 
-void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::register_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Register_Center, msg);
@@ -251,8 +251,9 @@ void Server::handle_connection_msg(gabriel::base::Client_Connection *client_conn
     m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
 }
 
-void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
+    return true;
 }
 
 }

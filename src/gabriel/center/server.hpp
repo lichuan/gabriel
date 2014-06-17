@@ -42,22 +42,21 @@ public:
     
 private:
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
-    virtual void on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
+    virtual bool on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
-    virtual void do_main_server_connection();
+    virtual void do_main_on_server_connection();
     virtual void do_reconnect();
     virtual void update_hook();
-    virtual int32 init_hook();
+    virtual bool init_hook();
     virtual void fini_hook();
     virtual void init_reactor();    
     virtual void register_msg_handler();
     virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);    
-    virtual void handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    void register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
-    void register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
-    void send_to_record(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg);    
-    void register_req();
-    void clear_server_info();    
+    virtual bool handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    void register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
+    void register_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
+    void register_req_to();
+    void clear_server_info();
     gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
     gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;

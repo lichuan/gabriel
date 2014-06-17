@@ -42,7 +42,7 @@ void Server::main(int argc, char* argv[])
 {
     m_proc_name = argv[0];
     
-    if(init() < 0)
+    if(!init())
     {
         return;
     }
@@ -81,7 +81,7 @@ void Server::state(uint32 _state)
     m_state = _state;
 }
     
-int32 Server::init()
+bool Server::init()
 {    
     // ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     // ACE_Sig_Action original_action;
@@ -115,11 +115,12 @@ void Server::on_connection_shutdown(Client_Connection *client_connection)
     client_connection->state(CONNECTION_STATE::SHUTDOWN);
 }
     
-void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
+    return true;
 }
     
-void Server::do_main_server_connection()
+void Server::do_main_on_server_connection()
 {
 }
 
@@ -133,9 +134,9 @@ SERVER_TYPE Server::type() const
     return m_type;
 }
     
-void Server::do_main_client_connection()
+void Server::do_main_on_client_connection()
 {
-    delete_if([](Client_Connection *client_connection)
+    delete_if([](Client_Connection *client_connection)->bool
               {
                   if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
                   {
@@ -159,8 +160,8 @@ void Server::do_main()
 
     while(state() != SERVER_STATE::SHUTDOWN)
     {
-        do_main_server_connection();
-        do_main_client_connection();
+        do_main_on_server_connection();
+        do_main_on_client_connection();
         update();
         sleep_msec(1);
     }

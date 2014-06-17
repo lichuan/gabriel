@@ -39,26 +39,18 @@ Ordinary_Server::~Ordinary_Server()
 {
 }
     
-void Ordinary_Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+bool Ordinary_Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
     if(server_connection == &m_center_connection)
     {
         cout << "error: disconnected from center server" << endl;
+        
+        return true;        
     }
-    else
-    {
-        on_connection_shutdown_ordinary(server_connection);
-    }
+
+    return false;    
 }
     
-void Ordinary_Server::on_connection_shutdown_ordinary(gabriel::base::Server_Connection *server_connection)
-{
-}
-
-void Ordinary_Server::reconnect_ordinary()
-{
-}
-
 void Ordinary_Server::do_reconnect()
 {
     using namespace gabriel::base;
@@ -80,11 +72,15 @@ void Ordinary_Server::do_reconnect()
             }
         }
         
-        reconnect_ordinary();
+        do_reconnect_i();
         gabriel::base::sleep_sec(2);
     }
 }
 
+void Ordinary_Server::do_reconnect_i()
+{
+}
+    
 void Ordinary_Server::register_req()
 {
     using namespace gabriel::protocol::server;    
@@ -94,31 +90,21 @@ void Ordinary_Server::register_req()
     m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg);
 }
 
-void Ordinary_Server::do_main_server_connection()
+void Ordinary_Server::do_main_on_server_connection()
 {
     m_center_connection.do_main();
     m_supercenter_connection.do_main();
-    do_main_server_connection_ordinary();
 }
 
-void Ordinary_Server::do_main_server_connection_ordinary()
+bool Ordinary_Server::init_hook()
 {
-}
-
-int32 Ordinary_Server::init_hook()
-{
-    if(init_hook_ordinary() < 0)
-    {
-        return -1;
-    }
-    
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
     
     if(m_connector.connect(tmp, m_supercenter_addr) < 0)
     {
         cout << "error: connect to supercenter server failed" << endl;
 
-        return -1;
+        return false;        
     }
     
     cout << "connect to supercenter server ok" << endl;
@@ -127,20 +113,15 @@ int32 Ordinary_Server::init_hook()
     msg.set_zone_id(zone_id());
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg);
 
-    return 0;
+    return true;
 }
     
 void Ordinary_Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;    
     m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Ordinary_Server::center_addr_rsp);
-    register_msg_handler_ordinary();
 }
 
-void Ordinary_Server::register_msg_handler_ordinary()
-{
-}
-    
 void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
@@ -160,16 +141,16 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_c
     register_req();
 }
 
-void Ordinary_Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+bool Ordinary_Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     if(server_connection == &m_supercenter_connection)
     {
         m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
+
+        return true;        
     }
-    else
-    {
-        handle_connection_msg_ordinary(server_connection, msg_type, msg_id, data, size);
-    }
+
+    return false;
 }
 
 }

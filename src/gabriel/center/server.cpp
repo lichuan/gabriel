@@ -75,19 +75,13 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
     }
 }
 
-void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
     cout << "error: disconnected from supercenter server" << endl;
-}
 
-void Server::send_to_record(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
-{
-    if(m_record_client != NULL)
-    {
-        m_record_client->send(msg_type, msg_id, msg);
-    }
+    return true;
 }
-
+    
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
     return true;
@@ -109,7 +103,7 @@ void Server::do_reconnect()
             }
             else
             {
-                register_req();
+                register_req_to();
                 cout << "reconnect to supercenter server ok" << endl;
             }
         }
@@ -118,7 +112,7 @@ void Server::do_reconnect()
     }
 }
 
-void Server::do_main_server_connection()
+void Server::do_main_on_server_connection()
 {
     m_supercenter_connection.do_main();
 }
@@ -132,7 +126,7 @@ void Server::init_reactor()
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
 }
 
-void Server::register_req()
+void Server::register_req_to()
 {
     using namespace gabriel::protocol::server;    
     Register_Center msg;
@@ -140,32 +134,32 @@ void Server::register_req()
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg);
 }
     
-int32 Server::init_hook()
+bool Server::init_hook()
 {
-    zone_id(1);    
+    zone_id(1);
     gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
     
     if(m_connector.connect(tmp, ACE_INET_Addr(20001, "106.186.20.182")) < 0)
     {
         cout << "error: connect to supercenter server failed" << endl;
 
-        return -1;
+        return false;
     }
-
-    cout << "connect to supercenter server ok" << endl;
-    register_req();
     
-    return 0;
+    cout << "connect to supercenter server ok" << endl;
+    register_req_to();
+
+    return true;    
 }
     
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_rsp);
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_req);
+    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_rsp_from);
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_req_from);
 }
 
-void Server::register_req(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::register_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Register_Ordinary, msg);
@@ -307,7 +301,7 @@ void Server::register_req(gabriel::base::Client_Connection *client_connection, v
     client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
 }
 
-void Server::register_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
+void Server::register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Register_Center_Rsp, msg);
@@ -364,9 +358,11 @@ void Server::handle_connection_msg(gabriel::base::Client_Connection *client_conn
     m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);    
 }
 
-void Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
+
+    return true;
 }
 
 }

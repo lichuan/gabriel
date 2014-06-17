@@ -47,11 +47,11 @@ public:
     uint32 state() const;
     void state(uint32 _state);
     void type(SERVER_TYPE _type);
-    SERVER_TYPE type() const;    
-    virtual void on_connection_shutdown(Server_Connection *server_connection);
+    SERVER_TYPE type() const;
     virtual void on_connection_shutdown(Client_Connection *client_connection);
+    virtual bool on_connection_shutdown(Server_Connection *server_connection);
     virtual void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
-    virtual void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
+    virtual bool handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
     virtual void register_msg_handler() = 0;
     uint32 zone_id() const;
     void zone_id(uint32 id);
@@ -63,15 +63,15 @@ protected:
     std::string m_log_dir;
     
 private:    
-    int32 init();
+    bool init();
     void fini();
     void run();
     void do_reactor();
     void do_main();
-    void do_main_client_connection();
+    void do_main_on_client_connection();
     virtual void do_reconnect();
-    virtual void do_main_server_connection();
-    virtual int32 init_hook() = 0;
+    virtual void do_main_on_server_connection();
+    virtual bool init_hook() = 0;
     virtual void fini_hook() = 0;
     virtual void init_reactor() = 0;    
     virtual void update_hook() = 0;

@@ -35,7 +35,7 @@ class Guard_Scope_Value
 public:
     Guard_Scope_Value(T &value, T in_value, T out_value) : m_value(value)
     {
-        m_value = value;
+        m_value = in_value;
         m_out_value = out_value;
     }
     
