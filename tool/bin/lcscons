@@ -1,17 +1,99 @@
 #!/usr/bin/env ruby
-Projdir = "/home/lichuan/repos/gabriel"
-Dir.chdir(Projdir)
 
-if not $*[0].nil? and $*[0] == "-c"
-  system("scons -c")
-else
-  system("scons -j4")
+REPOS_DIR = "/home/lichuan/repos/gabriel"
+PROTO_DIR = "#{REPOS_DIR}/protocol"
+Dir.chdir(PROTO_DIR)
+system("./compile_proto_files.sh")
+Dir.chdir(REPOS_DIR)
+
+def scons()
+  if not $*[0].nil? and $*[0] == "-c"
+    system("scons -c")
+  else
+    system("scons -j4")
+  end
 end
 
-system("rm -rf #{Projdir}/build/bin/script")
-system("mkdir #{Projdir}/build/bin/script")
-system("rm -rf #{Projdir}/build/bin/script/protocol")
-system("mkdir #{Projdir}/build/bin/script/protocol")
-system("cp -r #{Projdir}/script/gabriel #{Projdir}/build/bin/script")
-system("cp -r #{Projdir}/protocol/generated #{Projdir}/build/bin/script/protocol")
-system("cp -r #{Projdir}/protocol/protobuf #{Projdir}/build/bin/script/protocol")
+def convert_lua(new_path)
+  out = []
+  rep_array = []
+  File.open(new_path).each_line do |line|
+    if line =~ /module.*/
+      line.gsub! "/", "."
+    elsif line =~ /local.*require/
+      match_list = /local(.*)require(.*)/.match line
+      s1 = $1
+      s2 = $2
+      line = "local#{s1.gsub '/', '_'}require#{s2.gsub '/', '.'}\n"
+    elsif line =~ /(enum|message)_type = .*_PB_.*/
+      match_list = /(.*enum|.*message)_type = (.*)/.match line
+      prefix = $1
+      match_list = /(.*_PB)_(.*)/.match $2
+      s1 = $1
+      s2 = $2
+      dir_array = s1.downcase.split("/")
+      line = prefix + "_type = " + s1.downcase + "." + s2 + "\n"
+      line.gsub! "/", "_"
+      start_dir = "#{REPOS_DIR}/protocol/generated"
+      idx = 0
+      while idx < dir_array.length do
+        Dir.foreach start_dir do |f|
+          path = start_dir + "/" + f
+          if idx < dir_array.length - 1
+            next if f != dir_array[idx]
+            start_dir = path
+            break
+          else
+            next if f != dir_array[idx] + ".lua"
+            fp = File.open path
+            f_data = fp.readlines.join
+            f_data.sub! /local #{s2}\b/, s2
+            fp.close
+            fp = File.open(path, "w")
+            fp.write f_data
+            fp.close
+            break
+          end
+        end
+        idx += 1
+      end
+    end
+    out.push line
+  end
+  fp = File.open(new_path, "w")
+  fp.write out.join
+  fp.close
+end
+
+def cp_lua_file(src_path, dest_path, dir_list)
+  Dir.foreach src_path do |f|
+    next if f == "." or f == ".."
+    new_path = src_path + "/" + f
+    
+    if File.directory? new_path
+      new_list = Array.new dir_list
+      new_list.push f
+      cp_lua_file new_path, dest_path, new_list
+      next
+    end
+    
+    if f.end_with? ".lua" or f.end_with? ".so"
+      dest_dir = dest_path + dir_list.join("/")
+      system("mkdir -p #{dest_dir}")
+      if src_path.include? "protocol/generated"
+        convert_lua new_path
+      end
+      system("cp #{new_path} #{dest_dir}")
+    end
+  end
+end
+
+def cp_resouce()
+  system("rm -rf #{REPOS_DIR}/build/bin/script")
+  cp_lua_file "#{REPOS_DIR}/script", "#{REPOS_DIR}/build/bin/script/", []
+  cp_lua_file "#{REPOS_DIR}/protocol/generated", "#{REPOS_DIR}/build/bin/script/", []
+  cp_lua_file "#{REPOS_DIR}/protocol/protobuf", "#{REPOS_DIR}/build/bin/script/protobuf", []
+end
+
+scons
+cp_resouce

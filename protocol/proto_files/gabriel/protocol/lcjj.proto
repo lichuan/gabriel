@@ -1,0 +1,22 @@
+package gabriel.protocol;
+
+enum PubEnum
+{
+    Pub_1 = 111;
+    Pub_2 = 222;
+    Pub_3 = 333;
+}
+
+message Pub_Msg
+{
+    message Inner
+    {
+        optional string innerstring = 1;
+        optional int32 innerid = 2;
+    }
+    
+    optional int32 id = 1;
+    optional string name = 2;
+    optional PubEnum enumval = 3;
+    repeated Inner innerarray = 4;
+}

@@ -68,7 +68,7 @@ void Ordinary_Server::do_reconnect()
             else
             {
                 cout << "reconnect to center server ok" << endl;
-                register_req();
+                register_req_to();
             }
         }
         
@@ -81,7 +81,7 @@ void Ordinary_Server::do_reconnect_i()
 {
 }
     
-void Ordinary_Server::register_req()
+void Ordinary_Server::register_req_to()
 {
     using namespace gabriel::protocol::server;    
     Register_Ordinary msg;
@@ -138,7 +138,7 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_c
     }
     
     cout << "connect to center server ok" << endl;
-    register_req();
+    register_req_to();
 }
 
 bool Ordinary_Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)

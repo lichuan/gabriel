@@ -26,7 +26,7 @@
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/base/db.hpp"
-#include "lua.hpp"    
+#include "lua.hpp"
 #include "lua2cpp.cpp"
 
 using namespace std;
@@ -50,7 +50,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    gabriel::base::Server::on_connection_shutdown(client_connection);
+    base::Server::on_connection_shutdown(client_connection);
     
     for(auto iter : m_zone_connections)
     {
@@ -81,30 +81,21 @@ bool Server::init_hook()
     cout << "start supercenter server ok" << endl;
     set_proc_name_and_log_dir("gabriel_supercenter_server");
 
-    ////////////////////////////////////
-    lua_State *lua_state = luaL_newstate();
-    luaL_openlibs(lua_state);
-    register_lua(lua_state);
-    
-    if(luaL_dofile(lua_state, "script/gabriel/script/main.lua") != 0)
+    /////////////// test script /////////////////////
+    lua_State *state = luaL_newstate();
+    luaL_openlibs(state);
+    register_lua(state);
+
+    if(luaL_dofile(state, "script/gabriel/script/main.lua") != 0)
     {
-        cout << "err: " << lua_tostring(lua_state, -1) << endl;
-    }
-
-    string str;
-    str = "abcdefg";
-    cout << "str size: " << str.size() << endl;
-    str[2] = '\0';
-    cout << "str size: " << str.length() << endl;
-    cout << str << endl;
-    
-
-    ////////////////////////////////////////
+        cout << "lua error: " << lua_tostring(state, -1) << endl;
+    }    
+    /////////////// test script ////////////////////
     
     const uint32 zone_id = 1;    
     {
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(2);
+        info->set_server_id(1);
         info->set_server_type(gabriel::base::CENTER_SERVER);
         info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");        
@@ -113,7 +104,7 @@ bool Server::init_hook()
     }
     {        
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(3);
+        info->set_server_id(2);
         info->set_server_type(gabriel::base::RECORD_SERVER);
         info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");
@@ -122,7 +113,7 @@ bool Server::init_hook()
     }
     {   
         gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;     
-        info->set_server_id(4);
+        info->set_server_id(3);
         info->set_server_type(gabriel::base::LOGIN_SERVER);
         info->set_outer_addr("127.0.0.1");
         info->set_inner_addr("127.0.0.1");

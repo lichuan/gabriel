@@ -45,7 +45,7 @@ protected:
 private:
     void center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
     virtual void do_reconnect_i();    
-    void register_req();
+    void register_req_to();
     gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::Message_Handler<Ordinary_Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
 };

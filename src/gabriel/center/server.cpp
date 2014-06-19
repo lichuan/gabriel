@@ -42,7 +42,7 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    gabriel::base::Server::on_connection_shutdown(client_connection);
+    base::Server::on_connection_shutdown(client_connection);
     
     if(client_connection == m_record_client)
     {
@@ -194,6 +194,8 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
             case gabriel::base::RECORD_SERVER:
             case gabriel::base::LOGIN_SERVER:
                 msg_rsp.add_info()->CopyFrom(*info);
+                break;
+            default:
                 break;
             }
         }
