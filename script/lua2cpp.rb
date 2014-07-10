@@ -938,7 +938,7 @@ static int "
     end
   end
   gen_str += "
-static void register_lua(lua_State *lua_state)
+static void register_lua2cpp(lua_State *lua_state)
 {"
   if $reg_func_tbl.has_key? "_"
     func_list = $reg_func_tbl["_"]

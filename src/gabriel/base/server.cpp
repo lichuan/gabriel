@@ -31,7 +31,6 @@ namespace base {
 Server::Server() : m_acceptor(this), m_connector(this)
 {
     m_zone_id = 0;
-    m_type = INVALID_SERVER;
 }
 
 Server::~Server()

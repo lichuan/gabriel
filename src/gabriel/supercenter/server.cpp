@@ -21,8 +21,11 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <map>
 #include "ace/Dev_Poll_Reactor.h"
+#include "yaml-cpp/yaml.h"
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/base/db.hpp"
@@ -71,7 +74,39 @@ void Server::init_reactor()
     
 bool Server::init_hook()
 {
-    if(m_acceptor.open(ACE_INET_Addr(20001, "106.186.20.182"), ACE_Reactor::instance()) < 0)
+    try
+    {
+        
+        YAML::Node root = YAML::LoadFile("lc.yaml");
+        cout << YAML::Dump(root);
+        
+        
+        fstream file("lc.yaml", ios::out);
+        YAML::Emitter emitter(file);
+        
+        vector<int> ivec = {1,2,3,4,5};
+        vector<int> ivec2 = {8,9,10};
+        map<int, vector<int>> imap;
+        imap[223] = ivec;
+        imap[445] = ivec;
+        imap[99] = ivec2;
+        
+        emitter << imap;
+        emitter << ivec;
+        
+        
+        
+        
+        
+    }
+    catch(YAML::Exception &err)
+    {
+        cout << err.what() << endl;
+
+        return false;        
+    }
+    
+    if(m_acceptor.open(ACE_INET_Addr(20000), ACE_Reactor::instance()) < 0)
     {
         cout << "error: start supercenter server failed" << endl;
 

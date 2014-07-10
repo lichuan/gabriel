@@ -3,7 +3,9 @@
 
 FILE_LIST = [
              [".", ["3rd-party"]],
-             ["3rd-party/ACE_wrappers/ace", []]
+             ["3rd-party/ACE_wrappers/ace", []],
+             ["3rd-party/yaml-cpp/include/yaml-cpp", []],
+             ["/usr/include/mysql++", []]
             ]
 
 $cscope_file_list = []

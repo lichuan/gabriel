@@ -1,0 +1,19 @@
+name: myname
+
+supercenter:
+  - conte1
+  - cont2
+  - abbbb
+
+ipercenter:
+  - mysql: oo
+    host: localhost
+    db: super_game
+    user: gabriel
+    password: 123456
+      
+  - mysql: dd
+    host: localhost
+    db: game
+    user: gabriel
+    password: 123456

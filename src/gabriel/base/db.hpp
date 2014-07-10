@@ -29,11 +29,20 @@
 namespace gabriel {
 namespace base {
 
+class DB_Task
+{
+public:
+    DB_Task();
+    ~DB_Task();
+
+private:
+    uint32 m_seq;    
+};
+
 class DB_Handler : public mysqlpp::Connection, public Thread<DB_Handler>
 {
 public:
-    DB_Handler(const char* db, const char* server = 0, const char* user = 0, const char* password = 0, unsigned int port = 0) :
-        mysqlpp::Connection(db, server, user, password, port)
+    DB_Handler()
     {
     }
 
@@ -46,7 +55,7 @@ class DB_Handler_Pool
 {
 public:
     DB_Handler_Pool();
-    void init(uint32 num_of_handler);
+    void init(const char *db_host, const char *db_name, const char *db_user, const char *db_password, uint32 num_of_handler);
 };
     
 }

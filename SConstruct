@@ -11,6 +11,7 @@ env = Environment(CCFLAGS='-g -std=c++11', CPPPATH=[
         "#src",
         "#script",
         "#3rd-party/ACE_wrappers",
+        "#3rd-party/yaml-cpp/include",
         "#protocol/generated",
         "/usr/include/mysql",
         "/usr/include/mysql++",
@@ -31,12 +32,14 @@ libs = [
   "protobuf",
   "pthread",
   "mysqlpp",
-  "lua5.2"
+  "lua5.2",
+  "yaml-cpp"
 ]
 
 lib_path = [
   "#build/base",
   "#build/protocol",
+  "#3rd-party/yaml-cpp/lib",
   os.environ["ACE_ROOT"] + "/lib",
   "/usr/lib/x86_64-linux-gnu"
 ]
@@ -46,6 +49,10 @@ env.Replace(LIBS=libs, LIBPATH=lib_path)
 #supercenter
 gabriel_supercenter_server = SConscript("src/gabriel/supercenter/SConscript", variant_dir="build/supercenter", duplicate=0)
 env.Install("build/bin", gabriel_supercenter_server)
+
+#superrecord
+gabriel_superrecord_server = SConscript("src/gabriel/superrecord/SConscript", variant_dir="build/superrecord", duplicate=0)
+env.Install("build/bin", gabriel_superrecord_server)
 
 #center
 gabriel_center_server = SConscript("src/gabriel/center/SConscript", variant_dir="build/center", duplicate=0)

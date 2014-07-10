@@ -42,7 +42,6 @@ def convert_lua(new_path)
           if idx < dir_array.length - 1
             next if f != dir_array[idx]
             start_dir = path
-            break
           else
             next if f != dir_array[idx] + ".lua"
             fp = File.open path
@@ -52,8 +51,8 @@ def convert_lua(new_path)
             fp = File.open(path, "w")
             fp.write f_data
             fp.close
-            break
           end
+          break
         end
         idx += 1
       end
@@ -90,6 +89,8 @@ end
 
 def cp_resouce()
   system("rm -rf #{REPOS_DIR}/build/bin/script")
+  system("rm -rf #{REPOS_DIR}/build/bin/resource")
+  system("cp -r #{REPOS_DIR}/resource #{REPOS_DIR}/build/bin/")
   cp_lua_file "#{REPOS_DIR}/script", "#{REPOS_DIR}/build/bin/script/", []
   cp_lua_file "#{REPOS_DIR}/protocol/generated", "#{REPOS_DIR}/build/bin/script/", []
   cp_lua_file "#{REPOS_DIR}/protocol/protobuf", "#{REPOS_DIR}/build/bin/script/protobuf", []
