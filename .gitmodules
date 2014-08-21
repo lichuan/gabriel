@@ -1,0 +1,3 @@
+[submodule "protocol/proto_files"]
+	path = protocol/proto_files
+	url = lichuan@106.186.20.182:~/repos/gobang_protocol

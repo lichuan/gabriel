@@ -40,13 +40,6 @@ Log_Callback::~Log_Callback()
 {
 }
 
-void Log_Callback::init()
-{
-    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
-    ACE_LOG_MSG->open("server", ACE_Log_Msg::MSG_CALLBACK);
-    ACE_LOG_MSG->msg_callback(this);
-}
-
 void Log_Callback::init(std::string log_path)
 {
     ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);

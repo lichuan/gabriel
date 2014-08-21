@@ -23,39 +23,54 @@
 #ifndef GABRIEL__BASE__DB
 #define GABRIEL__BASE__DB
 
+#include <utility>
 #include "mysql++.h"
+#include "ace/Message_Queue_T.h"
 #include "gabriel/base/thread.hpp"
+#include "gabriel/base/connection.hpp"
+#include "gabriel/protocol/server/msg_type.pb.h"
+#include "gabriel/protocol/server/default.pb.h"
 
 namespace gabriel {
 namespace base {
 
-class DB_Task
-{
-public:
-    DB_Task();
-    ~DB_Task();
-
-private:
-    uint32 m_seq;    
-};
-
+class DB_Handler_Pool;
+class Server;
+    
 class DB_Handler : public mysqlpp::Connection, public Thread<DB_Handler>
 {
 public:
-    DB_Handler()
-    {
-    }
-
-    void run()
-    {
-    }
+    DB_Handler(DB_Handler_Pool *holder);
+    void do_task();    
+    void add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task);
+    
+private:
+    ACE_Message_Queue_Ex<std::pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*>, ACE_MT_SYNCH> m_task_queue;
+    DB_Handler_Pool *m_holder;
+    Server *m_server;    
 };
     
 class DB_Handler_Pool
 {
 public:
-    DB_Handler_Pool();
-    void init(const char *db_host, const char *db_name, const char *db_user, const char *db_password, uint32 num_of_handler);
+    friend class DB_Handler;
+    enum
+    {
+        LOG_POOL = 1,
+        GAME_POOL = 2,
+    };
+    
+    DB_Handler_Pool(Server *holder);
+    bool init(std::string host, std::string db, std::string user, std::string password, uint32 num_of_handler, std::function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> func);
+    void fini();
+    void add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task);
+    void wait();
+    
+private:
+    std::vector<DB_Handler*> m_handlers;
+    uint32 m_num_of_handler; //cache
+    Server *m_holder;    
+    std::function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> m_func;
 };
     
 }

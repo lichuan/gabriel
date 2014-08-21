@@ -75,7 +75,7 @@ void Server::update_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, ZONE_INFO_REQ, this, &Server::zone_info_req_from);
+    //m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, ZONE_INFO_REQ, this, &Server::zone_info_req_from);
 }
 
 void Server::load_zone_info()

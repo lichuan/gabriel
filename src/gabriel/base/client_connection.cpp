@@ -79,5 +79,10 @@ int Client_Connection::open(void *acceptor_or_connector)
     return 0;    
 }
 
+void Client_Connection::destroy_this_ref()
+{
+    close();
+}
+
 }
 }

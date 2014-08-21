@@ -148,7 +148,7 @@ void Server::do_main_on_client_connection()
               },
               [](Client_Connection *client_connection)
               {
-                  client_connection->close();
+                  client_connection->release();
               }
         );
 }

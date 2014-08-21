@@ -75,29 +75,19 @@ void Server::init_reactor()
 bool Server::init_hook()
 {
     try
-    {
-        
+    {        
         YAML::Node root = YAML::LoadFile("lc.yaml");
-        cout << YAML::Dump(root);
-        
-        
+        cout << YAML::Dump(root);        
         fstream file("lc.yaml", ios::out);
-        YAML::Emitter emitter(file);
-        
+        YAML::Emitter emitter(file);        
         vector<int> ivec = {1,2,3,4,5};
         vector<int> ivec2 = {8,9,10};
         map<int, vector<int>> imap;
         imap[223] = ivec;
         imap[445] = ivec;
-        imap[99] = ivec2;
-        
+        imap[99] = ivec2;        
         emitter << imap;
         emitter << ivec;
-        
-        
-        
-        
-        
     }
     catch(YAML::Exception &err)
     {
@@ -119,7 +109,7 @@ bool Server::init_hook()
     /////////////// test script /////////////////////
     lua_State *state = luaL_newstate();
     luaL_openlibs(state);
-    register_lua(state);
+    register_lua2cpp(state);
 
     if(luaL_dofile(state, "script/gabriel/script/main.lua") != 0)
     {

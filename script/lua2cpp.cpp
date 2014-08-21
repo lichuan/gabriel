@@ -174,20 +174,10 @@ static int lua____gabriel____supercenter___Server__garbage_colloect(lua_State *l
     return 0;
 }
 
-static int lua____gabriel____supercenter__test_yield(lua_State *lua_state)
-{
-    lua_settop(lua_state, 0);
-    std::string v = gabriel::supercenter::test_yield();
-    lua_pushstring(lua_state, v.c_str());
-
-    return 1;
-}
-
 static void register_lua2cpp(lua_State *lua_state)
 {
     /* register non-global namespace */
     build_global_table(lua_state, "_gabriel._supercenter.Server");
-    build_global_table(lua_state, "_gabriel._supercenter");
 
     {
         luaL_Reg _gabriel__supercenter_Server[] = 
@@ -203,20 +193,5 @@ static void register_lua2cpp(lua_State *lua_state)
         lua_setfield(lua_state, -1, "__index");
         get_global_table(lua_state, "_gabriel._supercenter.Server");
         luaL_setfuncs(lua_state, _gabriel__supercenter_Server, 0);
-    }
-
-    {
-        luaL_Reg _gabriel__supercenter[] = 
-        {
-            {"test_yield", lua____gabriel____supercenter__test_yield},
-            {NULL, NULL}
-        };
-
-        lua_settop(lua_state, 0);
-        luaL_newmetatable(lua_state, "_gabriel._supercenter");
-        luaL_setfuncs(lua_state, _gabriel__supercenter, 0);
-        lua_setfield(lua_state, -1, "__index");
-        get_global_table(lua_state, "_gabriel._supercenter");
-        luaL_setfuncs(lua_state, _gabriel__supercenter, 0);
     }
 }

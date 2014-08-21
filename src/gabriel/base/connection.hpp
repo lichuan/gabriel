@@ -28,13 +28,14 @@
 #include "google/protobuf/message.h"
 #include "gabriel/base/common.hpp"
 #include "gabriel/base/entity.hpp"
+#include "gabriel/base/ref.hpp"
 
 namespace gabriel {
 namespace base {
     
 class Server;
     
-class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>
+class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>, public Ref
 {
     struct Message
     {
@@ -44,7 +45,7 @@ class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public
 
         void release()
         {
-            delete m_msg_block;
+            m_msg_block->release();
             delete this;            
         }        
     };

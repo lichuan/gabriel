@@ -73,11 +73,19 @@ void Server::register_msg_handler()
     using namespace gabriel::protocol::server;
     Super::register_msg_handler();
     m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_rsp_from);
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, this, &Server::handle_db_msg);
 }
 
 void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
+}
+
+void Server::handle_db_msg(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    PARSE_MSG(DB_Task, msg);
+    msg.set_start_tick(gabriel::base::get_usec_tick());
 }
     
 void Server::register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)

@@ -6,45 +6,50 @@
  *     | |_| |  / /  | | | |_| | | | \ \  | | | |___  | |___           *
  *     \_____/ /_/   |_| |_____/ |_|  \_\ |_| |_____| |_____|          *
  *                                                                     *
- *     gabriel is an angel from the Holy Bible, this engine is named   *
- *   gabriel, means bringing people good news. the goal of gabriel     *
- *   server engine is to help people to develop various online games,  *
- *   welcome you to join in.                                           *
+ *     gabriel is an angel from the Holy Bible, this engine is         *
+ *   named gabriel, standing for bring good news to people. the        *
+ *   goal of gabriel engine is to help people to develop server        *
+ *   for online games, welcome you to join in.                         *
  *                                                                     *
  *   @author: lichuan                                                  *
  *   @qq: 308831759                                                    *
  *   @email: 308831759@qq.com                                          *
- *   @site: www.lichuan.me                                             *
  *   @github: https://github.com/lichuan/gabriel                       *
- *   @date: 2013-11-29 08:59:53                                        *
+ *   @date: 2014-08-21 13:41:47                                        *
  *                                                                     *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef GABRIEL__BASE__CLIENT_CONNECTION
-#define GABRIEL__BASE__CLIENT_CONNECTION
-
-#include "gabriel/base/connection.hpp"
+#include "gabriel/base/ref.hpp"
 
 namespace gabriel {
 namespace base {
 
-class Client_Connection : public Connection
-{    
-public:
-    Client_Connection();
-    virtual ~Client_Connection();
-    virtual int open(void *acceptor_or_connector);
-    void type(CLIENT_TYPE _type);
-    CLIENT_TYPE type() const;
+Ref::Ref()
+{
+    m_ref_count = 1;    
+}
+
+Ref::~Ref()
+{
+}
+
+void Ref::retain()
+{
+    ++m_ref_count;
+}
     
-private:
-    virtual void destroy_this_ref();    
-    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual void on_shutdown();
-    CLIENT_TYPE m_type;    
-};
-
-}
+void Ref::release()
+{
+    if(--m_ref_count == 0)
+    {
+        destroy_this_ref();
+    }    
 }
 
-#endif
+void Ref::destroy_this_ref()
+{
+    delete this;
+}
+    
+}
+}

@@ -22,6 +22,7 @@
 
 #include "ace/OS.h"
 #include "ace/UUID.h"
+#include "ace/OS_NS_sys_time.h"
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
@@ -129,12 +130,43 @@ bool rate_by_thousand(uint32 rate)
     return random_between(1, 1000) <= rate;
 }
 
-std::string gen_uuid()
+uint32 get_sec_tick()
+{
+    ACE_Time_Value tv = ACE_OS::gettimeofday();
+
+    return tv.sec();
+}
+
+uint64 get_msec_tick()
+{
+    ACE_Time_Value tv = ACE_OS::gettimeofday();
+
+    return tv.get_msec();
+}
+
+uint64 get_usec_tick()
+{
+    uint64 tick;
+    ACE_Time_Value tv = ACE_OS::gettimeofday();
+    tv.to_usec(tick);
+    
+    return tick;
+}
+    
+std::string gen_uuid_str()
 {
     ACE_Utils::UUID uuid;
     ACE_Utils::UUID_GENERATOR::instance()->generate_UUID(uuid);
 
     return uuid.to_string()->c_str();
+}
+
+uint64 gen_uuid()
+{
+    ACE_Utils::UUID uuid;
+    ACE_Utils::UUID_GENERATOR::instance()->generate_UUID(uuid);
+
+    return uuid.hash();
 }
 
 }

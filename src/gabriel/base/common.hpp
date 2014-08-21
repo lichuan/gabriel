@@ -71,7 +71,12 @@ uint32 random_32();
 uint64 random_64();
 bool rate_by_percent(uint32 rate);    
 bool rate_by_thousand(uint32 rate);
-std::string gen_uuid();
+uint64 get_usec_tick();
+uint64 get_msec_tick();
+uint32 get_sec_tick();    
+std::string gen_uuid_str();
+uint64 gen_uuid();
+
 }
 }
 

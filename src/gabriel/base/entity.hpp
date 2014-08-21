@@ -523,6 +523,11 @@ public:
         ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         Super1::template exec_all<Concrete_Entity>(cb);
     }
+
+    ACE_RW_Mutex& get_lock()
+    {
+        return m_lock;
+    }
     
 private:
     void clear()

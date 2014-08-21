@@ -26,7 +26,7 @@ def gen_cscope path, arr
   return if not Dir.exist? path  
   Dir.foreach path do |f|
     next if f == "." or f == ".."
-    next_path = path + "/" + f    
+    next_path = path + "/" + f
     next if exclude? next_path, arr
     if File.directory? next_path
       gen_cscope next_path, arr
