@@ -35,7 +35,7 @@ namespace base {
     
 class Server;
     
-class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>, public Ref
+class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>, public Ref<ACE_SYNCH_MUTEX>
 {
     struct Message
     {

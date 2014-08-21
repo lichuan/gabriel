@@ -64,9 +64,9 @@ public:
     bool init(std::string host, std::string db, std::string user, std::string password, uint32 num_of_handler, std::function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> func);
     void fini();
     void add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task);
-    void wait();
     
 private:
+    void wait();
     std::vector<DB_Handler*> m_handlers;
     uint32 m_num_of_handler; //cache
     Server *m_holder;    

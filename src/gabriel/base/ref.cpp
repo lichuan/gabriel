@@ -24,32 +24,39 @@
 namespace gabriel {
 namespace base {
 
-Ref::Ref()
-{
-    m_ref_count = 1;    
-}
-
-Ref::~Ref()
+template<typename LOCK>
+Ref<LOCK>::Ref() : ACE_Refcountable_T<LOCK>(1)
 {
 }
 
-void Ref::retain()
+template<typename LOCK>
+Ref<LOCK>::~Ref()
 {
-    ++m_ref_count;
 }
-    
-void Ref::release()
+
+template<typename LOCK>
+void Ref<LOCK>::retain()
 {
-    if(--m_ref_count == 0)
+    Super::increment();
+}
+
+template<typename LOCK>    
+void Ref<LOCK>::release()
+{
+    if(Super::decrement() == 0)
     {
         destroy_this_ref();
     }    
 }
 
-void Ref::destroy_this_ref()
+template<typename LOCK>
+void Ref<LOCK>::destroy_this_ref()
 {
     delete this;
 }
+
+template class Ref<ACE_SYNCH_MUTEX>;
+template class Ref<ACE_SYNCH_NULL_MUTEX>;
     
 }
 }

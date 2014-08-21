@@ -22,12 +22,14 @@
 #ifndef GABRIEL__BASE__REF
 #define GABRIEL__BASE__REF
 
+#include "ace/Refcountable_T.h"
 #include "gabriel/base/define.hpp"
 
 namespace gabriel {
 namespace base {
-    
-class Ref
+
+template<typename LOCK>
+class Ref : ACE_Refcountable_T<LOCK>
 {
 public:
     Ref();
@@ -36,8 +38,8 @@ public:
     void release();
 
 private:
+    typedef ACE_Refcountable_T<LOCK> Super;    
     virtual void destroy_this_ref();
-    uint32 m_ref_count;
 };
     
 }
