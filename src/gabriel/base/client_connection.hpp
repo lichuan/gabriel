@@ -38,9 +38,9 @@ public:
     CLIENT_TYPE type() const;
     
 private:
-    virtual void destroy_this_ref();    
-    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    virtual void destroy_this_ref();
     virtual void on_shutdown();
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     CLIENT_TYPE m_type;    
 };
 

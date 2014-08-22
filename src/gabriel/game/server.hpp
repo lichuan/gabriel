@@ -39,21 +39,16 @@ private:
     typedef Ordinary_Server Super;
     virtual void register_msg_handler();
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
-    virtual bool on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
+    virtual bool on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void update_hook();
-    virtual void do_main_on_server_connection();
+    virtual void do_main_on_server_connection_extra();
     virtual void fini_hook();
-    virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual bool handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void init_reactor();
     virtual bool init_hook();    
     virtual void do_reconnect_i();
-    void register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
+    void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
     gabriel::base::Server_Connection m_record_connection;
-    gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_center_msg_handler;
-    gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_record_msg_handler;
-    gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
 };
     
 }

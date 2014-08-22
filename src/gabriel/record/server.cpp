@@ -31,7 +31,7 @@ using namespace std;
 namespace gabriel {
 namespace record {
 
-Server::Server()
+Server::Server() : m_game_db_pool(this), m_log_db_pool(this)
 {
     type(gabriel::base::RECORD_SERVER);
 }
@@ -42,7 +42,6 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    base::Server::on_connection_shutdown(client_connection);
 }
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
@@ -53,7 +52,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
-    m_center_connection.reactor(ACE_Reactor::instance());    
+    m_center_connection.reactor(ACE_Reactor::instance());
 }
 
 bool Server::init_hook()
@@ -72,23 +71,35 @@ void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
     Super::register_msg_handler();
-    m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_rsp_from);
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, this, &Server::handle_db_msg);
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
-void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
-}
-
-void Server::handle_db_msg(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
-    PARSE_MSG(DB_Task, msg);
-    msg.set_start_tick(gabriel::base::get_usec_tick());
+    DB_Task *task = new DB_Task;
+
+    if(!task->ParseFromArray(data, size))
+    {
+        delete task;
+
+        return;
+    }
+
+    task->set_start_tick(gabriel::base::get_usec_tick());
+    
+    if(task->pool_id() == gabriel::base::DB_Handler_Pool::GAME_POOL)
+    {
+        m_game_db_pool.add_task(connection, task);
+    }
+    else if(task->pool_id() == gabriel::base::DB_Handler_Pool::LOG_POOL)
+    {
+        m_log_db_pool.add_task(connection, task);
+    }    
 }
     
-void Server::register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
+void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Register_Ordinary_Rsp, msg);
@@ -121,21 +132,6 @@ void Server::register_rsp_from(gabriel::base::Server_Connection *server_connecti
     set_proc_name_and_log_dir("gabriel_record_server___%u___%u", zone_id(), id());
 }
     
-bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    if(Super::handle_connection_msg(server_connection, msg_type, msg_id, data, size))
-    {
-        return true;
-    }
-    
-    if(server_connection == &m_center_connection)
-    {
-        m_center_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-    }
-
-    return true;
-}
-
 void Server::fini_hook()
 {
 }

@@ -33,7 +33,7 @@ namespace base {
 
 class Timer_Handler : public ACE_Event_Handler
 {
-    friend class Timer_Capability;
+    friend class Timer;
     
 private:
     Timer_Handler(std::function<void()> call);
@@ -45,11 +45,11 @@ private:
 
 typedef ACE_Singleton<ACE_Timer_Heap, ACE_Null_Mutex> TIMER_MGR;
 
-class Timer_Capability
+class Timer
 {
 public:
-    Timer_Capability();
-    ~Timer_Capability();
+    Timer();
+    ~Timer();
     int32 schedule_timer(std::function<void()> call, uint32 interval, uint32 delay = 0);
     void cancel_timer(int32 timer_id);
     

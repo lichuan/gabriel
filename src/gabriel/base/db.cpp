@@ -58,16 +58,20 @@ void DB_Handler::do_task()
         }
         else
         {
-            std::pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*> *task_pair;            
+            std::pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*> *task_pair;
             m_task_queue.dequeue(task_pair);
-            gabriel::base::Connection *connection = task_pair->first;            
+            gabriel::base::Connection *connection = task_pair->first;
             gabriel::protocol::server::DB_Task *task = task_pair->second;
             
             try
             {
                 m_holder->m_func(this, task);
                 task->set_end_tick(get_usec_tick());
-                connection->send(gabriel::protocol::server::DEFAULT_MSG_TYPE, gabriel::protocol::server::DB_TASK, *task);
+                
+                if(task->need_return())
+                {
+                    connection->send(gabriel::protocol::server::DEFAULT_MSG_TYPE, gabriel::protocol::server::DB_TASK, *task);
+                }
             }
             catch(const mysqlpp::Exception &err)
             {
@@ -76,6 +80,7 @@ void DB_Handler::do_task()
             }
 
             connection->release();
+            delete task;
         }
     }    
 }
@@ -115,7 +120,7 @@ bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, s
                 return false;
             }
 
-            handler->start_executor_instantly(handler, &DB_Handler::do_task);
+            handler->start_executor_instantly(std::bind(&DB_Handler::do_task, handler));
             m_handlers.push_back(handler);
         }
     }
@@ -146,11 +151,12 @@ void DB_Handler_Pool::add_task(gabriel::base::Connection *connection, gabriel::p
     
     if(seq == 0)
     {
-        //any thread can do this task
+        //this task can be done by any thread in the pool.
         idx = random_between(0, m_num_of_handler - 1);
     }
     else
     {
+        //ensure that the same seq task must be done by order.
         idx = (task->seq() - 1) % m_num_of_handler;
     }
 

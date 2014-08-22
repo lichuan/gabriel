@@ -33,34 +33,20 @@ class Ordinary_Server : public Server
 protected:
     Ordinary_Server();
     virtual ~Ordinary_Server();
-    gabriel::base::Server_Connection m_center_connection;
-    ACE_INET_Addr m_supercenter_addr;    
-    virtual bool on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
-    virtual void do_main_on_server_connection();
+    virtual bool on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection);
+    virtual void do_main_on_server_connection_extra();
     virtual void do_reconnect();
     virtual bool init_hook();
     virtual void register_msg_handler();
-    virtual bool handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    Server_Connection m_center_connection;
     
 private:
-    void center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
-    virtual void do_reconnect_i();    
+    void center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size);
+    virtual void do_reconnect_extra();
     void register_req_to();
-    gabriel::base::Server_Connection m_supercenter_connection;
-    gabriel::base::Message_Handler<Ordinary_Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
 };
     
 }
 }
         
 #endif
-
-
-
-
-
-
-
-
-
-

@@ -478,11 +478,13 @@ public:
     
     Concrete_Entity* get_entity(typename Concrete_Entity::Entity_ID_Type key) const
     {
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         return static_cast<Concrete_Entity*>(Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_ID_Type>::Super::get_entity(key));
     }
 
     Concrete_Entity* get_entity(typename Concrete_Entity::Entity_Name_Type key) const
     {
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         return static_cast<Concrete_Entity*>(Get_Super<Concrete_Entity, typename Concrete_Entity::Entity_Name_Type>::Super::get_entity(key));
     }
     
@@ -495,11 +497,13 @@ public:
     
     uint32 size() const
     {
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         return Super1::size();
     }
 
     bool empty() const
     {
+        ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         return Super1::empty();
     }
 
@@ -523,11 +527,6 @@ public:
         ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
         Super1::template exec_all<Concrete_Entity>(cb);
     }
-
-    ACE_RW_Mutex& get_lock()
-    {
-        return m_lock;
-    }
     
 private:
     void clear()
@@ -536,7 +535,7 @@ private:
         Super2::clear();
     }
     
-    ACE_RW_Mutex m_lock;    
+    mutable ACE_RW_Mutex m_lock;
 };
 
 }

@@ -36,7 +36,7 @@
 namespace gabriel {
 namespace base {
     
-class Server : public Locked_Entity_Manager<Client_Connection, KEY_ID>, public Entity<>, public Timer_Capability
+class Server : public Locked_Entity_Manager<Client_Connection, KEY_ID>, public Entity<>, public Timer
 {
 public:
     Server();
@@ -48,21 +48,25 @@ public:
     void state(uint32 _state);
     void type(SERVER_TYPE _type);
     SERVER_TYPE type() const;
-    virtual void on_connection_shutdown(Client_Connection *client_connection);
-    virtual bool on_connection_shutdown(Server_Connection *server_connection);
-    virtual void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
-    virtual bool handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
+    virtual void on_connection_shutdown(Client_Connection *client_connection) = 0;
+    void on_connection_shutdown(Server_Connection *server_connection);
+    void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
+    void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void register_msg_handler() = 0;
     uint32 zone_id() const;
     void zone_id(uint32 id);
     
 protected:
+    Server_Connection m_supercenter_connection;
+    ACE_INET_Addr m_supercenter_addr;
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
-    void set_proc_name_and_log_dir(const char *format, ...);    
-    std::string m_log_dir;
+    void set_proc_name_and_log_dir(const char *format, ...);
+    Message_Handler m_client_msg_handler;
+    Message_Handler m_server_msg_handler;
+    Thread<> m_thread;
     
-private:    
+private:
     bool init();
     void fini();
     void run();
@@ -70,7 +74,9 @@ private:
     void do_main();
     void do_main_on_client_connection();
     virtual void do_reconnect();
-    virtual void do_main_on_server_connection();
+    virtual void do_main_on_server_connection_extra() {}
+    virtual bool on_connection_shutdown_extra(Server_Connection *server_connection) {return true;}
+    void do_main_on_server_connection();
     virtual bool init_hook() = 0;
     virtual void fini_hook() = 0;
     virtual void init_reactor() = 0;    
@@ -78,9 +84,9 @@ private:
     void update();    
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
+    std::string m_log_dir;
     SERVER_TYPE m_type;    
     uint32 m_zone_id;
-    Thread<Server> m_thread;
     char *m_proc_name;
 };
 

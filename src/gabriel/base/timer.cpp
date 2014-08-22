@@ -40,7 +40,7 @@ void Timer_Handler::timer_id(int32 timer_id)
 int Timer_Handler::handle_timeout (const ACE_Time_Value &current_time, const void *act)
 {
     void *obj = const_cast<void*>(act);    
-    Timer_Capability *holder = static_cast<Timer_Capability*>(obj);
+    Timer *holder = static_cast<Timer*>(obj);
     m_call();
     
     if(m_timer_id != -1)
@@ -51,11 +51,11 @@ int Timer_Handler::handle_timeout (const ACE_Time_Value &current_time, const voi
     return 0;
 }
     
-Timer_Capability::Timer_Capability()
+Timer::Timer()
 {
 }
 
-Timer_Capability::~Timer_Capability()
+Timer::~Timer()
 {
     for(auto iter : m_timer_handlers)
     {
@@ -64,7 +64,7 @@ Timer_Capability::~Timer_Capability()
     }
 }
 
-int32 Timer_Capability::schedule_timer(std::function<void()> call, uint32 interval, uint32 delay)
+int32 Timer::schedule_timer(std::function<void()> call, uint32 interval, uint32 delay)
 {
     ACE_Time_Value future_time = TIMER_MGR::instance()->current_time();
     uint32 delay_sec = delay / 1000;
@@ -93,7 +93,7 @@ int32 Timer_Capability::schedule_timer(std::function<void()> call, uint32 interv
     return timer_id;
 }
 
-void Timer_Capability::cancel_timer(int32 id)
+void Timer::cancel_timer(int32 id)
 {
     TIMER_MGR::instance()->cancel(id);
     auto iter = m_timer_handlers.find(id);

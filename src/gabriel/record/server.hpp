@@ -45,12 +45,10 @@ private:
     virtual void fini_hook();
     virtual void init_reactor();
     virtual bool init_hook();    
-    virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual bool handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    void register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size);
-    void handle_db_msg(gabriel::base::Client_Connection *client_connection, void *data, uint32 size);
-    gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_center_msg_handler;
-    gabriel::base::Message_Handler<Server, gabriel::base::Client_Connection> m_client_msg_handler;
+    void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
+    void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
+    gabriel::base::DB_Handler_Pool m_game_db_pool;
+    gabriel::base::DB_Handler_Pool m_log_db_pool;    
 };
     
 }

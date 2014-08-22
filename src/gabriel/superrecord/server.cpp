@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
+#include "yaml-cpp/yaml.h"
 #include "gabriel/superrecord/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/protocol/server/default.pb.h"
@@ -30,7 +31,7 @@ using namespace std;
 namespace gabriel {
 namespace superrecord {
 
-Server::Server()
+Server::Server() : m_game_db_pool(this)
 {
     type(gabriel::base::SUPERRECORD_SERVER);
 }
@@ -41,7 +42,7 @@ Server::~Server()
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
-    return false;    
+    return false;
 }
 
 void Server::init_reactor()
@@ -52,20 +53,109 @@ void Server::init_reactor()
 
 bool Server::init_hook()
 {
-    //m_supercenter_addr.set(20001);
-    set_proc_name_and_log_dir("gabriel_superrecord_server");
-    gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-    
-    if(m_connector.connect(tmp, ACE_INET_Addr(20001, "106.186.20.182")) < 0)
+    try
     {
-        cout << "error: connect to supercenter server failed" << endl;
+        YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        
+        {
+            YAML::Node supercenter_node = root["supercenter"];
+            std::string host = supercenter_node["host"].as<std::string>();
+            uint16 port = supercenter_node["port"].as<uint16>();
+            set_proc_name_and_log_dir("gabriel_superrecord_server");
+            gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
+        
+            if(m_connector.connect(tmp, ACE_INET_Addr(port, host.c_str())) < 0)
+            {
+                cout << "error: connect to supercenter server failed" << endl;
+            
+                return false;
+            }
+            
+            cout << "connect to supercenter server ok" << endl;
+        }
+        
+        {
+            YAML::Node superrecord_node = root["superrecord"];
+            std::string db = superrecord_node["db"].as<std::string>();
+            std::string host = superrecord_node["host"].as<std::string>();
+            std::string user = superrecord_node["user"].as<std::string>();
+            std::string password = superrecord_node["password"].as<std::string>();
+            uint32 game_db_pool_size = superrecord_node["game_db_pool_size"].as<uint32>();
+
+            if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, std::placeholders::_1, std::placeholders::_2)))
+            {
+                cout << "error: game db pool init failed" << endl;
+            
+                return false;
+            }
+        }
+        
+        register_req_to();
+    }
+    catch(const YAML::Exception &err)
+    {
+        cout << "error: " << err.what() << endl;
 
         return false;
     }
-    
-    cout << "connect to supercenter server ok" << endl;
-    
+
     return true;
+}
+
+void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)
+{    
+}
+
+void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    DB_Task *task = new DB_Task;
+
+    if(!task->ParseFromArray(data, size))
+    {
+        delete task;
+        
+        return;
+    }
+    
+    task->set_start_tick(gabriel::base::get_usec_tick());
+    
+    if(task->pool_id() == gabriel::base::DB_Handler_Pool::GAME_POOL)
+    {
+        m_game_db_pool.add_task(connection, task);
+    }
+}
+
+void Server::do_reconnect()
+{
+    using namespace gabriel::base;
+    
+    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    {
+        if(m_supercenter_connection.lost_connection())
+        {
+            Server_Connection *tmp = &m_supercenter_connection;
+
+            if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
+            {
+                cout << "error: reconnect to supercenter server failed" << endl;
+            }
+            else
+            {
+                register_req_to();
+                cout << "reconnect to supercenter server ok" << endl;
+            }
+        }
+        
+        gabriel::base::sleep_sec(1);
+    }
+}
+
+void Server::register_req_to()
+{
+    using namespace gabriel::protocol::server;
+    Register_Superrecord msg;
+    m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, msg);
 }
     
 void Server::update_hook()
@@ -75,34 +165,16 @@ void Server::update_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    //m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, ZONE_INFO_REQ, this, &Server::zone_info_req_from);
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
-void Server::load_zone_info()
+void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-}
-
-void Server::zone_info_req_from(gabriel::base::Server_Connection *client_connection, void *data, uint32 size)
-{
-    load_zone_info();    
-}
-    
-void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-}
-
-bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    if(server_connection == &m_supercenter_connection)
-    {
-        m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-    }
-    
-    return true;
 }
     
 void Server::fini_hook()
 {
+    m_game_db_pool.fini();
 }
 
 }

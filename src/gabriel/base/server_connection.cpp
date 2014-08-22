@@ -36,14 +36,14 @@ Server_Connection::~Server_Connection()
 {
 }
 
-void Server_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_holder->handle_connection_msg(this, msg_type, msg_id, data, size);
-}
-
 void Server_Connection::on_shutdown()
 {
     m_holder->on_connection_shutdown(this);
+}
+
+void Server_Connection::dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    m_holder->handle_connection_msg(this, msg_type, msg_id, data, size);
 }
 
 int Server_Connection::open(void *acceptor_or_connector)
@@ -58,7 +58,6 @@ int Server_Connection::open(void *acceptor_or_connector)
 int Server_Connection::close(u_long flags)
 {
     shutdown();
-    state(CONNECTION_STATE::SHUTTING_DOWN_1);
     
     return 0;
 }

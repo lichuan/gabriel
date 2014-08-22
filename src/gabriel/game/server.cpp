@@ -42,12 +42,11 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    base::Server::on_connection_shutdown(client_connection);
 }
 
-bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+bool Server::on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection)
 {
-    if(Super::on_connection_shutdown(server_connection))
+    if(Super::on_connection_shutdown_extra(server_connection))
     {
         return true;
     }
@@ -89,13 +88,13 @@ void Server::do_reconnect_i()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    Super::register_msg_handler();    
-    m_center_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_rsp_from);
+    Super::register_msg_handler();
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
-void Server::do_main_on_server_connection()
+void Server::do_main_on_server_connection_extra()
 {
-    Super::do_main_on_server_connection();    
+    Super::do_main_on_server_connection_extra();
     m_record_connection.do_main();
 }
     
@@ -110,16 +109,11 @@ bool Server::init_hook()
 void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
-    m_center_connection.reactor(ACE_Reactor::instance());    
+    m_center_connection.reactor(ACE_Reactor::instance());
     m_record_connection.reactor(ACE_Reactor::instance());
 }
 
-void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
-}
-    
-void Server::register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
+void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Register_Ordinary_Rsp, msg);
@@ -171,25 +165,6 @@ void Server::register_rsp_from(gabriel::base::Server_Connection *server_connecti
             }
         }
     }
-}
-    
-bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    if(Super::handle_connection_msg(server_connection, msg_type, msg_id, data, size))
-    {
-        return true;
-    }
-    
-    if(server_connection == &m_center_connection)
-    {
-        m_center_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-    }
-    else if(server_connection == &m_record_connection)
-    {
-        m_record_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-    }
-
-    return true;
 }
     
 void Server::fini_hook()

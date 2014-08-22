@@ -37,7 +37,7 @@ namespace base {
 class DB_Handler_Pool;
 class Server;
     
-class DB_Handler : public mysqlpp::Connection, public Thread<DB_Handler>
+class DB_Handler : public mysqlpp::Connection, public Thread<>
 {
 public:
     DB_Handler(DB_Handler_Pool *holder);
@@ -56,8 +56,8 @@ public:
     friend class DB_Handler;
     enum
     {
-        LOG_POOL = 1,
-        GAME_POOL = 2,
+        GAME_POOL = 1,
+        LOG_POOL = 2
     };
     
     DB_Handler_Pool(Server *holder);

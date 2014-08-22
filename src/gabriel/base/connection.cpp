@@ -82,7 +82,7 @@ void Connection::do_main()
 {
     if(state() == CONNECTION_STATE::SHUTTING_DOWN)
     {
-        state(CONNECTION_STATE::SHUTTING_DOWN_1);
+        state(CONNECTION_STATE::SHUTDOWN);
         on_shutdown();
     }
     else if(connected())

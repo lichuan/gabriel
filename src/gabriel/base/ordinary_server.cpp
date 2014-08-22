@@ -39,13 +39,13 @@ Ordinary_Server::~Ordinary_Server()
 {
 }
     
-bool Ordinary_Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+bool Ordinary_Server::on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection)
 {
     if(server_connection == &m_center_connection)
     {
         cout << "error: disconnected from center server" << endl;
         
-        return true;        
+        return true;
     }
 
     return false;    
@@ -72,12 +72,12 @@ void Ordinary_Server::do_reconnect()
             }
         }
         
-        do_reconnect_i();
-        gabriel::base::sleep_sec(2);
+        do_reconnect_extra();
+        gabriel::base::sleep_sec(1);
     }
 }
 
-void Ordinary_Server::do_reconnect_i()
+void Ordinary_Server::do_reconnect_extra()
 {
 }
     
@@ -90,10 +90,9 @@ void Ordinary_Server::register_req_to()
     m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg);
 }
 
-void Ordinary_Server::do_main_on_server_connection()
+void Ordinary_Server::do_main_on_server_connection_extra()
 {
     m_center_connection.do_main();
-    m_supercenter_connection.do_main();
 }
 
 bool Ordinary_Server::init_hook()
@@ -119,10 +118,10 @@ bool Ordinary_Server::init_hook()
 void Ordinary_Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;    
-    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Ordinary_Server::center_addr_rsp);
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Ordinary_Server::center_addr_rsp, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
-void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
+void Ordinary_Server::center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Center_Addr_Rsp, msg);
@@ -139,18 +138,6 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Server_Connection *server_c
     
     cout << "connect to center server ok" << endl;
     register_req_to();
-}
-
-bool Ordinary_Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    if(server_connection == &m_supercenter_connection)
-    {
-        m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-
-        return true;        
-    }
-
-    return false;
 }
 
 }

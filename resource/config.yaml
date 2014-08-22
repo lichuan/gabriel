@@ -1,19 +1,10 @@
-name: myname
-
 supercenter:
-  - conte1
-  - cont2
-  - abbbb
+  host: 127.0.0.1
+  port: 20000
 
-ipercenter:
-  - mysql: oo
-    host: localhost
-    db: super_game
-    user: gabriel
-    password: 123456
-      
-  - mysql: dd
-    host: localhost
-    db: game
-    user: gabriel
-    password: 123456
+superrecord:
+  db: super_game
+  host: 127.0.0.1
+  user: test
+  password: 123456
+  game_db_pool_size: 1

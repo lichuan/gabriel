@@ -23,6 +23,7 @@
 #define GABRIEL__SUPERRECORD__SERVER
 
 #include "gabriel/base/server.hpp"
+#include "gabriel/base/db.hpp"
 #include "gabriel/base/message_handler.hpp"
 
 namespace gabriel {
@@ -36,17 +37,18 @@ public:
     
 private:
     virtual void register_msg_handler();
+    virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);    
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void update_hook();
     virtual void fini_hook();
+    virtual void do_reconnect();
     virtual void init_reactor();
     virtual bool init_hook();    
-    virtual bool handle_connection_msg(gabriel::base::Server_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    virtual void handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    void zone_info_req_from(gabriel::base::Server_Connection *client_connection, void *data, uint32 size);
-    void load_zone_info();
-    gabriel::base::Message_Handler<Server, gabriel::base::Server_Connection> m_supercenter_msg_handler;
+    void handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task);
+    void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
+    void register_req_to();
     gabriel::base::Server_Connection m_supercenter_connection;
+    gabriel::base::DB_Handler_Pool m_game_db_pool;
 };
     
 }

@@ -73,7 +73,7 @@ protected:
 private:
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
-    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;
+    virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
     virtual void on_shutdown() = 0;
     void do_main_i();    
     uint32 m_state;

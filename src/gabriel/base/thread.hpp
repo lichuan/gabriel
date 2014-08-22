@@ -29,13 +29,11 @@
 namespace gabriel {
 namespace base {
 
-template<typename T>
 class Executor : public ACE_Task_Base
 {
 public:
     Executor()
     {
-        m_object = NULL;
         m_num_thread = 0;
         m_waited = false;        
     }
@@ -47,7 +45,7 @@ public:
     
     int32 svc()
     {
-        (m_object->*m_executor)();
+        m_func();
 
         return 0;
     }
@@ -64,21 +62,19 @@ public:
         return 0;        
     }
     
-    void set_execute_info(T *object, void (T::*executor)(), int32 num_thread)
+    void set_execute_info(std::function<void()> func, int32 num_thread)
     {
-        m_object = object;
-        m_executor = executor;
+        m_func = func;
         m_num_thread = num_thread;
     }
     
 private:
-    T *m_object;
-    void (T::*m_executor)();
+    std::function<void()> m_func;
     int32 m_num_thread;
     bool m_waited;    
 };
 
-template<typename T, int32 MAX_EXECUTOR = 10>
+template<int32 MAX_EXECUTOR = 10>
 class Thread
 {
 public:
@@ -113,31 +109,31 @@ public:
         m_executor_list[idx].wait();
     }
     
-    int32 start_executor_instantly(T *object, void (T::*executor)(), int32 num_thread = 1)
+    int32 start_executor_instantly(std::function<void()> func, int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
             return -1;
         }
 
-        m_executor_list[m_cur_executor_idx].set_execute_info(object, executor, num_thread);
+        m_executor_list[m_cur_executor_idx].set_execute_info(func, num_thread);
         m_executor_list[m_cur_executor_idx].execute();
-
+        
         return m_cur_executor_idx++;
     }
     
-    void add_executor(T *object, void (T::*executor)(), int32 num_thread = 1)
+    void add_executor(std::function<void()> func, int32 num_thread = 1)
     {
         if(m_cur_executor_idx >= MAX_EXECUTOR)
         {
             return;
         }
 
-        m_executor_list[m_cur_executor_idx++].set_execute_info(object, executor, num_thread);
+        m_executor_list[m_cur_executor_idx++].set_execute_info(func, num_thread);
     }
     
 private:
-    Executor<T> m_executor_list[MAX_EXECUTOR];
+    Executor m_executor_list[MAX_EXECUTOR];
     int32 m_cur_executor_idx;    
 };
 

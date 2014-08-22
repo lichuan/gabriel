@@ -42,8 +42,6 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    base::Server::on_connection_shutdown(client_connection);
-    
     if(client_connection == m_record_client)
     {
         m_record_client = NULL;
@@ -75,13 +73,6 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
     }
 }
 
-bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
-{
-    cout << "error: disconnected from supercenter server" << endl;
-
-    return true;
-}
-    
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
     return true;
@@ -108,13 +99,8 @@ void Server::do_reconnect()
             }
         }
         
-        gabriel::base::sleep_sec(2);
+        gabriel::base::sleep_sec(1);
     }
-}
-
-void Server::do_main_on_server_connection()
-{
-    m_supercenter_connection.do_main();
 }
 
 void Server::update_hook()
@@ -155,16 +141,16 @@ bool Server::init_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    m_supercenter_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_rsp_from);
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, this, &Server::register_req_from);
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_rsp_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_req_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
-void Server::register_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::register_req_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
+    using namespace gabriel::protocol::server;
     PARSE_MSG(Register_Ordinary, msg);
     Register_Ordinary_Rsp msg_rsp;
-    client_connection->type(static_cast<gabriel::base::CLIENT_TYPE>(msg.server_type()));
+    static_cast<gabriel::base::Client_Connection*>(connection)->type(static_cast<gabriel::base::CLIENT_TYPE>(msg.server_type()));
     bool found_one = false;
     char server_name[256] {0};
     
@@ -177,7 +163,7 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
             if(info->server_type() == gabriel::base::RECORD_SERVER)
             {
                 msg_rsp.add_info()->CopyFrom(*info);
-                m_record_client = client_connection;
+                m_record_client = static_cast<gabriel::base::Client_Connection*>(connection);
                 
                 break;
             }
@@ -221,20 +207,20 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
                     {
                         msg_rsp.add_info()->CopyFrom(*info);
                         m_allocated_game_ids.insert(info->server_id());
-                        m_allocated_game_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                        m_allocated_game_map.insert(std::make_pair(connection->id(), info->server_id()));
                         ACE_OS::sprintf(server_name, "game server (id=%u)", info->server_id());                        
                         found_one = true;
                     }
                 }
-                else if((info->inner_addr() == client_connection->ip_addr()
-                         || info->inner_addr() == client_connection->host_name()
-                         || info->outer_addr() == client_connection->ip_addr()
-                         || info->outer_addr() == client_connection->host_name())
+                else if((info->inner_addr() == connection->ip_addr()
+                         || info->inner_addr() == connection->host_name()
+                         || info->outer_addr() == connection->ip_addr()
+                         || info->outer_addr() == connection->host_name())
                         && m_allocated_game_ids.find(info->server_id()) == m_allocated_game_ids.end())
                 {
                     msg_rsp.add_info()->CopyFrom(*info);
                     m_allocated_game_ids.insert(info->server_id());
-                    m_allocated_game_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                    m_allocated_game_map.insert(std::make_pair(connection->id(), info->server_id()));
                     ACE_OS::sprintf(server_name, "game server (id=%u)", info->server_id());                    
                     found_one = true;
                 }
@@ -244,7 +230,7 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
         if(!found_one)
         {
             msg_rsp.Clear();
-            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
+            connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
             
             return;
         }
@@ -270,20 +256,20 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
                     {
                         msg_rsp.add_info()->CopyFrom(*info);
                         m_allocated_gateway_ids.insert(info->server_id());
-                        m_allocated_gateway_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                        m_allocated_gateway_map.insert(std::make_pair(connection->id(), info->server_id()));
                         ACE_OS::sprintf(server_name, "gateway server (id=%u)", info->server_id());                        
                         found_one = true;
                     }
                 }
-                else if((info->inner_addr() == client_connection->ip_addr()
-                         || info->inner_addr() == client_connection->host_name()
-                         || info->outer_addr() == client_connection->ip_addr()
-                         || info->outer_addr() == client_connection->host_name())
+                else if((info->inner_addr() == connection->ip_addr()
+                         || info->inner_addr() == connection->host_name()
+                         || info->outer_addr() == connection->ip_addr()
+                         || info->outer_addr() == connection->host_name())
                         && m_allocated_gateway_ids.find(info->server_id()) == m_allocated_gateway_ids.end())
                 {
                     msg_rsp.add_info()->CopyFrom(*info);
                     m_allocated_gateway_ids.insert(info->server_id());
-                    m_allocated_gateway_map.insert(std::make_pair(client_connection->id(), info->server_id()));
+                    m_allocated_gateway_map.insert(std::make_pair(connection->id(), info->server_id()));
                     ACE_OS::sprintf(server_name, "gateway server (id=%u)", info->server_id());                    
                     found_one = true;
                 }                
@@ -293,19 +279,19 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
         if(!found_one)
         {
             msg_rsp.Clear();
-            client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
+            connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
             
             return;
         }
     }
     
-    cout << "received register request from " << server_name << " ip:" << client_connection->ip_addr() << " hostname:" << client_connection->host_name() << endl;
-    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
+    cout << "received register request from " << server_name << " ip:" << connection->ip_addr() << " hostname:" << connection->host_name() << endl;
+    connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
 }
 
-void Server::register_rsp_from(gabriel::base::Server_Connection *server_connection, void *data, uint32 size)
+void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
+    using namespace gabriel::protocol::server;
     PARSE_MSG(Register_Center_Rsp, msg);
     clear_server_info();
     
@@ -353,18 +339,6 @@ void Server::clear_server_info()
 void Server::fini_hook()
 {
     clear_server_info();
-}
-
-void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);    
-}
-
-bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_supercenter_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
-
-    return true;
 }
 
 }

@@ -21,9 +21,12 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <cstdarg>
+#include <iostream>
 #include "ace/Signal.h"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/timer.hpp"
+
+using namespace std;
 
 namespace gabriel {
 namespace base {
@@ -31,6 +34,7 @@ namespace base {
 Server::Server() : m_acceptor(this), m_connector(this)
 {
     m_zone_id = 0;
+    m_state = SERVER_STATE::INVALID;
 }
 
 Server::~Server()
@@ -45,7 +49,7 @@ void Server::main(int argc, char* argv[])
     {
         return;
     }
-
+    
     run();
     fini();
 }
@@ -88,9 +92,9 @@ bool Server::init()
     
     init_reactor();
     m_connector.open(ACE_Reactor::instance());
-    m_thread.add_executor(this, &Server::do_reactor);
-    m_thread.add_executor(this, &Server::do_main);
-    m_thread.add_executor(this, &Server::do_reconnect);
+    m_thread.add_executor(std::bind(&Server::do_reactor,this));
+    m_thread.add_executor(std::bind(&Server::do_main, this));
+    m_thread.add_executor(std::bind(&Server::do_reconnect, this));
     register_msg_handler();
     //daemon(1, 1);
     m_log_dir = std::string("log") + ACE_DIRECTORY_SEPARATOR_STR;
@@ -108,21 +112,35 @@ void Server::run()
 {
     m_thread.execute();
 }
-
-void Server::on_connection_shutdown(Client_Connection *client_connection)
-{
-    client_connection->state(CONNECTION_STATE::SHUTDOWN);
-}
     
-bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+void Server::handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
-    return true;
+    m_server_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
+}
+
+void Server::handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
+    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
 }
     
 void Server::do_main_on_server_connection()
 {
+    m_supercenter_connection.do_main();
+    do_main_on_server_connection_extra();
 }
 
+void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+{
+    if(&m_supercenter_connection == server_connection)
+    {
+        cout << "error: disconnected from supercenter server" << endl;
+    }
+    else
+    {
+        on_connection_shutdown_extra(server_connection);
+    }
+}
+    
 void Server::type(gabriel::base::SERVER_TYPE _type)
 {
     m_type = _type;

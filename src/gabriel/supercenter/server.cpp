@@ -40,6 +40,7 @@ namespace supercenter {
 Server::Server()
 {
     type(gabriel::base::SUPERCENTER_SERVER);
+    m_superrecord_client = NULL;
 }
 
 Server::~Server()
@@ -53,16 +54,22 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    base::Server::on_connection_shutdown(client_connection);
-    
-    for(auto iter : m_zone_connections)
+    if(m_superrecord_client == client_connection)
     {
-        if(iter.second == client_connection)
+        m_superrecord_client = NULL;
+        cout << "superrecord server disconnected from this server" << endl;
+    }
+    else
+    {
+        for(auto iter : m_zone_connections)
         {
-            m_zone_connections.erase(iter.first);
-            cout << "zone: " << iter.first << " center server disconnected from this server" << endl;
+            if(iter.second == client_connection)
+            {
+                m_zone_connections.erase(iter.first);
+                cout << "zone: " << iter.first << " center server disconnected from this server" << endl;
             
-            break;
+                break;
+            }
         }
     }
 }
@@ -75,37 +82,29 @@ void Server::init_reactor()
 bool Server::init_hook()
 {
     try
-    {        
-        YAML::Node root = YAML::LoadFile("lc.yaml");
-        cout << YAML::Dump(root);        
-        fstream file("lc.yaml", ios::out);
-        YAML::Emitter emitter(file);        
-        vector<int> ivec = {1,2,3,4,5};
-        vector<int> ivec2 = {8,9,10};
-        map<int, vector<int>> imap;
-        imap[223] = ivec;
-        imap[445] = ivec;
-        imap[99] = ivec2;        
-        emitter << imap;
-        emitter << ivec;
+    {
+        YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        YAML::Node supercenter_node = root["supercenter"];
+        std::string host = supercenter_node["host"].as<std::string>();
+        uint16 port = supercenter_node["port"].as<uint16>();
+            
+        if(m_acceptor.open(ACE_INET_Addr(port, host.c_str()), ACE_Reactor::instance()) < 0)
+        {
+            cout << "error: start supercenter server failed" << endl;
+
+            return false;
+        }
+    
+        cout << "start supercenter server ok" << endl;
+        set_proc_name_and_log_dir("gabriel_supercenter_server");
     }
-    catch(YAML::Exception &err)
+    catch(const YAML::Exception &err)
     {
         cout << err.what() << endl;
 
         return false;        
     }
     
-    if(m_acceptor.open(ACE_INET_Addr(20000), ACE_Reactor::instance()) < 0)
-    {
-        cout << "error: start supercenter server failed" << endl;
-
-        return false;
-    }
-    
-    cout << "start supercenter server ok" << endl;
-    set_proc_name_and_log_dir("gabriel_supercenter_server");
-
     /////////////// test script /////////////////////
     lua_State *state = luaL_newstate();
     luaL_openlibs(state);
@@ -188,11 +187,13 @@ bool Server::init_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;    
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, this, &Server::register_req_from);
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, this, &Server::center_addr_req_from);
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_req_from_center, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Server::center_addr_req_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, std::bind(&Server::register_req_from_superrecord, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
-void Server::center_addr_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Center_Addr_Req, msg);
@@ -217,7 +218,7 @@ void Server::center_addr_req_from(gabriel::base::Client_Connection *client_conne
         }
     }
 
-    client_connection->send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg_rsp);
+    connection->send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg_rsp);
 }
 
 void Server::update_hook()
@@ -237,7 +238,27 @@ void Server::fini_hook()
     m_server_infos.clear();
 }
 
-void Server::register_req_from(gabriel::base::Client_Connection *client_connection, void *data, uint32 size)
+void Server::register_req_from_superrecord(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    m_superrecord_client = connection;
+    DB_Task task;
+    task.set_seq(1);
+    task.set_pool_id(gabriel::base::DB_Handler_Pool::GAME_POOL);
+    task.set_msg_type(DEFAULT_MSG_TYPE);
+    task.set_msg_id(ZONE_INFO_REQ);
+    Zone_Info_Req req;
+    req.SerializeToString(task.mutable_msg_data());
+    m_superrecord_client->send(DEFAULT_MSG_TYPE, DB_TASK, task);
+}
+
+void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    PARSE_MSG(DB_Task, msg);
+}
+    
+void Server::register_req_from_center(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Register_Center, msg);
@@ -257,21 +278,11 @@ void Server::register_req_from(gabriel::base::Client_Connection *client_connecti
         msg_rsp.add_info()->CopyFrom(*info);
     }
 
-    client_connection->send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg_rsp);
-    m_zone_connections[zone_id] = client_connection;
+    connection->send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg_rsp);
+    m_zone_connections[zone_id] = connection;
     cout << "zone: " << zone_id << " center server register to this server" << endl;
 }
     
-void Server::handle_connection_msg(gabriel::base::Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    m_client_msg_handler.handle_message(msg_type, msg_id, client_connection, data, size);
-}
-
-bool Server::handle_connection_msg(gabriel::base::Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
-{
-    return true;
-}
-
 }
 }
 
