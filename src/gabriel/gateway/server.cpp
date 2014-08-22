@@ -45,9 +45,9 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
 {
 }
 
-bool Server::on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection)
+bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
-    if(Super::on_connection_shutdown_extra(server_connection))
+    if(Super::on_connection_shutdown(server_connection))
     {
         return true;
     }
@@ -83,40 +83,47 @@ void Server::update_hook()
 {
 }
 
-void Server::do_reconnect_extra()
+void Server::do_reconnect()
 {
-    if(m_record_connection.lost_connection())
+    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
     {
-        gabriel::base::Server_Connection *tmp = &m_record_connection;
-            
-        if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
-        {
-            cout << "error: reconnect to record server failed" << endl;
-        }
-        else
-        {
-            cout << "reconnect to record server ok" << endl;
-        }
-    }
-
-    for(auto iter : m_game_connections)
-    {
-        gabriel::base::Server_Connection *game_connection = iter.second;
+        Super::do_reconnect();
         
-        if(game_connection->lost_connection())
+        if(m_record_connection.lost_connection())
         {
-            if(m_connector.connect(game_connection, game_connection->inet_addr()) < 0)
+            gabriel::base::Server_Connection *tmp = &m_record_connection;
+            
+            if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
             {
-                cout << "error: reconnect to game server (id=" << iter.first << ") failed" << endl;
+                cout << "error: reconnect to record server failed" << endl;
             }
             else
             {
-                cout << "reconnect to game server (id=" << iter.first << ") ok" << endl;
+                cout << "reconnect to record server ok" << endl;
             }
         }
+
+        for(auto iter : m_game_connections)
+        {
+            gabriel::base::Server_Connection *game_connection = iter.second;
+        
+            if(game_connection->lost_connection())
+            {
+                if(m_connector.connect(game_connection, game_connection->inet_addr()) < 0)
+                {
+                    cout << "error: reconnect to game server (id=" << iter.first << ") failed" << endl;
+                }
+                else
+                {
+                    cout << "reconnect to game server (id=" << iter.first << ") ok" << endl;
+                }
+            }
+        }
+
+        gabriel::base::sleep_sec(2);
     }
 }
-
+    
 void Server::register_msg_handler()
 {    
     using namespace gabriel::protocol::server;
@@ -150,9 +157,9 @@ bool Server::init_hook()
     return Super::init_hook();
 }
     
-void Server::do_main_on_server_connection_extra()
+void Server::do_main_on_server_connection()
 {
-    Super::do_main_on_server_connection_extra();
+    Super::do_main_on_server_connection();
     m_record_connection.do_main();
 }
 

@@ -39,46 +39,39 @@ Ordinary_Server::~Ordinary_Server()
 {
 }
     
-bool Ordinary_Server::on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection)
+bool Ordinary_Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
+    if(Super::on_connection_shutdown(server_connection))
+    {
+        return true;
+    }
+    
     if(server_connection == &m_center_connection)
     {
         cout << "error: disconnected from center server" << endl;
         
         return true;
     }
-
+    
     return false;    
 }
     
 void Ordinary_Server::do_reconnect()
 {
-    using namespace gabriel::base;
-    
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    if(m_center_connection.lost_connection())
     {
-        if(m_center_connection.lost_connection())
-        {
-            Server_Connection *tmp = &m_center_connection;
+        Server_Connection *tmp = &m_center_connection;
             
-            if(m_connector.connect(tmp, m_center_connection.inet_addr()) < 0)
-            {
-                cout << "error: reconnect to center server failed" << endl;
-            }
-            else
-            {
-                cout << "reconnect to center server ok" << endl;
-                register_req_to();
-            }
+        if(m_connector.connect(tmp, m_center_connection.inet_addr()) < 0)
+        {
+            cout << "error: reconnect to center server failed" << endl;
         }
-        
-        do_reconnect_extra();
-        gabriel::base::sleep_sec(2);
+        else
+        {
+            cout << "reconnect to center server ok" << endl;
+            register_req_to();
+        }
     }
-}
-
-void Ordinary_Server::do_reconnect_extra()
-{
 }
     
 void Ordinary_Server::register_req_to()
@@ -90,8 +83,9 @@ void Ordinary_Server::register_req_to()
     m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg);
 }
 
-void Ordinary_Server::do_main_on_server_connection_extra()
+void Ordinary_Server::do_main_on_server_connection()
 {
+    Super::do_main_on_server_connection();
     m_center_connection.do_main();
 }
 

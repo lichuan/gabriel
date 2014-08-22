@@ -49,7 +49,7 @@ public:
     void type(SERVER_TYPE _type);
     SERVER_TYPE type() const;
     virtual void on_connection_shutdown(Client_Connection *client_connection) = 0;
-    void on_connection_shutdown(Server_Connection *server_connection);
+    virtual bool on_connection_shutdown(Server_Connection *server_connection);
     void handle_connection_msg(Client_Connection *client_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     void handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
     virtual void register_msg_handler() = 0;
@@ -57,10 +57,11 @@ public:
     void zone_id(uint32 id);
     
 protected:
+    void set_proc_name_and_log_dir(const char *format, ...);
+    virtual void do_main_on_server_connection();
     Server_Connection m_supercenter_connection;
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
-    void set_proc_name_and_log_dir(const char *format, ...);
     Message_Handler m_client_msg_handler;
     Message_Handler m_server_msg_handler;
     Thread<> m_thread;
@@ -73,9 +74,6 @@ private:
     void do_main();
     void do_main_on_client_connection();
     virtual void do_reconnect();
-    virtual void do_main_on_server_connection_extra() {}
-    virtual bool on_connection_shutdown_extra(Server_Connection *server_connection) {return true;}
-    void do_main_on_server_connection();
     virtual bool init_hook() = 0;
     virtual void fini_hook() = 0;
     virtual void init_reactor() = 0;    

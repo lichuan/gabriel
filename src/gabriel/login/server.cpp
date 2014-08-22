@@ -45,9 +45,9 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
 {
 }
 
-bool Server::on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection)
+bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
-    if(Super::on_connection_shutdown_extra(server_connection))
+    if(Super::on_connection_shutdown(server_connection))
     {
         return true;
     }
@@ -60,9 +60,9 @@ bool Server::on_connection_shutdown_extra(gabriel::base::Server_Connection *serv
     return true;
 }
 
-void Server::do_main_on_server_connection_extra()
+void Server::do_main_on_server_connection()
 {
-    Super::do_main_on_server_connection_extra();    
+    Super::do_main_on_server_connection();    
     m_record_connection.do_main();
 }
 
@@ -96,20 +96,27 @@ void Server::update_hook()
 {
 }
 
-void Server::do_reconnect_extra()
+void Server::do_reconnect()
 {
-    if(m_record_connection.lost_connection())
+    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
     {
-        gabriel::base::Server_Connection *tmp = &m_record_connection;
+        Super::do_reconnect();
+        
+        if(m_record_connection.lost_connection())
+        {
+            gabriel::base::Server_Connection *tmp = &m_record_connection;
             
-        if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
-        {
-            cout << "error: reconnect to record server failed" << endl;
+            if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
+            {
+                cout << "error: reconnect to record server failed" << endl;
+            }
+            else
+            {
+                cout << "reconnect to record server ok" << endl;
+            }
         }
-        else
-        {
-            cout << "reconnect to record server ok" << endl;
-        }
+        
+        gabriel::base::sleep_sec(2);
     }
 }
     

@@ -40,14 +40,14 @@ private:
     typedef Ordinary_Server Super;    
     virtual void register_msg_handler();
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
-    virtual bool on_connection_shutdown_extra(gabriel::base::Server_Connection *server_connection);
+    virtual bool on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void update_hook();
     virtual void fini_hook();
-    virtual void do_main_on_server_connection_extra();
+    virtual void do_main_on_server_connection();
     virtual void init_reactor();
     virtual bool init_hook();    
-    virtual void do_reconnect_extra();
+    virtual void do_reconnect();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
     gabriel::base::Server_Connection m_record_connection;
     std::map<uint32, gabriel::base::Server_Connection*> m_game_connections;

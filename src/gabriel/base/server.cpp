@@ -126,19 +126,18 @@ void Server::handle_connection_msg(Client_Connection *client_connection, uint32 
 void Server::do_main_on_server_connection()
 {
     m_supercenter_connection.do_main();
-    do_main_on_server_connection_extra();
 }
 
-void Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
+bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
     if(&m_supercenter_connection == server_connection)
     {
         cout << "error: disconnected from supercenter server" << endl;
+
+        return true;        
     }
-    else
-    {
-        on_connection_shutdown_extra(server_connection);
-    }
+
+    return false;
 }
     
 void Server::type(gabriel::base::SERVER_TYPE _type)
