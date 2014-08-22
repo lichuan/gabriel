@@ -1,6 +1,6 @@
 /build/*
 /.sconsign*
-/3rd-party/*
+/3rd-party/
 /cscope*
 /protocol/generated
 /protocol/plugin/plugin_pb2.pyc

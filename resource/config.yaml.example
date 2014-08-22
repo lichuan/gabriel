@@ -7,4 +7,4 @@ superrecord:
   host: 127.0.0.1
   user: test
   password: 123456
-  game_db_pool_size: 1
+  game_db_pool_size: 16
