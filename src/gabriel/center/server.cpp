@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
+#include "yaml-cpp/yaml.h"
 #include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/center/server.hpp"
 
@@ -99,7 +100,7 @@ void Server::do_reconnect()
             }
         }
         
-        gabriel::base::sleep_sec(1);
+        gabriel::base::sleep_sec(2);
     }
 }
 
@@ -122,19 +123,32 @@ void Server::register_req_to()
     
 bool Server::init_hook()
 {
-    zone_id(1);
-    gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-    
-    if(m_connector.connect(tmp, ACE_INET_Addr(20001, "106.186.20.182")) < 0)
+    try
     {
-        cout << "error: connect to supercenter server failed" << endl;
+        YAML::Node root = YAML::LoadFile("resource/config.yaml");        
+        YAML::Node supercenter_node = root["supercenter"];
+        std::string host = supercenter_node["host"].as<std::string>();
+        uint16 port = supercenter_node["port"].as<uint16>();
+        gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
+        zone_id(root["zone_id"].as<uint32>());
+        
+        if(m_connector.connect(tmp, ACE_INET_Addr(port, host.c_str())) < 0)
+        {
+            cout << "error: connect to supercenter server failed" << endl;
 
-        return false;
+            return false;
+        }
+    
+        cout << "connect to supercenter server ok" << endl;
+        register_req_to();
+    }
+    catch(const YAML::Exception &err)
+    {
+        cout << err.what() << endl;
+
+        return false;        
     }
     
-    cout << "connect to supercenter server ok" << endl;
-    register_req_to();
-
     return true;    
 }
     

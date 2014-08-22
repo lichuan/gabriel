@@ -47,7 +47,6 @@ private:
     void handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task);
     void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
     void register_req_to();
-    gabriel::base::Server_Connection m_supercenter_connection;
     gabriel::base::DB_Handler_Pool m_game_db_pool;
 };
     

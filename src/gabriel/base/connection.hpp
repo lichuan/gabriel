@@ -59,7 +59,6 @@ public:
     void state(uint32 _state);
     bool connected() const;
     bool lost_connection() const;
-    void shutdown();
     void send(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg);
     void do_main();
     const ACE_INET_Addr& inet_addr() const;
@@ -69,6 +68,7 @@ public:
     
 protected:
     Server *m_holder;
+    void shutdown();
 
 private:
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);

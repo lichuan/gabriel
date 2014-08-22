@@ -47,7 +47,7 @@ private:
     virtual void do_main_on_server_connection_extra();
     virtual void init_reactor();
     virtual bool init_hook();    
-    virtual void do_reconnect_i();
+    virtual void do_reconnect_extra();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
     gabriel::base::Server_Connection m_record_connection;
     std::map<uint32, gabriel::base::Server_Connection*> m_game_connections;

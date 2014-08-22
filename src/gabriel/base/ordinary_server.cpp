@@ -73,7 +73,7 @@ void Ordinary_Server::do_reconnect()
         }
         
         do_reconnect_extra();
-        gabriel::base::sleep_sec(1);
+        gabriel::base::sleep_sec(2);
     }
 }
 
@@ -125,7 +125,7 @@ void Ordinary_Server::center_addr_rsp(gabriel::base::Connection *connection, voi
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Center_Addr_Rsp, msg);
-    m_supercenter_connection.shutdown();
+    m_supercenter_connection.close();    
     gabriel::base::Server_Connection *tmp = &m_center_connection;
     
     if(m_connector.connect(tmp, ACE_INET_Addr(msg.info().port(), msg.info().inner_addr().c_str())) < 0)

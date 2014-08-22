@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include "ace/Dev_Poll_Reactor.h"
+#include "yaml-cpp/yaml.h"
 #include "gabriel/record/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/protocol/server/default.pb.h"
@@ -52,13 +53,25 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
-    m_center_connection.reactor(ACE_Reactor::instance());
 }
 
 bool Server::init_hook()
 {
-    zone_id(1);
-    m_supercenter_addr.set(20001);
+    try
+    {
+        YAML::Node root = YAML::LoadFile("resource/config.yaml");        
+        YAML::Node supercenter_node = root["supercenter"];
+        std::string host = supercenter_node["host"].as<std::string>();
+        uint16 port = supercenter_node["port"].as<uint16>();
+        zone_id(root["zone_id"].as<uint32>());
+        m_supercenter_addr.set(port, host.c_str());
+    }
+    catch(const YAML::Exception &err)
+    {
+        cout << err.what() << endl;
+
+        return false;        
+    }
 
     return Super::init_hook();
 }

@@ -58,7 +58,6 @@ public:
     
 protected:
     Server_Connection m_supercenter_connection;
-    ACE_INET_Addr m_supercenter_addr;
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     void set_proc_name_and_log_dir(const char *format, ...);

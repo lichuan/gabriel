@@ -56,12 +56,20 @@ typedef ACE_UINT64 uint64;
 #define MIN_DOUBLE ACE_DBL_MIN
 #define MAX_DOUBLE ACE_DBL_MAX
 
-#define PARSE_MSG(Msg, msg)                \
-    Msg msg; \
-    \
-    if(!msg.ParseFromArray(data, size)) \
-    { \
-        return; \
+#define PARSE_MSG(Msg, msg)                     \
+    Msg msg;                                    \
+                                                \
+    if(!msg.ParseFromArray(data, size))         \
+    {                                           \
+        return;                                 \
+    }
+
+#define PARSE_INNER_MSG(Msg, inner_msg)             \
+    Msg inner_msg;                                  \
+                                                    \
+    if(!inner_msg.ParseFromString(msg.msg_data()))  \
+    {                                               \
+        return;                                     \
     }
     
 namespace gabriel {
@@ -98,6 +106,7 @@ struct CONNECTION_STATE
     static const uint32 INVALID = 0;    
     static const uint32 CONNECTED = 1;
     static const uint32 SHUTTING_DOWN = 2;
+    static const uint32 SHUTTING_DOWN_1 = 3;    
     static const uint32 SHUTDOWN = 4;
 };
 

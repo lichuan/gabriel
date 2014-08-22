@@ -50,7 +50,7 @@ private:
     void register_req_from_superrecord(gabriel::base::Connection *connection, void *data, uint32 size);
     void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
     void center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size);
-    gabriel::base::Connection *m_superrecord_client;
+    gabriel::base::Client_Connection *m_superrecord_client;
     std::map<uint32, std::vector<gabriel::protocol::server::Server_Info*>> m_server_infos;
     std::map<uint32, gabriel::base::Connection*> m_zone_connections;
 };

@@ -109,78 +109,13 @@ bool Server::init_hook()
     lua_State *state = luaL_newstate();
     luaL_openlibs(state);
     register_lua2cpp(state);
-
+    
     if(luaL_dofile(state, "script/gabriel/script/main.lua") != 0)
     {
         cout << "lua error: " << lua_tostring(state, -1) << endl;
     }    
     /////////////// test script ////////////////////
-    
-    const uint32 zone_id = 1;    
-    {
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(1);
-        info->set_server_type(gabriel::base::CENTER_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");        
-        info->set_port(20002);
-        m_server_infos[zone_id].push_back(info);
-    }
-    {        
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(2);
-        info->set_server_type(gabriel::base::RECORD_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");
-        info->set_port(20003);
-        m_server_infos[zone_id].push_back(info);
-    }
-    {   
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;     
-        info->set_server_id(3);
-        info->set_server_type(gabriel::base::LOGIN_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");
-        info->set_port(20004);
-        m_server_infos[zone_id].push_back(info);
-    }
-    {        
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(100);
-        info->set_server_type(gabriel::base::GAME_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");
-        info->set_port(20100);
-        m_server_infos[zone_id].push_back(info);
-    }
-    {        
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(101);
-        info->set_server_type(gabriel::base::GAME_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");
-        info->set_port(20101);
-        m_server_infos[zone_id].push_back(info);
-    }
-    {        
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(200);
-        info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");
-        info->set_port(20200);
-        m_server_infos[zone_id].push_back(info);
-    }
-    {        
-        gabriel::protocol::server::Server_Info *info = new gabriel::protocol::server::Server_Info;
-        info->set_server_id(201);
-        info->set_server_type(gabriel::base::GATEWAY_SERVER);
-        info->set_outer_addr("127.0.0.1");
-        info->set_inner_addr("127.0.0.1");
-        info->set_port(20201);
-        m_server_infos[zone_id].push_back(info);
-    }
-
+   
     return true;
 }
 
@@ -204,10 +139,10 @@ void Server::center_addr_req_from(gabriel::base::Connection *connection, void *d
     {
         return;
     }
-
-    auto &infos = iter->second;    
+    
+    auto &infos = iter->second;
     Center_Addr_Rsp msg_rsp;
-
+    
     for(auto info : infos)
     {
         if(info->server_type() == gabriel::base::CENTER_SERVER)
@@ -241,7 +176,7 @@ void Server::fini_hook()
 void Server::register_req_from_superrecord(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
-    m_superrecord_client = connection;
+    m_superrecord_client = static_cast<gabriel::base::Client_Connection*>(connection);
     DB_Task task;
     task.set_seq(1);
     task.set_pool_id(gabriel::base::DB_Handler_Pool::GAME_POOL);
@@ -256,6 +191,23 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
 {
     using namespace gabriel::protocol::server;
     PARSE_MSG(DB_Task, msg);
+    uint32 msg_type = msg.msg_type();
+    uint32 msg_id = msg.msg_id();
+
+    if(msg_type == DEFAULT_MSG_TYPE && msg_id == ZONE_INFO_REQ)
+    {
+        PARSE_INNER_MSG(Zone_Info_Rsp, rsp);
+        
+        for(int32 i = 0; i != rsp.zone_info_size(); ++i)
+        {
+            const Zone_Info &zone_info = rsp.zone_info(i);
+            Server_Info *server_info = new Server_Info;
+            server_info->CopyFrom(zone_info.info());
+            m_server_infos[zone_info.zone_id()].push_back(server_info);
+        }
+        
+        cout << "loading zone info from superrecord is done" << endl;
+    }
 }
     
 void Server::register_req_from_center(gabriel::base::Connection *connection, void *data, uint32 size)

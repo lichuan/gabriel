@@ -48,7 +48,6 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
-    m_supercenter_connection.reactor(ACE_Reactor::instance());
 }
 
 bool Server::init_hook()
@@ -103,7 +102,32 @@ bool Server::init_hook()
 }
 
 void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)
-{    
+{
+    using namespace gabriel::protocol::server;
+
+    if(task->msg_type() == DEFAULT_MSG_TYPE && task->msg_id() == ZONE_INFO_REQ)
+    {
+        task->set_need_return(true);
+        Zone_Info_Rsp rsp;
+        mysqlpp::Query query = handler->query("select * from zone_list");
+        if(mysqlpp::StoreQueryResult res = query.store())
+        {
+            for(auto it = res.begin(); it != res.end(); ++it)
+            {
+                const mysqlpp::Row &row = *it;
+                int32 idx = 0;
+                Zone_Info *zone_info = rsp.add_zone_info();
+                zone_info->set_zone_id(row[idx++]);
+                zone_info->mutable_info()->set_server_type(row[idx++]);
+                zone_info->mutable_info()->set_server_id(row[idx++]);
+                zone_info->mutable_info()->set_inner_addr(row[idx++]);
+                zone_info->mutable_info()->set_outer_addr(row[idx++]);
+                zone_info->mutable_info()->set_port(row[idx++]);
+            }
+
+            rsp.SerializeToString(task->mutable_msg_data());
+        }
+    }
 }
 
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
@@ -147,7 +171,7 @@ void Server::do_reconnect()
             }
         }
         
-        gabriel::base::sleep_sec(1);
+        gabriel::base::sleep_sec(2);
     }
 }
 
