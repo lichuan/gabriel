@@ -22,8 +22,8 @@
   
 ##DEPENDENCY
 
-  Gabriel depends on some third library, such as yaml-cpp, ace, protobuf, mysql++, lua5.2. please make sure 
+  Gabriel depends on some third libraries, such as yaml-cpp, ace, protobuf, mysql++, lua5.2. please make 
   
-  that you have builded these dependent libs before you build Gabriel engine.
+  sure that you have builded these dependent libraries before you build Gabriel engine.
   
   
