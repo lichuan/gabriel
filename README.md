@@ -13,3 +13,17 @@
   1EDSRkoNupjJCMsRdwBWPoDpQxWfCLJMe3
   
   thank you!
+  
+##BUILD
+
+  Gabriel server engine is build by scons tool, please make sure that you have installed scons, please refer 
+  
+  to scons official site: http://www.scons.org/
+  
+##DEPENDENCY
+
+  Gabriel depends on some third library, such as yaml-cpp, ace, protobuf, mysql++, lua5.2. please make sure 
+  
+  that you have builded these dependent libs before you build Gabriel engine.
+  
+  
