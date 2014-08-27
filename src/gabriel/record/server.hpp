@@ -44,9 +44,11 @@ private:
     virtual void update_hook();
     virtual void fini_hook();
     virtual void init_reactor();
-    virtual bool init_hook();    
+    virtual bool init_hook();
+    virtual void do_reconnect();    
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
     void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
+    void handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task);
     gabriel::base::DB_Handler_Pool m_game_db_pool;
     gabriel::base::DB_Handler_Pool m_log_db_pool;    
 };

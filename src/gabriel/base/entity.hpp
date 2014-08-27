@@ -444,7 +444,7 @@ public:
     template<typename If_CB, typename CB>
     bool delete_if(If_CB if_cb, CB cb)
     {
-        std::vector<Concrete_Entity*> del_vec;        
+        std::vector<Concrete_Entity*> del_vec;
         {
             ACE_Read_Guard<ACE_RW_Mutex> guard(m_lock);
             

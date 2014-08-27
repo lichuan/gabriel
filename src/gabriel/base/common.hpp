@@ -74,8 +74,8 @@ bool rate_by_thousand(uint32 rate);
 uint64 get_usec_tick();
 uint64 get_msec_tick();
 uint32 get_sec_tick();    
-std::string gen_uuid_str();
-uint64 gen_uuid();
+std::string gen_uuid();
+uint64 gen_uuid_hash();
 
 }
 }

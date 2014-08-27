@@ -59,7 +59,7 @@ public:
     
     void register_handler(std::function<void(Connection*, uint32, uint32, void*, uint32)> func)
     {
-        m_handler.m_func_3 = func;        
+        m_handler.m_func_3 = func;
     }
     
     void handle_message(uint32 msg_type, uint32 msg_id, Connection *connection, void *data, uint32 size)

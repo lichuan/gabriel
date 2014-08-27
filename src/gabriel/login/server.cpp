@@ -123,18 +123,24 @@ void Server::do_reconnect()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    Super::register_msg_handler();    
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    using namespace std::placeholders;
+    Super::register_msg_handler();
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(std::bind(&Server::handle_client_msg, this, _1, _2, _3, _4, _5));
 }
     
 void Server::init_reactor()
 {
-    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(5000, true), true), true);
+    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000, true), true), true);
+}
+
+void Server::handle_client_msg(gabriel::base::Connection *connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
+{
 }
 
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
+    using namespace gabriel::protocol::server;
     PARSE_MSG(Register_Ordinary_Rsp, msg);
 
     if(id() > 0)

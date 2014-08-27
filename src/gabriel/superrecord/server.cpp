@@ -54,6 +54,7 @@ bool Server::init_hook()
 {
     try
     {
+        using namespace std::placeholders;
         YAML::Node root = YAML::LoadFile("resource/config.yaml");
         
         {
@@ -81,7 +82,7 @@ bool Server::init_hook()
             std::string password = superrecord_node["password"].as<std::string>();
             uint32 game_db_pool_size = superrecord_node["game_db_pool_size"].as<uint32>();
 
-            if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, std::placeholders::_1, std::placeholders::_2)))
+            if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
             {
                 cout << "error: game db pool init failed" << endl;
             
@@ -189,7 +190,8 @@ void Server::update_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    using namespace std::placeholders;
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
 }
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)

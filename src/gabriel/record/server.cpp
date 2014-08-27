@@ -50,6 +50,15 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     return true;
 }
 
+void Server::do_reconnect()
+{
+    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    {
+        Super::do_reconnect();
+        gabriel::base::sleep_sec(2);
+    }
+}
+
 void Server::init_reactor()
 {
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
@@ -59,12 +68,40 @@ bool Server::init_hook()
 {
     try
     {
-        YAML::Node root = YAML::LoadFile("resource/config.yaml");        
-        YAML::Node supercenter_node = root["supercenter"];
-        std::string host = supercenter_node["host"].as<std::string>();
-        uint16 port = supercenter_node["port"].as<uint16>();
-        zone_id(root["zone_id"].as<uint32>());
-        m_supercenter_addr.set(port, host.c_str());
+        using namespace std::placeholders;
+        YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        
+        {
+            YAML::Node supercenter_node = root["supercenter"];
+            std::string host = supercenter_node["host"].as<std::string>();
+            uint16 port = supercenter_node["port"].as<uint16>();
+            zone_id(root["zone_id"].as<uint32>());
+            m_supercenter_addr.set(port, host.c_str());
+        }
+        
+        {
+            YAML::Node record_node = root["record"];
+            std::string db = record_node["db"].as<std::string>();
+            std::string host = record_node["host"].as<std::string>();
+            std::string user = record_node["user"].as<std::string>();
+            std::string password = record_node["password"].as<std::string>();
+            uint32 game_db_pool_size = record_node["game_db_pool_size"].as<uint32>();
+            uint32 log_db_pool_size = record_node["log_db_pool_size"].as<uint32>();
+            
+            if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
+            {
+                cout << "error: game db pool init failed" << endl;
+            
+                return false;
+            }
+
+            if(!m_log_db_pool.init(host, db, user, password, log_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
+            {
+                cout << "error: log db pool init failed" << endl;
+                
+                return false;
+            }
+        }
     }
     catch(const YAML::Exception &err)
     {
@@ -83,9 +120,15 @@ void Server::update_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
+    using namespace std::placeholders;
     Super::register_msg_handler();
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+}
+
+void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)
+{
+    using namespace gabriel::protocol::server;
 }
 
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)

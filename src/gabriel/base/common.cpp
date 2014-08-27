@@ -153,15 +153,15 @@ uint64 get_usec_tick()
     return tick;
 }
     
-std::string gen_uuid_str()
+std::string gen_uuid()
 {
     ACE_Utils::UUID uuid;
     ACE_Utils::UUID_GENERATOR::instance()->generate_UUID(uuid);
 
     return uuid.to_string()->c_str();
 }
-
-uint64 gen_uuid()
+    
+uint64 gen_uuid_hash()
 {
     ACE_Utils::UUID uuid;
     ACE_Utils::UUID_GENERATOR::instance()->generate_UUID(uuid);

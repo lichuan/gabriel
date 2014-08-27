@@ -121,11 +121,12 @@ bool Server::init_hook()
 
 void Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server;    
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_req_from_center, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Server::center_addr_req_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, std::bind(&Server::register_req_from_superrecord, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    using namespace gabriel::protocol::server;
+    using namespace std::placeholders;
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_req_from_center, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Server::center_addr_req_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, std::bind(&Server::register_req_from_superrecord, this, _1, _2, _3));
 }
 
 void Server::center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size)

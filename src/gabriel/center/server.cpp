@@ -155,8 +155,9 @@ bool Server::init_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_rsp_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_req_from, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    using namespace std::placeholders;    
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_req_from, this, _1, _2, _3));
 }
 
 void Server::register_req_from(gabriel::base::Connection *connection, void *data, uint32 size)

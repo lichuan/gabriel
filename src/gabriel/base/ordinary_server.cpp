@@ -58,6 +58,20 @@ bool Ordinary_Server::on_connection_shutdown(gabriel::base::Server_Connection *s
     
 void Ordinary_Server::do_reconnect()
 {
+    if(m_supercenter_connection.lost_connection())
+    {
+        Server_Connection *tmp = &m_supercenter_connection;
+
+        if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
+        {
+            cout << "error: reconnect to supercenter server failed" << endl;
+        }
+        else
+        {
+            cout << "reconnect to supercenter server ok" << endl;
+        }
+    }
+    
     if(m_center_connection.lost_connection())
     {
         Server_Connection *tmp = &m_center_connection;
@@ -111,15 +125,15 @@ bool Ordinary_Server::init_hook()
     
 void Ordinary_Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server;    
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Ordinary_Server::center_addr_rsp, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    using namespace gabriel::protocol::server;
+    using namespace std::placeholders;    
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Ordinary_Server::center_addr_rsp, this, _1, _2, _3));
 }
 
 void Ordinary_Server::center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
     PARSE_MSG(Center_Addr_Rsp, msg);
-    m_supercenter_connection.close();    
     gabriel::base::Server_Connection *tmp = &m_center_connection;
     
     if(m_connector.connect(tmp, ACE_INET_Addr(msg.info().port(), msg.info().inner_addr().c_str())) < 0)
