@@ -81,6 +81,7 @@ void DB_Handler::do_task()
 
             connection->release();
             delete task;
+            delete task_pair;
         }
     }    
 }
