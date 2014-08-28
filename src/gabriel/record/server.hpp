@@ -23,9 +23,9 @@
 #ifndef GABRIEL__RECORD__SERVER
 #define GABRIEL__RECORD__SERVER
 
+#include "gabriel/base/db.hpp"
 #include "gabriel/base/ordinary_server.hpp"
 #include "gabriel/base/message_handler.hpp"
-#include "gabriel/base/db.hpp"
 
 namespace gabriel {
 namespace record {

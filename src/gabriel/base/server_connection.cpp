@@ -21,9 +21,9 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "ace/SOCK_Connector.h"
-#include "gabriel/base/server_connection.hpp"
-#include "gabriel/base/connector.hpp"
 #include "gabriel/base/server.hpp"
+#include "gabriel/base/connector.hpp"
+#include "gabriel/base/server_connection.hpp"
 
 namespace gabriel {
 namespace base {

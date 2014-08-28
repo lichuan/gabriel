@@ -23,15 +23,16 @@
 #ifndef GABRIEL__BASE__SERVER
 #define GABRIEL__BASE__SERVER
 
+#include "lua.hpp"
 #include "ace/SOCK_Acceptor.h"
 #include "ace/SOCK_Connector.h"
-#include "gabriel/base/connector.hpp"
-#include "gabriel/base/acceptor.hpp"
-#include "gabriel/base/thread.hpp"
+#include "gabriel/base/log.hpp"
 #include "gabriel/base/timer.hpp"
+#include "gabriel/base/thread.hpp"
+#include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/connector.hpp"
 #include "gabriel/base/client_connection.hpp"
 #include "gabriel/base/server_connection.hpp"
-#include "gabriel/base/log.hpp"
 
 namespace gabriel {
 namespace base {

@@ -28,8 +28,8 @@
 #include "ace/Message_Queue_T.h"
 #include "gabriel/base/thread.hpp"
 #include "gabriel/base/connection.hpp"
-#include "gabriel/protocol/server/msg_type.pb.h"
 #include "gabriel/protocol/server/default.pb.h"
+#include "gabriel/protocol/server/msg_type.pb.h"
 
 namespace gabriel {
 namespace base {

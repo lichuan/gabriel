@@ -23,8 +23,8 @@
 #include <cstdarg>
 #include <iostream>
 #include "ace/Signal.h"
-#include "gabriel/base/server.hpp"
 #include "gabriel/base/timer.hpp"
+#include "gabriel/base/server.hpp"
 
 using namespace std;
 

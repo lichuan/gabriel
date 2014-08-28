@@ -22,8 +22,8 @@
 #ifndef GABRIEL__SUPERRECORD__SERVER
 #define GABRIEL__SUPERRECORD__SERVER
 
-#include "gabriel/base/server.hpp"
 #include "gabriel/base/db.hpp"
+#include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"
 
 namespace gabriel {

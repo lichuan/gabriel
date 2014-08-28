@@ -24,12 +24,12 @@
 #define GABRIEL__BASE__LOG
 
 #include <string>
-#include "ace/Log_Msg_Callback.h"
-#include "ace/Null_Mutex.h"
-#include "ace/Recursive_Thread_Mutex.h"
-#include "ace/Log_Record.h"
 #include "ace/Log_Msg.h"
 #include "ace/Singleton.h"
+#include "ace/Log_Record.h"
+#include "ace/Null_Mutex.h"
+#include "ace/Log_Msg_Callback.h"
+#include "ace/Recursive_Thread_Mutex.h"
 #include "gabriel/base/define.hpp"
 
 namespace gabriel {

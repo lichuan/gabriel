@@ -21,9 +21,9 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "ace/SOCK_Acceptor.h"
-#include "gabriel/base/client_connection.hpp"
-#include "gabriel/base/acceptor.hpp"
 #include "gabriel/base/server.hpp"
+#include "gabriel/base/acceptor.hpp"
+#include "gabriel/base/client_connection.hpp"
 
 namespace gabriel {
 namespace base {

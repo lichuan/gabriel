@@ -23,9 +23,9 @@
 #ifndef GABRIEL__CENTER__SERVER
 #define GABRIEL__CENTER__SERVER
 
-#include <vector>
 #include <set>
 #include <map>
+#include <vector>
 #include "google/protobuf/message.h"
 #include "gabriel/base/server.hpp"
 #include "gabriel/base/message_handler.hpp"

@@ -26,9 +26,9 @@
 #include "ace/Svc_Handler.h"
 #include "ace/SOCK_Stream.h"
 #include "google/protobuf/message.h"
+#include "gabriel/base/ref.hpp"
 #include "gabriel/base/common.hpp"
 #include "gabriel/base/entity.hpp"
-#include "gabriel/base/ref.hpp"
 
 namespace gabriel {
 namespace base {

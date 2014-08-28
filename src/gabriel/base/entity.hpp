@@ -23,11 +23,11 @@
 #ifndef GABRIEL__BASE__ENTITY
 #define GABRIEL__BASE__ENTITY
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
-#include "ace/RW_Mutex.h"
 #include "ace/Guard_T.h"
+#include "ace/RW_Mutex.h"
 #include "gabriel/base/common.hpp"
 
 namespace gabriel {
