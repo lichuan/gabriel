@@ -1,7 +1,9 @@
 _gabriel._supercenter.Server
 {
-    () 
+    ()
+    test()
 }
+
 _gabriel._supercenter
 {
 }

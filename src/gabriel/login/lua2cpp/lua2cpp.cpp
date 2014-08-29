@@ -159,6 +159,17 @@ static int lua____gabriel____supercenter___Server__new(lua_State *lua_state)
     return 1;
 }
 
+static int lua____gabriel____supercenter___Server__test(lua_State *lua_state)
+{
+    uint32 *udata_self = (uint32*)luaL_checkudata(lua_state, 1, "_gabriel._supercenter.Server");
+    udata_self += 1;
+    gabriel::supercenter::Server *obj = *(gabriel::supercenter::Server**)udata_self;
+    lua_settop(lua_state, 0);
+    obj->test();
+
+    return 0;
+}
+
 static int lua____gabriel____supercenter___Server__garbage_colloect(lua_State *lua_state)
 {
     uint32 *udata = (uint32*)luaL_checkudata(lua_state, 1, "_gabriel._supercenter.Server");
@@ -183,6 +194,7 @@ static void register_lua2cpp(lua_State *lua_state)
         luaL_Reg _gabriel__supercenter_Server[] = 
         {
             {"new", lua____gabriel____supercenter___Server__new},
+            {"test", lua____gabriel____supercenter___Server__test},
             {"__gc", lua____gabriel____supercenter___Server__garbage_colloect},
             {NULL, NULL}
         };
