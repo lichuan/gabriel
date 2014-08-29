@@ -102,10 +102,9 @@ bool Server::init_hook()
     {
         cout << err.what() << endl;
 
-        return false;        
+        return false;
     }
     
-    /////////////// test script /////////////////////
     lua_State *state = luaL_newstate();
     luaL_openlibs(state);
     register_lua2cpp(state);
@@ -113,9 +112,12 @@ bool Server::init_hook()
     if(luaL_dofile(state, "script/gabriel/script/main.lua") != 0)
     {
         cout << "lua error: " << lua_tostring(state, -1) << endl;
-    }    
-    /////////////// test script ////////////////////
-   
+
+        return false;
+    }
+    
+    m_main_lua_state = state;
+    
     return true;
 }
 

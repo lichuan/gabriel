@@ -25,5 +25,3 @@
   gabriel depends on some third libraries, such as yaml-cpp, ace, protobuf, mysql++, lua5.2.  please make 
   
   sure that you have builded these dependent libraries before you build gabriel engine.
-  
-  

@@ -182,7 +182,7 @@ void Server::register_rsp_from(gabriel::base::Connection *connection, void *data
         return;
     }
     
-    for(uint32 i = 0; i != msg.info_size(); ++i)
+    for(int32 i = 0; i != msg.info_size(); ++i)
     {
         const auto &info = msg.info(i);
 

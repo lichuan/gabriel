@@ -211,7 +211,6 @@ int Connection::handle_input(ACE_HANDLE hd)
     msg->m_msg_block = msg_block;        
     char *cur_ptr = msg_block->base();        
     ACE_Message_Block *cur_msg_block = NULL;
-    const uint32 remain_bytes_bak = remain_bytes;
     
     for(;;)
     {
@@ -264,20 +263,20 @@ int Connection::handle_output(ACE_HANDLE hd)
     ACE_Message_Block *msg_block;
     m_send_queue.dequeue(msg_block);
     int32 send_size = peer().send(msg_block->rd_ptr(), msg_block->length());
-        
-    if(send_size == msg_block->length())
-    {
-        msg_block->release();
-
-        return 0;        
-    }
     
     if(send_size > 0)
     {
+        if(static_cast<uint32>(send_size) == msg_block->length())
+        {
+            msg_block->release();
+
+            return 0;        
+        }
+        
         msg_block->rd_ptr(send_size);
         m_send_queue.enqueue_head(msg_block);
     }
-    else if(send_size == 0 || errno != EWOULDBLOCK && errno != EAGAIN)
+    else if(send_size == 0 || (errno != EWOULDBLOCK && errno != EAGAIN))
     {
         msg_block->release();
         shutdown();

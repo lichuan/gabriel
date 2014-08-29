@@ -66,6 +66,7 @@ protected:
     Message_Handler m_client_msg_handler;
     Message_Handler m_server_msg_handler;
     Thread<> m_thread;
+    lua_State *m_main_lua_state;
     
 private:
     bool init();
@@ -83,7 +84,7 @@ private:
     ID_Allocator<> m_connection_id_allocator;
     uint32 m_state;
     std::string m_log_dir;
-    SERVER_TYPE m_type;    
+    SERVER_TYPE m_type;
     uint32 m_zone_id;
     char *m_proc_name;
 };

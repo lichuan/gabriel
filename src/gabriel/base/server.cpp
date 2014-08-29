@@ -35,6 +35,7 @@ Server::Server() : m_acceptor(this), m_connector(this)
 {
     m_zone_id = 0;
     m_state = SERVER_STATE::INVALID;
+    m_main_lua_state = NULL;
 }
 
 Server::~Server()

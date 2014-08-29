@@ -310,7 +310,7 @@ void Server::register_rsp_from(gabriel::base::Connection *connection, void *data
     PARSE_MSG(Register_Center_Rsp, msg);
     clear_server_info();
     
-    for(uint32 i = 0; i != msg.info_size(); ++i)
+    for(int32 i = 0; i != msg.info_size(); ++i)
     {
         const auto &info = msg.info(i);
         

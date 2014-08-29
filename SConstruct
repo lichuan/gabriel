@@ -1,4 +1,5 @@
 import os
+import copy
 SetOption("random", 1)
 
 def get_static_library_name(node):
@@ -7,9 +8,8 @@ def get_static_library_name(node):
 def get_shared_library_name(node):
     return os.path.basename(str(node)[:-2])[3:-3]
 
-env = Environment(CCFLAGS='-g -std=c++11', CPPPATH=[
+env = Environment(CCFLAGS='-g -Wall -Werror -std=c++11', CPPPATH=[
         "#src",
-        "#script",
         "#3rd-party/ACE_wrappers",
         "#3rd-party/yaml-cpp/include",
         "#protocol/generated",
@@ -47,6 +47,10 @@ lib_path = [
 env.Replace(LIBS=libs, LIBPATH=lib_path)
 
 #supercenter
+supercenter_cpppath = copy.deepcopy(env["CPPPATH"])
+supercenter_cpppath.append("#src/gabriel/supercenter/lua2cpp")
+supercenter_env = env.Clone(CPPPATH=supercenter_cpppath)
+Export("supercenter_env")
 gabriel_supercenter_server = SConscript("src/gabriel/supercenter/SConscript", variant_dir="build/supercenter", duplicate=0)
 env.Install("build/bin", gabriel_supercenter_server)
 
@@ -63,6 +67,10 @@ gabriel_record_server = SConscript("src/gabriel/record/SConscript", variant_dir=
 env.Install("build/bin", gabriel_record_server)
 
 #login
+login_cpppath = copy.deepcopy(env["CPPPATH"])
+login_cpppath.append("#src/gabriel/login/lua2cpp")
+login_env = env.Clone(CPPPATH=login_cpppath)
+Export("login_env")
 gabriel_login_server = SConscript("src/gabriel/login/SConscript", variant_dir="build/login", duplicate=0)
 env.Install("build/bin", gabriel_login_server)
 

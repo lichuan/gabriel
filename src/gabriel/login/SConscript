@@ -1,3 +1,3 @@
-Import("env")
-gabriel_login_server = env.Program("gabriel_login_server______________", Glob("*.cpp"))
+Import("login_env")
+gabriel_login_server = login_env.Program("gabriel_login_server______________", Glob("*.cpp"))
 Return("gabriel_login_server")
