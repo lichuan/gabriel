@@ -70,37 +70,26 @@ bool Server::init_hook()
     {
         using namespace std::placeholders;
         YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        YAML::Node record_node = root["record"];
+        std::string db = record_node["db"].as<std::string>();
+        std::string host = record_node["host"].as<std::string>();
+        std::string user = record_node["user"].as<std::string>();
+        std::string password = record_node["password"].as<std::string>();
+        uint32 game_db_pool_size = record_node["game_db_pool_size"].as<uint32>();
+        uint32 log_db_pool_size = record_node["log_db_pool_size"].as<uint32>();
         
+        if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
         {
-            YAML::Node supercenter_node = root["supercenter"];
-            std::string host = supercenter_node["host"].as<std::string>();
-            uint16 port = supercenter_node["port"].as<uint16>();
-            zone_id(root["zone_id"].as<uint32>());
-            m_supercenter_addr.set(port, host.c_str());
+            cout << "error: game db pool init failed" << endl;
+            
+            return false;
         }
-        
-        {
-            YAML::Node record_node = root["record"];
-            std::string db = record_node["db"].as<std::string>();
-            std::string host = record_node["host"].as<std::string>();
-            std::string user = record_node["user"].as<std::string>();
-            std::string password = record_node["password"].as<std::string>();
-            uint32 game_db_pool_size = record_node["game_db_pool_size"].as<uint32>();
-            uint32 log_db_pool_size = record_node["log_db_pool_size"].as<uint32>();
-            
-            if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
-            {
-                cout << "error: game db pool init failed" << endl;
-            
-                return false;
-            }
 
-            if(!m_log_db_pool.init(host, db, user, password, log_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
-            {
-                cout << "error: log db pool init failed" << endl;
+        if(!m_log_db_pool.init(host, db, user, password, log_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
+        {
+            cout << "error: log db pool init failed" << endl;
                 
-                return false;
-            }
+            return false;
         }
     }
     catch(const YAML::Exception &err)
@@ -112,7 +101,7 @@ bool Server::init_hook()
 
     return Super::init_hook();
 }
-
+    
 void Server::update_hook()
 {
 }

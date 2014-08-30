@@ -109,22 +109,6 @@ void Server::do_main_on_server_connection()
     
 bool Server::init_hook()
 {
-    try
-    {
-        YAML::Node root = YAML::LoadFile("resource/config.yaml");        
-        YAML::Node supercenter_node = root["supercenter"];
-        std::string host = supercenter_node["host"].as<std::string>();
-        uint16 port = supercenter_node["port"].as<uint16>();
-        zone_id(root["zone_id"].as<uint32>());
-        m_supercenter_addr.set(port, host.c_str());
-    }
-    catch(const YAML::Exception &err)
-    {
-        cout << err.what() << endl;
-
-        return false;        
-    }
-    
     return Super::init_hook();
 }
 

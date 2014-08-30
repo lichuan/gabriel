@@ -105,21 +105,11 @@ void Ordinary_Server::do_main_on_server_connection()
 
 bool Ordinary_Server::init_hook()
 {
-    gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-    
-    if(m_connector.connect(tmp, m_supercenter_addr) < 0)
-    {
-        cout << "error: connect to supercenter server failed" << endl;
-
-        return false;        
-    }
-    
-    cout << "connect to supercenter server ok" << endl;
     using namespace gabriel::protocol::server;    
     Center_Addr_Req msg;
     msg.set_zone_id(zone_id());
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg);
-
+    
     return true;
 }
     

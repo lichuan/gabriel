@@ -40,7 +40,6 @@ protected:
     virtual bool init_hook();
     virtual void register_msg_handler();
     Server_Connection m_center_connection;
-    ACE_INET_Addr m_supercenter_addr;
     
 private:
     void center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size);

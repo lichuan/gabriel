@@ -55,41 +55,22 @@ bool Server::init_hook()
     try
     {
         using namespace std::placeholders;
+        set_proc_name_and_log_dir("gabriel_superrecord_server");
         YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        YAML::Node superrecord_node = root["superrecord"];
+        std::string db = superrecord_node["db"].as<std::string>();
+        std::string host = superrecord_node["host"].as<std::string>();
+        std::string user = superrecord_node["user"].as<std::string>();
+        std::string password = superrecord_node["password"].as<std::string>();
+        uint32 game_db_pool_size = superrecord_node["game_db_pool_size"].as<uint32>();
         
+        if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
         {
-            YAML::Node supercenter_node = root["supercenter"];
-            std::string host = supercenter_node["host"].as<std::string>();
-            uint16 port = supercenter_node["port"].as<uint16>();
-            set_proc_name_and_log_dir("gabriel_superrecord_server");
-            gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-        
-            if(m_connector.connect(tmp, ACE_INET_Addr(port, host.c_str())) < 0)
-            {
-                cout << "error: connect to supercenter server failed" << endl;
+            cout << "error: game db pool init failed" << endl;
             
-                return false;
-            }
-            
-            cout << "connect to supercenter server ok" << endl;
+            return false;
         }
-        
-        {
-            YAML::Node superrecord_node = root["superrecord"];
-            std::string db = superrecord_node["db"].as<std::string>();
-            std::string host = superrecord_node["host"].as<std::string>();
-            std::string user = superrecord_node["user"].as<std::string>();
-            std::string password = superrecord_node["password"].as<std::string>();
-            uint32 game_db_pool_size = superrecord_node["game_db_pool_size"].as<uint32>();
 
-            if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
-            {
-                cout << "error: game db pool init failed" << endl;
-            
-                return false;
-            }
-        }
-        
         register_req_to();
     }
     catch(const YAML::Exception &err)
@@ -98,7 +79,7 @@ bool Server::init_hook()
 
         return false;
     }
-
+    
     return true;
 }
 

@@ -123,31 +123,7 @@ void Server::register_req_to()
     
 bool Server::init_hook()
 {
-    try
-    {
-        YAML::Node root = YAML::LoadFile("resource/config.yaml");        
-        YAML::Node supercenter_node = root["supercenter"];
-        std::string host = supercenter_node["host"].as<std::string>();
-        uint16 port = supercenter_node["port"].as<uint16>();
-        gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-        zone_id(root["zone_id"].as<uint32>());
-        
-        if(m_connector.connect(tmp, ACE_INET_Addr(port, host.c_str())) < 0)
-        {
-            cout << "error: connect to supercenter server failed" << endl;
-
-            return false;
-        }
-    
-        cout << "connect to supercenter server ok" << endl;
-        register_req_to();
-    }
-    catch(const YAML::Exception &err)
-    {
-        cout << err.what() << endl;
-
-        return false;        
-    }
+    register_req_to();
     
     return true;    
 }
