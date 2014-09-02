@@ -36,12 +36,14 @@ public:
     virtual int open(void *acceptor_or_connector);
     void type(CLIENT_TYPE _type);
     CLIENT_TYPE type() const;
+    uint32 birth_time() const;
     
 private:
     virtual void destroy_this_ref();
     virtual void on_shutdown();
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    CLIENT_TYPE m_type;    
+    CLIENT_TYPE m_type;
+    uint32 m_birth_time;
 };
 
 }

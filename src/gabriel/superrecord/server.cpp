@@ -163,6 +163,7 @@ void Server::register_msg_handler()
     using namespace gabriel::protocol::server;
     using namespace std::placeholders;
     m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
 }
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)

@@ -68,7 +68,7 @@ void DB_Handler::do_task()
             try
             {
                 m_holder->m_func(this, task);
-                task->set_end_tick(get_usec_tick());
+                task->set_end_tick(get_usec_tick()); //used to calculate time consumed
                 
                 if(task->need_return())
                 {

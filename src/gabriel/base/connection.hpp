@@ -65,11 +65,11 @@ public:
     uint16 port() const;
     const char* ip_addr() const;
     const char* host_name() const;
+    void shutdown();
     
 protected:
     Server *m_holder;
-    void shutdown();
-
+    
 private:
     virtual int handle_input(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);

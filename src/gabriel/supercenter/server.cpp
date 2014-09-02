@@ -119,16 +119,7 @@ void Server::register_msg_handler()
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_req_from_center, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Server::center_addr_req_from, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, FORWARD_TO_SUPERRECORD, std::bind(&Server::forward_to_superrecord, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, std::bind(&Server::register_req_from_superrecord, this, _1, _2, _3));
-}
-    
-void Server::forward_to_superrecord(gabriel::base::Connection *connection, void *data, uint32 size)
-{
-    using namespace gabriel::protocol::server;
-    PARSE_FROM_ARRAY(DB_Task, msg, data, size);
-    msg.set_conn_id(connection->id());
-    send_to_superrecord(DEFAULT_MSG_TYPE, DB_TASK, msg);
 }
 
 void Server::center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size)

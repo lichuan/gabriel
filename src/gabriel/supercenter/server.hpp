@@ -52,7 +52,6 @@ private:
     void register_req_from_superrecord(gabriel::base::Connection *connection, void *data, uint32 size);
     void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
     void center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size);
-    void forward_to_superrecord(gabriel::base::Connection *connection, void *data, uint32 size);
     void send_to_superrecord(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg);    
     gabriel::base::Client_Connection *m_superrecord_client;
     std::map<uint32, std::vector<gabriel::protocol::server::Server_Info*>> m_server_infos;

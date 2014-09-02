@@ -27,7 +27,6 @@
 #include "gabriel/login/server.hpp"
 #include "gabriel/protocol/error.pb.h"
 #include "gabriel/protocol/client/default.pb.h"
-#include "gabriel/protocol/server/default.pb.h"
 #include "gabriel/protocol/client/msg_type.pb.h"
 #include "gabriel/protocol/server/msg_type.pb.h"
 
@@ -47,15 +46,7 @@ Server::~Server()
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)
 {
-    auto iter = m_connection_account_map.find(client_connection->id());
-
-    if(iter == m_connection_account_map.end())
-    {
-        return;
-    }
-    
-    m_login_accounts.erase(iter->second);
-    m_connection_account_map.erase(iter);
+    clear_account_by_conn_id(client_connection->id());
 }
 
 bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
@@ -65,7 +56,7 @@ bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_con
 
 void Server::do_main_on_server_connection()
 {
-    Super::do_main_on_server_connection();    
+    Super::do_main_on_server_connection();
 }
     
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
@@ -75,11 +66,14 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 bool Server::init_hook()
 {
+    schedule_timer(std::bind(&Server::shutdown_connection, this), 60000);
+    
     return Super::init_hook();
 }
 
 void Server::update_hook()
 {
+    
 }
 
 void Server::do_reconnect()
@@ -95,6 +89,7 @@ void Server::register_msg_handler()
     {
         using namespace gabriel::protocol::server;
         m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
+        m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
     }
     
     {
@@ -108,9 +103,49 @@ void Server::init_reactor()
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000, true), true), true);
 }
 
+void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    PARSE_FROM_ARRAY(DB_Task, msg, data, size);
+    uint32 msg_type = msg.msg_type();
+    uint32 msg_id = msg.msg_id();
+    
+    if(msg_type == DEFAULT_MSG_TYPE)
+    {
+        if(msg_id == FORWARD_USER_MSG)
+        {
+            PARSE_FROM_STRING(Forward_User_Msg, forward_msg, msg.msg_data());
+            handle_forward_user_msg(forward_msg);
+        }
+    }
+}
+
+void Server::handle_forward_user_msg(gabriel::protocol::server::Forward_User_Msg &msg)
+{
+    using namespace gabriel::protocol::client;
+
+    if(msg.msg_type() == DEFAULT_MSG_TYPE)
+    {
+        if(msg.msg_id() == REGISTER_ACCOUNT)
+        {
+            uint32 conn_id = msg.conn_id();
+            gabriel::base::Connection *connection = get_entity(conn_id);
+            
+            if(connection != NULL)
+            {
+                Register_Account_Rsp rsp;
+                rsp.ParseFromString(msg.msg_data());
+                connection->send(DEFAULT_MSG_TYPE, REGISTER_ACCOUNT, rsp);
+                clear_account_by_conn_id(conn_id);
+            }
+        }
+    }
+}
+
 void Server::handle_user_register(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    PARSE_FROM_ARRAY(gabriel::protocol::client::Register_Account, msg, data, size);
+    using namespace gabriel::protocol;    
+    PARSE_FROM_ARRAY(client::Register_Account, msg, data, size);
     const std::string &account = msg.account();
 
     if(account.empty() ||msg.password().empty())
@@ -120,9 +155,9 @@ void Server::handle_user_register(gabriel::base::Connection *connection, void *d
     
     if(m_login_accounts.find(account) != m_login_accounts.end())
     {
-        gabriel::protocol::client::Register_Account_Rsp rsp;
-        rsp.set_result(gabriel::protocol::ERR_LOGINING);
-        connection->send(gabriel::protocol::client::DEFAULT_MSG_TYPE, gabriel::protocol::client::REGISTER_ACCOUNT, rsp);
+        client::Register_Account_Rsp rsp;
+        rsp.set_result(ERR_LOGINING);
+        connection->send(client::DEFAULT_MSG_TYPE, client::REGISTER_ACCOUNT, rsp);
         
         return;
     }
@@ -130,24 +165,53 @@ void Server::handle_user_register(gabriel::base::Connection *connection, void *d
     uint32 conn_id = connection->id();
     m_login_accounts.insert(account);
     m_connection_account_map.insert(std::make_pair(conn_id, account));
-    gabriel::protocol::server::DB_Task task;
-    forward_user_msg_to_db(gabriel::protocol::client::DEFAULT_MSG_TYPE, gabriel::protocol::client::REGISTER_ACCOUNT, msg, conn_id, &task);
-    m_supercenter_connection.send(gabriel::protocol::server::DEFAULT_MSG_TYPE, gabriel::protocol::server::FORWARD_TO_SUPERRECORD, task);
+    forward_user_msg_to_superrecord(client::DEFAULT_MSG_TYPE, client::REGISTER_ACCOUNT, msg, conn_id);
 }
+
+void Server::shutdown_connection()
+{
+    using namespace gabriel::base;    
+    exec_all([](Client_Connection *connection)
+             {
+                 uint32 now_time = get_sec_tick();
+                 uint32 birth_time = connection->birth_time();
+                 
+                 if(now_time - birth_time > 300)
+                 {
+                     connection->shutdown();
+                 }
+             }
+        );
+}
+
+void Server::clear_account_by_conn_id(uint32 conn_id)
+{
+    auto iter = m_connection_account_map.find(conn_id);
     
-void Server::forward_user_msg_to_db(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg, uint32 conn_id, gabriel::protocol::server::DB_Task *task, uint32 seq)
+    if(iter == m_connection_account_map.end())
+    {
+        return;
+    }
+    
+    m_login_accounts.erase(iter->second);
+    m_connection_account_map.erase(iter);
+}
+
+void Server::forward_user_msg_to_superrecord(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg, uint32 conn_id, uint32 seq)
 {
     using namespace gabriel::protocol::server;
-    task->set_seq(seq);
-    task->set_pool_id(gabriel::base::DB_Handler_Pool::GAME_POOL);
-    task->set_msg_type(DEFAULT_MSG_TYPE);
-    task->set_msg_id(FORWARD_USER_MSG);
+    gabriel::protocol::server::DB_Task task;
+    task.set_seq(seq);
+    task.set_pool_id(gabriel::base::DB_Handler_Pool::GAME_POOL);
+    task.set_msg_type(DEFAULT_MSG_TYPE);
+    task.set_msg_id(FORWARD_USER_MSG);
     Forward_User_Msg forward_msg;
     forward_msg.set_msg_type(msg_type);
     forward_msg.set_msg_id(msg_id);
     forward_msg.set_conn_id(conn_id);
     msg.SerializeToString(forward_msg.mutable_msg_data());
-    forward_msg.SerializeToString(task->mutable_msg_data());
+    forward_msg.SerializeToString(task.mutable_msg_data());
+    m_superrecord_connection.send(DEFAULT_MSG_TYPE, DB_TASK, task);
 }
     
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)

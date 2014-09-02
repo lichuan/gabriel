@@ -25,6 +25,7 @@
 
 #include "gabriel/base/ordinary_server.hpp"
 #include "gabriel/base/message_handler.hpp"
+#include "gabriel/protocol/server/default.pb.h"
 
 namespace gabriel {
 namespace login {
@@ -49,7 +50,11 @@ private:
     virtual void do_reconnect();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
     void handle_user_register(gabriel::base::Connection *connection, void *data, uint32 size);
-    void forward_user_msg_to_db(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg, uint32 conn_id, gabriel::protocol::server::DB_Task *task, uint32 seq = 0);    
+    void handle_forward_user_msg(gabriel::protocol::server::Forward_User_Msg &msg);    
+    void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
+    void forward_user_msg_to_superrecord(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg, uint32 conn_id, uint32 seq = 0);
+    void clear_account_by_conn_id(uint32 conn_id);
+    void shutdown_connection();
     std::set<std::string> m_login_accounts;
     std::map<uint32, std::string> m_connection_account_map;
 };
