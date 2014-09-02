@@ -48,8 +48,10 @@ private:
     virtual bool init_hook();    
     virtual void do_reconnect();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
-    void handle_client_msg(gabriel::base::Connection *connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size);
-    gabriel::base::Server_Connection m_record_connection;
+    void handle_user_register(gabriel::base::Connection *connection, void *data, uint32 size);
+    void forward_user_msg_to_db(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg, uint32 conn_id, gabriel::protocol::server::DB_Task *task, uint32 seq = 0);    
+    std::set<std::string> m_login_accounts;
+    std::map<uint32, std::string> m_connection_account_map;
 };
     
 }

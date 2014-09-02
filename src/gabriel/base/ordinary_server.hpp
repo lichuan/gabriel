@@ -31,7 +31,6 @@ namespace base {
 class Ordinary_Server : public Server
 {
 protected:
-    typedef Server Super;    
     Ordinary_Server();
     virtual ~Ordinary_Server();
     virtual bool on_connection_shutdown(gabriel::base::Server_Connection *server_connection);
@@ -40,8 +39,10 @@ protected:
     virtual bool init_hook();
     virtual void register_msg_handler();
     Server_Connection m_center_connection;
+    Server_Connection m_record_connection;
     
 private:
+    typedef Server Super;
     void center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size);
     void register_req_to();
 };

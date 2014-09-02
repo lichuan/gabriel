@@ -48,7 +48,6 @@ private:
     virtual bool init_hook();    
     virtual void do_reconnect();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
-    gabriel::base::Server_Connection m_record_connection;
 };
     
 }

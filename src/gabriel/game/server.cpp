@@ -26,6 +26,7 @@
 #include "gabriel/game/server.hpp"
 #include "gabriel/protocol/server/default.pb.h"
 #include "gabriel/protocol/server/msg_type.pb.h"
+#include "lua2cpp.cpp"
 
 using namespace std;
 
@@ -47,17 +48,7 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
 
 bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
-    if(Super::on_connection_shutdown(server_connection))
-    {
-        return true;
-    }
-    
-    if(server_connection == &m_record_connection)
-    {
-        cout << "error: disconnected from record server" << endl;
-    }
-
-    return true;
+    return Super::on_connection_shutdown(server_connection);
 }
     
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
@@ -71,26 +62,7 @@ void Server::update_hook()
 
 void Server::do_reconnect()
 {
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
-    {
-        Super::do_reconnect();
-        
-        if(m_record_connection.lost_connection())
-        {
-            gabriel::base::Server_Connection *tmp = &m_record_connection;
-            
-            if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
-            {
-                cout << "error: reconnect to record server failed" << endl;
-            }
-            else
-            {
-                cout << "reconnect to record server ok" << endl;
-            }
-        }
-        
-        gabriel::base::sleep_sec(2);
-    }
+    Super::do_reconnect();
 }
     
 void Server::register_msg_handler()
@@ -104,11 +76,23 @@ void Server::register_msg_handler()
 void Server::do_main_on_server_connection()
 {
     Super::do_main_on_server_connection();
-    m_record_connection.do_main();
 }
     
 bool Server::init_hook()
 {
+    lua_State *state = luaL_newstate();
+    luaL_openlibs(state);
+    register_lua2cpp(state);
+    
+    if(luaL_dofile(state, "script/gabriel/script/main.lua") != 0)
+    {
+        cout << "lua error: " << lua_tostring(state, -1) << endl;
+        
+        return false;
+    }
+    
+    m_main_lua_state = state;
+    
     return Super::init_hook();
 }
 
@@ -120,8 +104,8 @@ void Server::init_reactor()
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
-    PARSE_MSG(Register_Ordinary_Rsp, msg);
-
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
+    
     if(id() > 0)
     {
         return;

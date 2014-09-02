@@ -47,7 +47,7 @@ class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public
         {
             m_msg_block->release();
             delete this;            
-        }        
+        }
     };
     
     typedef ACE_Svc_Handler Super;    

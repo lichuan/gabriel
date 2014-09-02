@@ -40,13 +40,16 @@ Log_Callback::~Log_Callback()
 {
 }
 
+void Log_Callback::init()
+{
+    ACE_LOG_MSG->open("server", ACE_Log_Msg::MSG_CALLBACK);
+    ACE_LOG_MSG->msg_callback(this);
+}
+
 void Log_Callback::init(std::string log_path)
 {
-    ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
-    ACE_LOG_MSG->open("server", ACE_Log_Msg::MSG_CALLBACK);
-    m_log_path = log_path;    
-    ACE_LOG_MSG->msg_callback(this);
-    
+    m_log_path = log_path;
+
     if(ACE_OS::access(log_path.c_str(), F_OK) != 0)
     {
         ACE_OS::mkdir(log_path.c_str());
@@ -81,7 +84,7 @@ std::string Log_Callback::to_string(ACE_Log_Priority priority)
 void Log_Callback::log(ACE_Log_Record &log_record)
 {
     ACE_Guard<ACE_Recursive_Thread_Mutex> guard(m_lock);
-
+    
     if(m_log_path.empty())
     {
         return;
@@ -127,7 +130,7 @@ void Log_Callback::log(ACE_Log_Record &log_record)
         file.open(hour_path, fstream::app | fstream::out);        
     }
     
-    file << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << time_prefix << log_record.msg_data() << endl;
+    file << time_prefix << to_string(static_cast<ACE_Log_Priority>(log_record.type())) << log_record.msg_data() << endl;
 }
     
 }

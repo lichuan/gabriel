@@ -43,7 +43,7 @@ public:
     Server();
     virtual ~Server();
     void add_connection(Client_Connection *client_connection);
-    virtual bool verify_connection(Client_Connection *client_connection);
+    virtual bool verify_connection(Client_Connection *client_connection) = 0;    
     void main(int argc, char* argv[]);
     uint32 state() const;
     void state(uint32 _state);
@@ -56,11 +56,14 @@ public:
     virtual void register_msg_handler() = 0;
     uint32 zone_id() const;
     void zone_id(uint32 id);
+    void init_log();
     
 protected:
     void set_proc_name_and_log_dir(const char *format, ...);
     virtual void do_main_on_server_connection();
+    virtual void do_reconnect();
     Server_Connection m_supercenter_connection;
+    Server_Connection m_superrecord_connection;
     Acceptor<Client_Connection, ACE_SOCK_ACCEPTOR> m_acceptor;
     Connector<Server_Connection, ACE_SOCK_CONNECTOR> m_connector;
     Message_Handler m_client_msg_handler;
@@ -72,10 +75,10 @@ private:
     bool init();
     void fini();
     void run();
-    void do_reactor();
-    void do_main();
+    void do_reactor_thread();
+    void do_main_thread();
+    void do_reconnect_thread();
     void do_main_on_client_connection();
-    virtual void do_reconnect();
     virtual bool init_hook() = 0;
     virtual void fini_hook() = 0;
     virtual void init_reactor() = 0;    

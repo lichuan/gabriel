@@ -56,7 +56,7 @@ typedef ACE_UINT64 uint64;
 #define MIN_DOUBLE ACE_DBL_MIN
 #define MAX_DOUBLE ACE_DBL_MAX
 
-#define PARSE_MSG(Msg, msg)                     \
+#define PARSE_FROM_ARRAY(Msg, msg, data, size)  \
     Msg msg;                                    \
                                                 \
     if(!msg.ParseFromArray(data, size))         \
@@ -64,14 +64,14 @@ typedef ACE_UINT64 uint64;
         return;                                 \
     }
 
-#define PARSE_INNER_MSG(Msg, inner_msg)             \
-    Msg inner_msg;                                  \
-                                                    \
-    if(!inner_msg.ParseFromString(msg.msg_data()))  \
-    {                                               \
-        return;                                     \
+#define PARSE_FROM_STRING(Msg, msg, string)     \
+    Msg msg;                                    \
+                                                \
+    if(!msg.ParseFromString(string))            \
+    {                                           \
+        return;                                 \
     }
-    
+
 namespace gabriel {
 namespace base {
 

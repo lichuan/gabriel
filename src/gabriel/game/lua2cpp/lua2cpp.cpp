@@ -146,39 +146,56 @@ static void build_global_table(lua_State *lua_state, const char *nodes_name)
     lua_settop(lua_state, 0);
 }
 
-static int lua____gabriel____supercenter___Server__new(lua_State *lua_state)
+static int lua____gabriel____game___Server__zone_id(lua_State *lua_state)
 {
+    uint32 *udata_self = (uint32*)luaL_checkudata(lua_state, 1, "_gabriel._game.Server");
+    udata_self += 1;
+    gabriel::game::Server *obj = *(gabriel::game::Server**)udata_self;
     lua_settop(lua_state, 0);
-    uint32 *udata = (uint32*)lua_newuserdata(lua_state, sizeof(uint32) + sizeof(gabriel::supercenter::Server*));
-    uint32 &gc_flag = *udata;
-    gc_flag = 1; /* need gc default in constructor */
-    udata += 1;
-    *(gabriel::supercenter::Server**)udata = new gabriel::supercenter::Server();
-    luaL_setmetatable(lua_state, "_gabriel._supercenter.Server");
+    uint32 v = obj->zone_id();
+    lua_pushunsigned(lua_state, v);
 
     return 1;
 }
 
-static int lua____gabriel____supercenter___Server__test(lua_State *lua_state)
+static int lua____gabriel____game___Server__garbage_colloect(lua_State *lua_state)
 {
-    uint32 *udata_self = (uint32*)luaL_checkudata(lua_state, 1, "_gabriel._supercenter.Server");
-    udata_self += 1;
-    gabriel::supercenter::Server *obj = *(gabriel::supercenter::Server**)udata_self;
-    lua_settop(lua_state, 0);
-    obj->test();
-
-    return 0;
-}
-
-static int lua____gabriel____supercenter___Server__garbage_colloect(lua_State *lua_state)
-{
-    uint32 *udata = (uint32*)luaL_checkudata(lua_state, 1, "_gabriel._supercenter.Server");
+    uint32 *udata = (uint32*)luaL_checkudata(lua_state, 1, "_gabriel._game.Server");
     uint32 &gc_flag = *udata;
  
     if(gc_flag == 1)
     {
         udata += 1;
-        gabriel::supercenter::Server *obj = *(gabriel::supercenter::Server**)udata;
+        gabriel::game::Server *obj = *(gabriel::game::Server**)udata;
+        delete obj;
+    }
+
+    return 0;
+}
+
+static int lua___SERVER__instance(lua_State *lua_state)
+{
+    lua_settop(lua_state, 0);
+    const gabriel::game::Server *v = SERVER::instance();
+    uint32 *udata = (uint32*)lua_newuserdata(lua_state, sizeof(uint32) + sizeof(gabriel::game::Server*));
+    uint32 &gc_flag = *udata;
+    gc_flag = 0;
+    udata += 1;
+    *(gabriel::game::Server**)udata = (gabriel::game::Server*)v;
+    luaL_setmetatable(lua_state, "_gabriel._game.Server");
+
+    return 1;
+}
+
+static int lua___SERVER__garbage_colloect(lua_State *lua_state)
+{
+    uint32 *udata = (uint32*)luaL_checkudata(lua_state, 1, "SERVER");
+    uint32 &gc_flag = *udata;
+ 
+    if(gc_flag == 1)
+    {
+        udata += 1;
+        SERVER *obj = *(SERVER**)udata;
         delete obj;
     }
 
@@ -188,22 +205,38 @@ static int lua____gabriel____supercenter___Server__garbage_colloect(lua_State *l
 static void register_lua2cpp(lua_State *lua_state)
 {
     /* register non-global namespace */
-    build_global_table(lua_state, "_gabriel._supercenter.Server");
+    build_global_table(lua_state, "_gabriel._game.Server");
+    build_global_table(lua_state, "SERVER");
 
     {
-        luaL_Reg _gabriel__supercenter_Server[] = 
+        luaL_Reg _gabriel__game_Server[] = 
         {
-            {"new", lua____gabriel____supercenter___Server__new},
-            {"test", lua____gabriel____supercenter___Server__test},
-            {"__gc", lua____gabriel____supercenter___Server__garbage_colloect},
+            {"zone_id", lua____gabriel____game___Server__zone_id},
+            {"__gc", lua____gabriel____game___Server__garbage_colloect},
             {NULL, NULL}
         };
 
         lua_settop(lua_state, 0);
-        luaL_newmetatable(lua_state, "_gabriel._supercenter.Server");
-        luaL_setfuncs(lua_state, _gabriel__supercenter_Server, 0);
+        luaL_newmetatable(lua_state, "_gabriel._game.Server");
+        luaL_setfuncs(lua_state, _gabriel__game_Server, 0);
         lua_setfield(lua_state, -1, "__index");
-        get_global_table(lua_state, "_gabriel._supercenter.Server");
-        luaL_setfuncs(lua_state, _gabriel__supercenter_Server, 0);
+        get_global_table(lua_state, "_gabriel._game.Server");
+        luaL_setfuncs(lua_state, _gabriel__game_Server, 0);
+    }
+
+    {
+        luaL_Reg SERVER[] = 
+        {
+            {"instance", lua___SERVER__instance},
+            {"__gc", lua___SERVER__garbage_colloect},
+            {NULL, NULL}
+        };
+
+        lua_settop(lua_state, 0);
+        luaL_newmetatable(lua_state, "SERVER");
+        luaL_setfuncs(lua_state, SERVER, 0);
+        lua_setfield(lua_state, -1, "__index");
+        get_global_table(lua_state, "SERVER");
+        luaL_setfuncs(lua_state, SERVER, 0);
     }
 }

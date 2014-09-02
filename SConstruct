@@ -47,10 +47,6 @@ lib_path = [
 env.Replace(LIBS=libs, LIBPATH=lib_path)
 
 #supercenter
-supercenter_cpppath = copy.deepcopy(env["CPPPATH"])
-supercenter_cpppath.append("#src/gabriel/supercenter/lua2cpp")
-supercenter_env = env.Clone(CPPPATH=supercenter_cpppath)
-Export("supercenter_env")
 gabriel_supercenter_server = SConscript("src/gabriel/supercenter/SConscript", variant_dir="build/supercenter", duplicate=0)
 env.Install("build/bin", gabriel_supercenter_server)
 
@@ -67,14 +63,14 @@ gabriel_record_server = SConscript("src/gabriel/record/SConscript", variant_dir=
 env.Install("build/bin", gabriel_record_server)
 
 #login
-login_cpppath = copy.deepcopy(env["CPPPATH"])
-login_cpppath.append("#src/gabriel/login/lua2cpp")
-login_env = env.Clone(CPPPATH=login_cpppath)
-Export("login_env")
 gabriel_login_server = SConscript("src/gabriel/login/SConscript", variant_dir="build/login", duplicate=0)
 env.Install("build/bin", gabriel_login_server)
 
 #game
+game_cpppath = copy.deepcopy(env["CPPPATH"])
+game_cpppath.append("#src/gabriel/game/lua2cpp")
+game_env = env.Clone(CPPPATH=game_cpppath)
+Export("game_env")
 gabriel_game_server = SConscript("src/gabriel/game/SConscript", variant_dir="build/game", duplicate=0)
 env.Install("build/bin", gabriel_game_server)
 

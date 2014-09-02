@@ -65,6 +65,11 @@ void Server::set_proc_name_and_log_dir(const char *format, ...)
     strncpy(m_proc_name, proc_name, 128);
     LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
 }
+
+void Server::init_log()
+{
+    LOG_MSG::instance()->init();
+}
     
 uint32 Server::state() const
 {
@@ -91,26 +96,24 @@ bool Server::init()
     // ACE_Sig_Action no_sigpipe ((ACE_SignalHandler) SIG_IGN);
     // ACE_Sig_Action original_action;
     // no_sigpipe.register_action (SIGPIPE, &original_action);
-    
     init_reactor();
     m_connector.open(ACE_Reactor::instance());
-    m_thread.add_executor(std::bind(&Server::do_reactor,this));
-    m_thread.add_executor(std::bind(&Server::do_main, this));
-    m_thread.add_executor(std::bind(&Server::do_reconnect, this));
+    m_thread.add_executor(std::bind(&Server::do_reactor_thread,this));
+    m_thread.add_executor(std::bind(&Server::do_main_thread, this));
+    m_thread.add_executor(std::bind(&Server::do_reconnect_thread, this));
     register_msg_handler();
     //daemon(1, 1);
     m_log_dir = std::string("log") + ACE_DIRECTORY_SEPARATOR_STR;
     
-    if(m_type != SUPERCENTER_SERVER)
+    try
     {
-        try
+        if(m_type != SUPERCENTER_SERVER)
         {
             YAML::Node root = YAML::LoadFile("resource/config.yaml");
             YAML::Node supercenter_node = root["supercenter"];
             std::string host = supercenter_node["host"].as<std::string>();
             uint16 port = supercenter_node["port"].as<uint16>();
             gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
-            zone_id(root["zone_id"].as<uint32>());
             
             if(m_connector.connect(tmp, ACE_INET_Addr(port, host.c_str())) < 0)
             {
@@ -120,15 +123,34 @@ bool Server::init()
             }
             
             cout << "connect to supercenter server ok" << endl;
-        }
-        catch(const YAML::Exception &err)
-        {
-            cout << err.what() << endl;
+            
+            if(m_type != SUPERRECORD_SERVER)
+            {
+                YAML::Node root = YAML::LoadFile("resource/config.yaml");
+                YAML::Node superrecord_node = root["superrecord"];
+                std::string host = superrecord_node["host"].as<std::string>();
+                uint16 port = superrecord_node["port"].as<uint16>();
+                gabriel::base::Server_Connection *tmp = &m_superrecord_connection;
+                zone_id(root["zone_id"].as<uint32>());
+                
+                if(m_connector.connect(tmp, ACE_INET_Addr(port, host.c_str())) < 0)
+                {
+                    cout << "error: connect to superrecord server failed" << endl;
 
-            return false;        
+                    return false;
+                }
+                
+                cout << "connect to superrecord server ok" << endl;
+            }
         }
     }
-    
+    catch(const YAML::Exception &err)
+    {
+        cout << err.what() << endl;
+
+        return false;        
+    }
+
     return init_hook();
 }
     
@@ -142,7 +164,7 @@ void Server::run()
 {
     m_thread.execute();
 }
-    
+
 void Server::handle_connection_msg(Server_Connection *server_connection, uint32 msg_type, uint32 msg_id, void *data, uint32 size)
 {
     m_server_msg_handler.handle_message(msg_type, msg_id, server_connection, data, size);
@@ -156,17 +178,27 @@ void Server::handle_connection_msg(Client_Connection *client_connection, uint32 
 void Server::do_main_on_server_connection()
 {
     m_supercenter_connection.do_main();
+    m_superrecord_connection.do_main();    
 }
 
 bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_connection)
 {
-    if(&m_supercenter_connection == server_connection)
+    if(server_connection == &m_supercenter_connection)
     {
         cout << "error: disconnected from supercenter server" << endl;
-
+        LOG_ERROR("disconnected from supercenter server");
+        
         return true;        
     }
 
+    if(server_connection == &m_superrecord_connection)
+    {
+        cout << "error: disconnected from superrecord server" << endl;
+        LOG_ERROR("disconnected from superrecord server");
+        
+        return true;
+    }
+    
     return false;
 }
     
@@ -200,10 +232,11 @@ void Server::do_main_on_client_connection()
         );
 }
 
-void Server::do_main()
+void Server::do_main_thread()
 {
     state(SERVER_STATE::RUNNING);
-
+    init_log();
+    
     while(state() != SERVER_STATE::SHUTDOWN)
     {
         do_main_on_server_connection();
@@ -215,8 +248,34 @@ void Server::do_main()
     ACE_Reactor::instance()->end_event_loop();
 }
 
+void Server::do_reconnect_thread()
+{
+    init_log();
+    
+    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    {
+        do_reconnect();
+        sleep_sec(2);
+    }
+}
+
 void Server::do_reconnect()
 {
+    if(m_superrecord_connection.lost_connection())
+    {
+        Server_Connection *tmp = &m_superrecord_connection;
+
+        if(m_connector.connect(tmp, m_superrecord_connection.inet_addr()) < 0)
+        {
+            cout << "error: reconnect to superrecord server failed" << endl;
+            LOG_ERROR("reconnect to superrecord server failed");
+        }
+        else
+        {
+            cout << "reconnect to superrecord server ok" << endl;
+            LOG_INFO("reconnect to superrecord server ok");
+        }
+    }
 }
 
 void Server::update()
@@ -225,14 +284,9 @@ void Server::update()
     TIMER_MGR::instance()->expire();
 }
     
-void Server::do_reactor()
+void Server::do_reactor_thread()
 {
     ACE_Reactor::instance()->run_event_loop();
-}
-
-bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
-{
-    return true;
 }
     
 void Server::add_connection(Client_Connection *client_connection)

@@ -1,3 +1,3 @@
-Import("supercenter_env")
-gabriel_supercenter_server = supercenter_env.Program("gabriel_supercenter_server", Glob("*.cpp"))
+Import("env")
+gabriel_supercenter_server = env.Program("gabriel_supercenter_server", Glob("*.cpp"))
 Return("gabriel_supercenter_server")

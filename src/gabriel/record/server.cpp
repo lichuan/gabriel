@@ -52,11 +52,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 void Server::do_reconnect()
 {
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
-    {
-        Super::do_reconnect();
-        gabriel::base::sleep_sec(2);
-    }
+    Super::do_reconnect();
 }
 
 void Server::init_reactor()
@@ -147,7 +143,7 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
-    PARSE_MSG(Register_Ordinary_Rsp, msg);
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
 
     if(id() > 0)
     {

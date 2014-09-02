@@ -41,6 +41,7 @@ public:
     virtual ~Server();
     
 private:
+    typedef gabriel::base::Server Super;
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
     virtual bool verify_connection(gabriel::base::Client_Connection *client_connection);
     virtual void do_reconnect();

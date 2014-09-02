@@ -1,0 +1,9 @@
+_gabriel._game.Server
+{
+  uint32 zone_id()
+}
+
+SERVER
+{
+  static _gabriel._game.Server* instance()
+}

@@ -42,12 +42,12 @@ Server::~Server()
 
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
-    return false;
+    return true;
 }
 
 void Server::init_reactor()
 {
-    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(100, true), true), true);
+    delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(1000, true), true), true);
 }
 
 bool Server::init_hook()
@@ -55,11 +55,21 @@ bool Server::init_hook()
     try
     {
         using namespace std::placeholders;
-        set_proc_name_and_log_dir("gabriel_superrecord_server");
         YAML::Node root = YAML::LoadFile("resource/config.yaml");
         YAML::Node superrecord_node = root["superrecord"];
-        std::string db = superrecord_node["db"].as<std::string>();
         std::string host = superrecord_node["host"].as<std::string>();
+        uint16 port = superrecord_node["port"].as<uint16>();
+        set_proc_name_and_log_dir("gabriel_superrecord_server");
+        
+        if(m_acceptor.open(ACE_INET_Addr(port, host.c_str()), ACE_Reactor::instance()) < 0)
+        {
+            cout << "error: start superrecord server failed" << endl;
+
+            return false;
+        }
+        
+        cout << "start superrecord server ok" << endl;
+        std::string db = superrecord_node["db"].as<std::string>();
         std::string user = superrecord_node["user"].as<std::string>();
         std::string password = superrecord_node["password"].as<std::string>();
         uint32 game_db_pool_size = superrecord_node["game_db_pool_size"].as<uint32>();
@@ -86,32 +96,17 @@ bool Server::init_hook()
 void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)
 {
     using namespace gabriel::protocol::server;
-
-    if(task->msg_type() == DEFAULT_MSG_TYPE && task->msg_id() == ZONE_INFO_REQ)
+    
+    switch(task->msg_type())
     {
-        task->set_need_return(true);
-        Zone_Info_Rsp rsp;
-        mysqlpp::Query query = handler->query("select * from zone_list");
-        if(mysqlpp::StoreQueryResult res = query.store())
-        {
-            for(auto it = res.begin(); it != res.end(); ++it)
-            {
-                const mysqlpp::Row &row = *it;
-                int32 idx = 0;
-                Zone_Info *zone_info = rsp.add_zone_info();
-                zone_info->set_zone_id(row[idx++]);
-                zone_info->mutable_info()->set_server_type(row[idx++]);
-                zone_info->mutable_info()->set_server_id(row[idx++]);
-                zone_info->mutable_info()->set_inner_addr(row[idx++]);
-                zone_info->mutable_info()->set_outer_addr(row[idx++]);
-                zone_info->mutable_info()->set_port(row[idx++]);
-            }
-
-            rsp.SerializeToString(task->mutable_msg_data());
-        }
+    case DEFAULT_MSG_TYPE:
+        handle_default_msg(handler, task);
+        break;
+    default:
+        break;
     }
 }
-
+    
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
@@ -134,26 +129,21 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
 
 void Server::do_reconnect()
 {
-    using namespace gabriel::base;
-    
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    if(m_supercenter_connection.lost_connection())
     {
-        if(m_supercenter_connection.lost_connection())
-        {
-            Server_Connection *tmp = &m_supercenter_connection;
+        gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
 
-            if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
-            {
-                cout << "error: reconnect to supercenter server failed" << endl;
-            }
-            else
-            {
-                register_req_to();
-                cout << "reconnect to supercenter server ok" << endl;
-            }
+        if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
+        {
+            cout << "error: reconnect to supercenter server failed" << endl;
+            LOG_ERROR("reconnect to supercenter server failed");
         }
-        
-        gabriel::base::sleep_sec(2);
+        else
+        {
+            register_req_to();
+            cout << "reconnect to supercenter server ok" << endl;
+            LOG_INFO("reconnect to supercenter server ok");
+        }
     }
 }
 

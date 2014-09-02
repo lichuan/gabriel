@@ -46,7 +46,8 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
     if(client_connection == m_record_client)
     {
         m_record_client = NULL;
-        cout << "record server disconnected from this server" << endl;
+        cout << "error: record server disconnected from this server" << endl;
+        LOG_ERROR("record server disconnected from this server");
     }
     else if(client_connection->type() == gabriel::base::GAME_CLIENT)
     {
@@ -55,7 +56,8 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
         if(iter != m_allocated_game_map.end())
         {
             m_allocated_game_ids.erase(iter->second);
-            cout << "game server (id=" << iter->second << ") disconnected from this server" << endl;
+            cout << "error: game server (id=" << iter->second << ") disconnected from this server" << endl;
+            LOG_ERROR("game server (id=%u) disconnected from this server", iter->second);
         }
     }
     else if(client_connection->type() == gabriel::base::GATEWAY_CLIENT)
@@ -65,12 +67,14 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
         if(iter != m_allocated_gateway_map.end())
         {
             m_allocated_gateway_ids.erase(iter->second);
-            cout << "gateway server (id=" << iter->second << ")disconnected from this server" << endl;
+            cout << "error: gateway server (id=" << iter->second << ")disconnected from this server" << endl;
+            LOG_ERROR("gateway server (id=%u)disconnected from this server", iter->second);
         }
     }
     else
     {
-        cout << "login server disconnected from this server" << endl;
+        cout << "error: login server disconnected from this server" << endl;
+        LOG_ERROR("login server disconnected from this server");
     }
 }
 
@@ -81,29 +85,26 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
 
 void Server::do_reconnect()
 {
-    using namespace gabriel::base;
+    Super::do_reconnect();
     
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    if(m_supercenter_connection.lost_connection())
     {
-        if(m_supercenter_connection.lost_connection())
-        {
-            Server_Connection *tmp = &m_supercenter_connection;
+        gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
 
-            if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
-            {
-                cout << "error: reconnect to supercenter server failed" << endl;
-            }
-            else
-            {
-                register_req_to();
-                cout << "reconnect to supercenter server ok" << endl;
-            }
+        if(m_connector.connect(tmp, m_supercenter_connection.inet_addr()) < 0)
+        {
+            cout << "error: reconnect to supercenter server failed" << endl;
+            LOG_ERROR("reconnect to supercenter server failed");
         }
-        
-        gabriel::base::sleep_sec(2);
+        else
+        {
+            register_req_to();
+            cout << "reconnect to supercenter server ok" << endl;
+            LOG_INFO("reconnect to supercenter server ok");
+        }
     }
 }
-
+    
 void Server::update_hook()
 {
 }
@@ -139,7 +140,7 @@ void Server::register_msg_handler()
 void Server::register_req_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
-    PARSE_MSG(Register_Ordinary, msg);
+    PARSE_FROM_ARRAY(Register_Ordinary, msg, data, size);
     Register_Ordinary_Rsp msg_rsp;
     static_cast<gabriel::base::Client_Connection*>(connection)->type(static_cast<gabriel::base::CLIENT_TYPE>(msg.server_type()));
     bool found_one = false;
@@ -277,13 +278,14 @@ void Server::register_req_from(gabriel::base::Connection *connection, void *data
     }
     
     cout << "received register request from " << server_name << " ip:" << connection->ip_addr() << " hostname:" << connection->host_name() << endl;
+    LOG_INFO("received register request from %s ip:%s hostname:%s", server_name, connection->ip_addr(), connection->host_name());
     connection->send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg_rsp);
 }
 
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
-    PARSE_MSG(Register_Center_Rsp, msg);
+    PARSE_FROM_ARRAY(Register_Center_Rsp, msg, data, size);
     clear_server_info();
     
     for(int32 i = 0; i != msg.info_size(); ++i)

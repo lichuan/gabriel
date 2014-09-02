@@ -24,13 +24,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "lua.hpp"
 #include "yaml-cpp/yaml.h"
 #include "ace/Dev_Poll_Reactor.h"
 #include "gabriel/base/db.hpp"
 #include "gabriel/supercenter/server.hpp"
 #include "gabriel/protocol/server/msg_type.pb.h"
-#include "lua2cpp.cpp"
 
 using namespace std;
 
@@ -57,7 +55,8 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
     if(m_superrecord_client == client_connection)
     {
         m_superrecord_client = NULL;
-        cout << "superrecord server disconnected from this server" << endl;
+        cout << "error: superrecord server disconnected from this server" << endl;
+        LOG_ERROR("superrecord server disconnected from this server");
     }
     else
     {
@@ -66,8 +65,9 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
             if(iter.second == client_connection)
             {
                 m_zone_connections.erase(iter.first);
-                cout << "zone: " << iter.first << " center server disconnected from this server" << endl;
-            
+                cout << "error: zone-" << iter.first << " center server disconnected from this server" << endl;
+                LOG_ERROR("zone-%u center server disconnected from this server", iter.first);
+                
                 break;
             }
         }
@@ -87,7 +87,8 @@ bool Server::init_hook()
         YAML::Node supercenter_node = root["supercenter"];
         std::string host = supercenter_node["host"].as<std::string>();
         uint16 port = supercenter_node["port"].as<uint16>();
-            
+        set_proc_name_and_log_dir("gabriel_supercenter_server");
+        
         if(m_acceptor.open(ACE_INET_Addr(port, host.c_str()), ACE_Reactor::instance()) < 0)
         {
             cout << "error: start supercenter server failed" << endl;
@@ -96,7 +97,6 @@ bool Server::init_hook()
         }
     
         cout << "start supercenter server ok" << endl;
-        set_proc_name_and_log_dir("gabriel_supercenter_server");
     }
     catch(const YAML::Exception &err)
     {
@@ -105,20 +105,11 @@ bool Server::init_hook()
         return false;
     }
     
-    lua_State *state = luaL_newstate();
-    luaL_openlibs(state);
-    register_lua2cpp(state);
-    
-    if(luaL_dofile(state, "script/gabriel/script/main.lua") != 0)
-    {
-        cout << "lua error: " << lua_tostring(state, -1) << endl;
-
-        return false;
-    }
-    
-    m_main_lua_state = state;
-    
     return true;
+}
+
+void Server::do_reconnect()
+{
 }
 
 void Server::register_msg_handler()
@@ -128,13 +119,22 @@ void Server::register_msg_handler()
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_req_from_center, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Server::center_addr_req_from, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, FORWARD_TO_SUPERRECORD, std::bind(&Server::forward_to_superrecord, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, std::bind(&Server::register_req_from_superrecord, this, _1, _2, _3));
+}
+    
+void Server::forward_to_superrecord(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    PARSE_FROM_ARRAY(DB_Task, msg, data, size);
+    msg.set_conn_id(connection->id());
+    send_to_superrecord(DEFAULT_MSG_TYPE, DB_TASK, msg);
 }
 
 void Server::center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
-    PARSE_MSG(Center_Addr_Req, msg);
+    PARSE_FROM_ARRAY(Center_Addr_Req, msg, data, size);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
 
@@ -162,8 +162,8 @@ void Server::center_addr_req_from(gabriel::base::Connection *connection, void *d
 void Server::update_hook()
 {
 }
-    
-void Server::fini_hook()
+
+void Server::clear_server_info()
 {
     for(auto iter : m_server_infos)
     {
@@ -174,6 +174,11 @@ void Server::fini_hook()
     }
 
     m_server_infos.clear();
+}
+    
+void Server::fini_hook()
+{
+    clear_server_info();
 }
 
 void Server::register_req_from_superrecord(gabriel::base::Connection *connection, void *data, uint32 size)
@@ -190,16 +195,25 @@ void Server::register_req_from_superrecord(gabriel::base::Connection *connection
     m_superrecord_client->send(DEFAULT_MSG_TYPE, DB_TASK, task);
 }
 
+void Server::send_to_superrecord(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
+{
+    if(m_superrecord_client != NULL)
+    {
+        m_superrecord_client->send(msg_type, msg_id, msg);
+    }
+}
+
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
-    PARSE_MSG(DB_Task, msg);
+    PARSE_FROM_ARRAY(DB_Task, msg, data, size);
     uint32 msg_type = msg.msg_type();
     uint32 msg_id = msg.msg_id();
-
+    clear_server_info();
+    
     if(msg_type == DEFAULT_MSG_TYPE && msg_id == ZONE_INFO_REQ)
     {
-        PARSE_INNER_MSG(Zone_Info_Rsp, rsp);
+        PARSE_FROM_STRING(Zone_Info_Rsp, rsp, msg.msg_data());
         
         for(int32 i = 0; i != rsp.zone_info_size(); ++i)
         {
@@ -216,7 +230,7 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
 void Server::register_req_from_center(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
-    PARSE_MSG(Register_Center, msg);
+    PARSE_FROM_ARRAY(Register_Center, msg, data, size);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
 
@@ -235,7 +249,8 @@ void Server::register_req_from_center(gabriel::base::Connection *connection, voi
 
     connection->send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg_rsp);
     m_zone_connections[zone_id] = connection;
-    cout << "zone: " << zone_id << " center server register to this server" << endl;
+    cout << "zone-" << zone_id << " center server register to this server" << endl;
+    LOG_INFO("zone-%u center server register to this server", zone_id);
 }
     
 }

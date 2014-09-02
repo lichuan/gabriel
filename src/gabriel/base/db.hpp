@@ -66,7 +66,6 @@ public:
     void add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task);
     
 private:
-    void wait();
     std::vector<DB_Handler*> m_handlers;
     uint32 m_num_of_handler; //cache
     Server *m_holder;    

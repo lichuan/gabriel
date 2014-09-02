@@ -45,6 +45,8 @@ void DB_Handler::add_task(gabriel::base::Connection *connection, gabriel::protoc
 
 void DB_Handler::do_task()
 {
+    m_server->init_log();
+    
     while(true)
     {
         if(m_task_queue.is_empty())
@@ -76,7 +78,7 @@ void DB_Handler::do_task()
             catch(const mysqlpp::Exception &err)
             {
                 cout << "error: " << err.what() << endl;
-                LOG_ERROR("error: %s", err.what());
+                LOG_ERROR("%s", err.what());
             }
 
             connection->release();
@@ -90,14 +92,6 @@ DB_Handler_Pool::DB_Handler_Pool(Server *holder)
 {
     m_holder = holder;
     m_num_of_handler = 0;    
-}
-
-void DB_Handler_Pool::wait()
-{
-    for(auto iter : m_handlers)
-    {
-        iter->wait();
-    }
 }
 
 bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, std::string password, uint32 num_of_handler, std::function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> func)
@@ -137,10 +131,9 @@ bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, s
     
 void DB_Handler_Pool::fini()
 {
-    wait();
-
     for(auto iter : m_handlers)
     {
+        iter->wait();
         delete iter;
     }
 }
@@ -160,9 +153,9 @@ void DB_Handler_Pool::add_task(gabriel::base::Connection *connection, gabriel::p
         //ensure that the same seq task must be done by order.
         idx = (task->seq() - 1) % m_num_of_handler;
     }
-
+    
     m_handlers[idx]->add_task(connection, task);
 }
-    
+
 }
 }

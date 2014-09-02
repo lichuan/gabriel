@@ -52,24 +52,18 @@ bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_con
         return true;
     }
     
-    if(server_connection == &m_record_connection)
+    for(auto iter : m_game_connections)
     {
-        cout << "error: disconnected from record server" << endl;
-    }
-    else
-    {
-        for(auto iter : m_game_connections)
+        gabriel::base::Server_Connection *game_connection = iter.second;
+
+        if(game_connection == server_connection)
         {
-            gabriel::base::Server_Connection *game_connection = iter.second;
-
-            if(game_connection == server_connection)
-            {
-                cout << "error: disconnected from game server (id=" << iter.first << ")" << endl;
-
-                break;
-            }
+            cout << "error: disconnected from game server (id=" << iter.first << ")" << endl;
+            LOG_ERROR("disconnected from game server (id=%u)", iter.first);
+            
+            break;
         }
-    }    
+    }
     
     return true;
 }
@@ -85,42 +79,25 @@ void Server::update_hook()
 
 void Server::do_reconnect()
 {
-    while(state() != gabriel::base::SERVER_STATE::SHUTDOWN)
+    Super::do_reconnect();
+    
+    for(auto iter : m_game_connections)
     {
-        Super::do_reconnect();
+        gabriel::base::Server_Connection *game_connection = iter.second;
         
-        if(m_record_connection.lost_connection())
+        if(game_connection->lost_connection())
         {
-            gabriel::base::Server_Connection *tmp = &m_record_connection;
-            
-            if(m_connector.connect(tmp, m_record_connection.inet_addr()) < 0)
+            if(m_connector.connect(game_connection, game_connection->inet_addr()) < 0)
             {
-                cout << "error: reconnect to record server failed" << endl;
+                cout << "error: reconnect to game server (id=" << iter.first << ") failed" << endl;
+                LOG_ERROR("reconnect to game server (id=%u) failed", iter.first);
             }
             else
             {
-                cout << "reconnect to record server ok" << endl;
+                cout << "reconnect to game server (id=" << iter.first << ") ok" << endl;
+                LOG_INFO("reconnect to game server (id=%u) ok", iter.first);
             }
         }
-
-        for(auto iter : m_game_connections)
-        {
-            gabriel::base::Server_Connection *game_connection = iter.second;
-        
-            if(game_connection->lost_connection())
-            {
-                if(m_connector.connect(game_connection, game_connection->inet_addr()) < 0)
-                {
-                    cout << "error: reconnect to game server (id=" << iter.first << ") failed" << endl;
-                }
-                else
-                {
-                    cout << "reconnect to game server (id=" << iter.first << ") ok" << endl;
-                }
-            }
-        }
-
-        gabriel::base::sleep_sec(2);
     }
 }
     
@@ -145,13 +122,18 @@ bool Server::init_hook()
 void Server::do_main_on_server_connection()
 {
     Super::do_main_on_server_connection();
-    m_record_connection.do_main();
+
+    for(auto iter : m_game_connections)
+    {
+        gabriel::base::Server_Connection *game_connection = iter.second;
+        game_connection->do_main();
+    }
 }
 
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;    
-    PARSE_MSG(Register_Ordinary_Rsp, msg);
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
     
     if(id() > 0)
     {
