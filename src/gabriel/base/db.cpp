@@ -37,6 +37,11 @@ DB_Handler::DB_Handler(DB_Handler_Pool *holder)
     m_task_queue.low_water_mark(MSG_QUEUE_LWM);
 }
 
+uint32 DB_Handler::get_task_num()
+{
+    return m_task_queue.message_count();
+}
+    
 void DB_Handler::add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task)
 {
     connection->retain();
@@ -94,6 +99,16 @@ DB_Handler_Pool::DB_Handler_Pool(Server *holder)
     m_num_of_handler = 0;    
 }
 
+void DB_Handler_Pool::print_task_num_in_queue()
+{
+    for(uint32 i = 0; i < m_num_of_handler; ++i)
+    {
+        DB_Handler *handler = m_handlers[i];
+        cout << "db task num: m_handlers[" << i << "]------" << handler->get_task_num() << endl;
+        LOG_INFO("db task num: m_handlers[%u]------%u", i, handler->get_task_num());
+    }
+}
+
 bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, std::string password, uint32 num_of_handler, std::function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> func)
 {
     m_num_of_handler = num_of_handler;
@@ -125,7 +140,9 @@ bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, s
 
         return false;
     }
-    
+
+    schedule_timer(std::bind(&DB_Handler_Pool::print_task_num_in_queue, this), 30000);
+
     return true;
 }
     

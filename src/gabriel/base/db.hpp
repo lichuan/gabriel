@@ -26,6 +26,7 @@
 #include <utility>
 #include "mysql++.h"
 #include "ace/Message_Queue_T.h"
+#include "gabriel/base/timer.hpp"
 #include "gabriel/base/thread.hpp"
 #include "gabriel/base/connection.hpp"
 #include "gabriel/protocol/server/default.pb.h"
@@ -43,6 +44,7 @@ public:
     DB_Handler(DB_Handler_Pool *holder);
     void do_task();    
     void add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task);
+    uint32 get_task_num();
     
 private:
     ACE_Message_Queue_Ex<std::pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*>, ACE_MT_SYNCH> m_task_queue;
@@ -50,7 +52,7 @@ private:
     Server *m_server;    
 };
     
-class DB_Handler_Pool
+class DB_Handler_Pool : public Timer
 {
 public:
     friend class DB_Handler;
@@ -66,6 +68,7 @@ public:
     void add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task);
     
 private:
+    void print_task_num_in_queue();    
     std::vector<DB_Handler*> m_handlers;
     uint32 m_num_of_handler; //cache
     Server *m_holder;    
