@@ -54,10 +54,10 @@ bool Server::init_hook()
 {
     try
     {
-        using namespace std::placeholders;
-        YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        using namespace placeholders;
+        YAML::Node root = YAML::LoadFile("resource/config.yml");
         YAML::Node superrecord_node = root["superrecord"];
-        std::string host = superrecord_node["host"].as<std::string>();
+        string host = superrecord_node["host"].as<string>();
         uint16 port = superrecord_node["port"].as<uint16>();
         set_proc_name_and_log_dir("gabriel_superrecord_server");
         
@@ -69,12 +69,12 @@ bool Server::init_hook()
         }
         
         cout << "start superrecord server ok" << endl;
-        std::string db = superrecord_node["db"].as<std::string>();
-        std::string user = superrecord_node["user"].as<std::string>();
-        std::string password = superrecord_node["password"].as<std::string>();
+        string db = superrecord_node["db"].as<string>();
+        string user = superrecord_node["user"].as<string>();
+        string password = superrecord_node["password"].as<string>();
         uint32 game_db_pool_size = superrecord_node["game_db_pool_size"].as<uint32>();
         
-        if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
+        if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, bind(&Server::handle_db_task, this, _1, _2)))
         {
             cout << "error: game db pool init failed" << endl;
             
@@ -161,9 +161,9 @@ void Server::update_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    using namespace std::placeholders;
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+    using namespace placeholders;
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
 }
 
 void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_connection)

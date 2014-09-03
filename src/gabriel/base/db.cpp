@@ -45,7 +45,7 @@ uint32 DB_Handler::get_task_num()
 void DB_Handler::add_task(gabriel::base::Connection *connection, gabriel::protocol::server::DB_Task *task)
 {
     connection->retain();
-    m_task_queue.enqueue_tail(new std::pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*>(connection, task));
+    m_task_queue.enqueue_tail(new pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*>(connection, task));
 }
 
 void DB_Handler::do_task()
@@ -65,7 +65,7 @@ void DB_Handler::do_task()
         }
         else
         {
-            std::pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*> *task_pair;
+            pair<gabriel::base::Connection*, gabriel::protocol::server::DB_Task*> *task_pair;
             m_task_queue.dequeue(task_pair);
             gabriel::base::Connection *connection = task_pair->first;
             gabriel::protocol::server::DB_Task *task = task_pair->second;
@@ -109,7 +109,7 @@ void DB_Handler_Pool::print_task_num_in_queue()
     }
 }
 
-bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, std::string password, uint32 num_of_handler, std::function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> func)
+bool DB_Handler_Pool::init(string host, string db, string user, string password, uint32 num_of_handler, function<void(DB_Handler *handler, gabriel::protocol::server::DB_Task*)> func)
 {
     m_num_of_handler = num_of_handler;
     m_func = func;
@@ -130,7 +130,7 @@ bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, s
                 return false;
             }
 
-            handler->start_executor_instantly(std::bind(&DB_Handler::do_task, handler));
+            handler->start_executor_instantly(bind(&DB_Handler::do_task, handler));
             m_handlers.push_back(handler);
         }
     }
@@ -141,7 +141,7 @@ bool DB_Handler_Pool::init(std::string host, std::string db, std::string user, s
         return false;
     }
 
-    schedule_timer(std::bind(&DB_Handler_Pool::print_task_num_in_queue, this), 30000);
+    schedule_timer(bind(&DB_Handler_Pool::print_task_num_in_queue, this), 30000);
 
     return true;
 }

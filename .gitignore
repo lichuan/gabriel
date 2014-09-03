@@ -4,4 +4,4 @@
 /cscope*
 /protocol/generated
 /protocol/plugin/plugin_pb2.pyc
-/resource/config.yaml
+/resource/config.yml

@@ -25,6 +25,8 @@
 #include "ace/OS_NS_sys_time.h"
 #include "gabriel/base/common.hpp"
 
+using namespace std;
+
 namespace gabriel {
 namespace base {
 
@@ -89,8 +91,8 @@ void sleep_usec(uint32 _usec)
 
 uint32 random_32()
 {
-    static std::random_device rd;
-    static std::mt19937 mt(rd());
+    static random_device rd;
+    static mt19937 mt(rd());
 
     return mt();    
 }
@@ -112,7 +114,7 @@ uint32 random_between(uint32 min, uint32 max)
 
     if(min > max)
     {
-        std::swap(min, max);
+        swap(min, max);
     }
     
     const uint32 diff = max - min + 1;
@@ -153,7 +155,7 @@ uint64 get_usec_tick()
     return tick;
 }
     
-std::string gen_uuid()
+string gen_uuid()
 {
     ACE_Utils::UUID uuid;
     ACE_Utils::UUID_GENERATOR::instance()->generate_UUID(uuid);

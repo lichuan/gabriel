@@ -83,9 +83,9 @@ bool Server::init_hook()
 {
     try
     {
-        YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        YAML::Node root = YAML::LoadFile("resource/config.yml");
         YAML::Node supercenter_node = root["supercenter"];
-        std::string host = supercenter_node["host"].as<std::string>();
+        string host = supercenter_node["host"].as<string>();
         uint16 port = supercenter_node["port"].as<uint16>();
         set_proc_name_and_log_dir("gabriel_supercenter_server");
         
@@ -115,11 +115,11 @@ void Server::do_reconnect()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    using namespace std::placeholders;
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_req_from_center, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Server::center_addr_req_from, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, std::bind(&Server::register_req_from_superrecord, this, _1, _2, _3));
+    using namespace placeholders;
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, bind(&Server::register_req_from_center, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, bind(&Server::center_addr_req_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, bind(&Server::register_req_from_superrecord, this, _1, _2, _3));
 }
 
 void Server::center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size)

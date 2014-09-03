@@ -29,6 +29,8 @@
 #include "ace/OS_NS_unistd.h"
 #include "gabriel/base/log.hpp"
 
+using namespace std;
+
 namespace gabriel {
 namespace base {
 
@@ -46,7 +48,7 @@ void Log_Callback::init()
     ACE_LOG_MSG->msg_callback(this);
 }
 
-void Log_Callback::init(std::string log_path)
+void Log_Callback::init(string log_path)
 {
     m_log_path = log_path;
 
@@ -56,7 +58,7 @@ void Log_Callback::init(std::string log_path)
     }
 }
     
-std::string Log_Callback::to_string(ACE_Log_Priority priority)
+string Log_Callback::to_string(ACE_Log_Priority priority)
 {
     if(priority == LM_DEBUG)
     {
@@ -90,17 +92,16 @@ void Log_Callback::log(ACE_Log_Record &log_record)
         return;
     }
     
-    using namespace std;
     static int32 cur_hour = -1;
     static fstream file;
-    static std::string cur_day_path;    
+    static string cur_day_path;    
     ACE_Date_Time now;
     ostringstream ost;
     ost << now.year() << "-" << setw(2) << setfill('0') << now.month() << "-" << setw(2) << setfill('0') << now.day();
-    std::string day_path = m_log_path + ost.str();
+    string day_path = m_log_path + ost.str();
     ost << " " << setw(2) << setfill('0') << now.hour() << ":" << setw(2) << setfill('0') << now.minute() << ":" << setw(2) << setfill('0') << now.second();
-    std::string time_prefix = ost.str();
-    time_prefix = std::string("[") + time_prefix + "] ";    
+    string time_prefix = ost.str();
+    time_prefix = string("[") + time_prefix + "] ";    
     bool file_changed = false;
     
     if(cur_day_path != day_path)
@@ -122,7 +123,7 @@ void Log_Callback::log(ACE_Log_Record &log_record)
 
     ost.str("");
     ost << setw(2) << setfill('0') << cur_hour << ".log";    
-    std::string hour_path = cur_day_path + ACE_DIRECTORY_SEPARATOR_STR + ost.str();
+    string hour_path = cur_day_path + ACE_DIRECTORY_SEPARATOR_STR + ost.str();
 
     if(file_changed)
     {

@@ -31,7 +31,6 @@ namespace base {
 Client_Connection::Client_Connection()
 {
     m_type = INVALID_CLIENT;
-    m_birth_time = get_sec_tick();
 }
 
 Client_Connection::~Client_Connection()
@@ -41,11 +40,6 @@ Client_Connection::~Client_Connection()
 void Client_Connection::type(gabriel::base::CLIENT_TYPE _type)
 {
     m_type = _type;    
-}
-
-uint32 Client_Connection::birth_time() const
-{
-    return m_birth_time;
 }
 
 CLIENT_TYPE Client_Connection::type() const

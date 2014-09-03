@@ -104,9 +104,9 @@ void Server::do_reconnect()
 void Server::register_msg_handler()
 {    
     using namespace gabriel::protocol::server;
-    using namespace std::placeholders;
+    using namespace placeholders;
     Super::register_msg_handler();
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
 }
 
 void Server::init_reactor()

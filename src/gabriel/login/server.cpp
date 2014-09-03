@@ -61,13 +61,16 @@ void Server::do_main_on_server_connection()
     
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
+    using namespace gabriel::base;
+    client_connection->schedule_timer([=]() {
+            client_connection->shutdown();
+        }, 0, 300000);
+
     return true;
 }
 
 bool Server::init_hook()
 {
-    schedule_timer(std::bind(&Server::shutdown_connection, this), 60000);
-    
     return Super::init_hook();
 }
 
@@ -84,17 +87,17 @@ void Server::do_reconnect()
 void Server::register_msg_handler()
 {
     Super::register_msg_handler();
-    using namespace std::placeholders;
+    using namespace placeholders;
     
     {
         using namespace gabriel::protocol::server;
-        m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
-        m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+        m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
+        m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
     }
     
     {
         using namespace gabriel::protocol::client;
-        m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ACCOUNT, std::bind(&Server::handle_user_register, this, _1, _2, _3));
+        m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ACCOUNT, bind(&Server::handle_user_register, this, _1, _2, _3));
     }
 }
 
@@ -122,66 +125,90 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
 
 void Server::handle_forward_user_msg(gabriel::protocol::server::Forward_User_Msg &msg)
 {
+    using namespace gabriel::protocol;
     using namespace gabriel::protocol::client;
+    uint32 msg_type = msg.msg_type();
+    uint32 msg_id = msg.msg_id();
+    uint32 conn_id = msg.conn_id();
+    gabriel::base::Connection *connection = get_entity(conn_id);
 
-    if(msg.msg_type() == DEFAULT_MSG_TYPE)
+    if(connection == NULL)
     {
-        if(msg.msg_id() == REGISTER_ACCOUNT)
+        return;
+    }
+    
+    if(msg_type == DEFAULT_MSG_TYPE)
+    {
+        if(msg_id == REGISTER_ACCOUNT)
         {
-            uint32 conn_id = msg.conn_id();
-            gabriel::base::Connection *connection = get_entity(conn_id);
-            
-            if(connection != NULL)
+            PARSE_FROM_STRING(Register_Account_Rsp, rsp, msg.msg_data());
+            connection->send(DEFAULT_MSG_TYPE, REGISTER_ACCOUNT, rsp);
+            clear_account_by_conn_id(conn_id);
+        }
+        else if(msg_id == LOGIN_ACCOUNT)
+        {
+            PARSE_FROM_STRING(Login_Account_Rsp, rsp, msg.msg_data());
+
+            if(rsp.result() == ERR_OK)
             {
-                Register_Account_Rsp rsp;
-                rsp.ParseFromString(msg.msg_data());
-                connection->send(DEFAULT_MSG_TYPE, REGISTER_ACCOUNT, rsp);
+                //go to center to get gateway ip and port
+            }
+            else
+            {
+                connection->send(DEFAULT_MSG_TYPE, LOGIN_ACCOUNT, rsp);
                 clear_account_by_conn_id(conn_id);
             }
         }
     }
 }
 
+void Server::handle_user_login(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol;
+    using namespace gabriel::protocol::client;
+    PARSE_FROM_ARRAY(Login_Account, msg, data, size);
+    const string &account = msg.account();
+
+    if(account.empty() || msg.password().empty())
+    {
+        return;
+    }
+
+    if(m_login_accounts.find(account) != m_login_accounts.end())
+    {
+        Login_Account_Rsp rsp;
+        rsp.set_result(ERR_LOGINING);
+        connection->send(DEFAULT_MSG_TYPE, LOGIN_ACCOUNT, rsp);
+
+        return;
+    }
+    
+    uint32 conn_id = connection->id();
+    m_login_accounts.insert(account);
+    m_connection_account_map.insert(make_pair(conn_id, account));
+    forward_user_msg_to_superrecord(DEFAULT_MSG_TYPE, LOGIN_ACCOUNT, msg, conn_id);
+}
+    
 void Server::handle_user_register(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol;    
-    PARSE_FROM_ARRAY(client::Register_Account, msg, data, size);
-    const std::string &account = msg.account();
+    using namespace gabriel::protocol::client;    
+    PARSE_FROM_ARRAY(Register_Account, msg, data, size);
+    const string &account = msg.account();
 
-    if(account.empty() ||msg.password().empty())
+    if(account.empty() || msg.password().empty())
     {
         return;
     }
     
     if(m_login_accounts.find(account) != m_login_accounts.end())
     {
-        client::Register_Account_Rsp rsp;
-        rsp.set_result(ERR_LOGINING);
-        connection->send(client::DEFAULT_MSG_TYPE, client::REGISTER_ACCOUNT, rsp);
-        
         return;
     }
     
     uint32 conn_id = connection->id();
     m_login_accounts.insert(account);
-    m_connection_account_map.insert(std::make_pair(conn_id, account));
-    forward_user_msg_to_superrecord(client::DEFAULT_MSG_TYPE, client::REGISTER_ACCOUNT, msg, conn_id);
-}
-
-void Server::shutdown_connection()
-{
-    using namespace gabriel::base;    
-    exec_all([](Client_Connection *connection)
-             {
-                 uint32 now_time = get_sec_tick();
-                 uint32 birth_time = connection->birth_time();
-                 
-                 if(now_time - birth_time > 300)
-                 {
-                     connection->shutdown();
-                 }
-             }
-        );
+    m_connection_account_map.insert(make_pair(conn_id, account));
+    forward_user_msg_to_superrecord(DEFAULT_MSG_TYPE, REGISTER_ACCOUNT, msg, conn_id);
 }
 
 void Server::clear_account_by_conn_id(uint32 conn_id)

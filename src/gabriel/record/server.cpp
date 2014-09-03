@@ -64,24 +64,24 @@ bool Server::init_hook()
 {
     try
     {
-        using namespace std::placeholders;
-        YAML::Node root = YAML::LoadFile("resource/config.yaml");
+        using namespace placeholders;
+        YAML::Node root = YAML::LoadFile("resource/config.yml");
         YAML::Node record_node = root["record"];
-        std::string db = record_node["db"].as<std::string>();
-        std::string host = record_node["host"].as<std::string>();
-        std::string user = record_node["user"].as<std::string>();
-        std::string password = record_node["password"].as<std::string>();
+        string db = record_node["db"].as<string>();
+        string host = record_node["host"].as<string>();
+        string user = record_node["user"].as<string>();
+        string password = record_node["password"].as<string>();
         uint32 game_db_pool_size = record_node["game_db_pool_size"].as<uint32>();
         uint32 log_db_pool_size = record_node["log_db_pool_size"].as<uint32>();
         
-        if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
+        if(!m_game_db_pool.init(host, db, user, password, game_db_pool_size, bind(&Server::handle_db_task, this, _1, _2)))
         {
             cout << "error: game db pool init failed" << endl;
             
             return false;
         }
 
-        if(!m_log_db_pool.init(host, db, user, password, log_db_pool_size, std::bind(&Server::handle_db_task, this, _1, _2)))
+        if(!m_log_db_pool.init(host, db, user, password, log_db_pool_size, bind(&Server::handle_db_task, this, _1, _2)))
         {
             cout << "error: log db pool init failed" << endl;
                 
@@ -105,10 +105,10 @@ void Server::update_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    using namespace std::placeholders;
+    using namespace placeholders;
     Super::register_msg_handler();
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, std::bind(&Server::handle_db_msg, this, _1, _2, _3));
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
 }
 
 void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)

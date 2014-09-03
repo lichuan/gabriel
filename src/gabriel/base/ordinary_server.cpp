@@ -148,8 +148,8 @@ bool Ordinary_Server::init_hook()
 void Ordinary_Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    using namespace std::placeholders;    
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, std::bind(&Ordinary_Server::center_addr_rsp, this, _1, _2, _3));
+    using namespace placeholders;    
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, bind(&Ordinary_Server::center_addr_rsp, this, _1, _2, _3));
 }
 
 void Ordinary_Server::center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size)

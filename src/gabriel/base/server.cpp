@@ -98,20 +98,20 @@ bool Server::init()
     // no_sigpipe.register_action (SIGPIPE, &original_action);
     init_reactor();
     m_connector.open(ACE_Reactor::instance());
-    m_thread.add_executor(std::bind(&Server::do_reactor_thread,this));
-    m_thread.add_executor(std::bind(&Server::do_main_thread, this));
-    m_thread.add_executor(std::bind(&Server::do_reconnect_thread, this));
+    m_thread.add_executor(bind(&Server::do_reactor_thread,this));
+    m_thread.add_executor(bind(&Server::do_main_thread, this));
+    m_thread.add_executor(bind(&Server::do_reconnect_thread, this));
     register_msg_handler();
     //daemon(1, 1);
-    m_log_dir = std::string("log") + ACE_DIRECTORY_SEPARATOR_STR;
+    m_log_dir = string("log") + ACE_DIRECTORY_SEPARATOR_STR;
     
     try
     {
         if(m_type != SUPERCENTER_SERVER)
         {
-            YAML::Node root = YAML::LoadFile("resource/config.yaml");
+            YAML::Node root = YAML::LoadFile("resource/config.yml");
             YAML::Node supercenter_node = root["supercenter"];
-            std::string host = supercenter_node["host"].as<std::string>();
+            string host = supercenter_node["host"].as<string>();
             uint16 port = supercenter_node["port"].as<uint16>();
             gabriel::base::Server_Connection *tmp = &m_supercenter_connection;
             
@@ -126,9 +126,9 @@ bool Server::init()
             
             if(m_type != SUPERRECORD_SERVER)
             {
-                YAML::Node root = YAML::LoadFile("resource/config.yaml");
+                YAML::Node root = YAML::LoadFile("resource/config.yml");
                 YAML::Node superrecord_node = root["superrecord"];
-                std::string host = superrecord_node["host"].as<std::string>();
+                string host = superrecord_node["host"].as<string>();
                 uint16 port = superrecord_node["port"].as<uint16>();
                 gabriel::base::Server_Connection *tmp = &m_superrecord_connection;
                 zone_id(root["zone_id"].as<uint32>());
@@ -214,22 +214,19 @@ SERVER_TYPE Server::type() const
     
 void Server::do_main_on_client_connection()
 {
-    delete_if([](Client_Connection *client_connection)->bool
-              {
-                  if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
-                  {
-                      return true;
-                  }
+    delete_if([](Client_Connection *client_connection)->bool {
+            if(client_connection->state() == CONNECTION_STATE::SHUTDOWN)
+            {
+                return true;
+            }
 
-                  client_connection->do_main();
+            client_connection->do_main();
 
-                  return false;
-              },
-              [](Client_Connection *client_connection)
-              {
-                  client_connection->release();
-              }
-        );
+            return false;
+        },
+        [](Client_Connection *client_connection) {
+            client_connection->release();
+        });
 }
 
 void Server::do_main_thread()

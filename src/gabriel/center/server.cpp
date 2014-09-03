@@ -132,9 +132,9 @@ bool Server::init_hook()
 void Server::register_msg_handler()
 {
     using namespace gabriel::protocol::server;
-    using namespace std::placeholders;    
-    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, std::bind(&Server::register_rsp_from, this, _1, _2, _3));
-    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, std::bind(&Server::register_req_from, this, _1, _2, _3));
+    using namespace placeholders;    
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_req_from, this, _1, _2, _3));
 }
 
 void Server::register_req_from(gabriel::base::Connection *connection, void *data, uint32 size)
@@ -199,7 +199,7 @@ void Server::register_req_from(gabriel::base::Connection *connection, void *data
                     {
                         msg_rsp.add_info()->CopyFrom(*info);
                         m_allocated_game_ids.insert(info->server_id());
-                        m_allocated_game_map.insert(std::make_pair(connection->id(), info->server_id()));
+                        m_allocated_game_map.insert(make_pair(connection->id(), info->server_id()));
                         ACE_OS::sprintf(server_name, "game server (id=%u)", info->server_id());                        
                         found_one = true;
                     }
@@ -212,7 +212,7 @@ void Server::register_req_from(gabriel::base::Connection *connection, void *data
                 {
                     msg_rsp.add_info()->CopyFrom(*info);
                     m_allocated_game_ids.insert(info->server_id());
-                    m_allocated_game_map.insert(std::make_pair(connection->id(), info->server_id()));
+                    m_allocated_game_map.insert(make_pair(connection->id(), info->server_id()));
                     ACE_OS::sprintf(server_name, "game server (id=%u)", info->server_id());                    
                     found_one = true;
                 }
@@ -248,7 +248,7 @@ void Server::register_req_from(gabriel::base::Connection *connection, void *data
                     {
                         msg_rsp.add_info()->CopyFrom(*info);
                         m_allocated_gateway_ids.insert(info->server_id());
-                        m_allocated_gateway_map.insert(std::make_pair(connection->id(), info->server_id()));
+                        m_allocated_gateway_map.insert(make_pair(connection->id(), info->server_id()));
                         ACE_OS::sprintf(server_name, "gateway server (id=%u)", info->server_id());                        
                         found_one = true;
                     }
@@ -261,7 +261,7 @@ void Server::register_req_from(gabriel::base::Connection *connection, void *data
                 {
                     msg_rsp.add_info()->CopyFrom(*info);
                     m_allocated_gateway_ids.insert(info->server_id());
-                    m_allocated_gateway_map.insert(std::make_pair(connection->id(), info->server_id()));
+                    m_allocated_gateway_map.insert(make_pair(connection->id(), info->server_id()));
                     ACE_OS::sprintf(server_name, "gateway server (id=%u)", info->server_id());                    
                     found_one = true;
                 }                

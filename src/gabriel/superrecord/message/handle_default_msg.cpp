@@ -24,6 +24,7 @@
 #include "gabriel/protocol/client/default.pb.h"
 #include "gabriel/protocol/client/msg_type.pb.h"
 
+using namespace std;
 using namespace gabriel::protocol;
 using namespace gabriel::protocol::server;
 
@@ -65,7 +66,7 @@ void handle_forward_user_default_msg(uint32 msg_id, gabriel::base::DB_Handler *h
     if(msg_id == client::REGISTER_ACCOUNT)
     {
         PARSE_FROM_STRING(client::Register_Account, msg, forward_msg.msg_data());
-        mysqlpp::Query query = handler->query("select * from account where account = %0q");
+        mysqlpp::Query query = handler->query("select password from account where account = %0q");
         query.parse();
         mysqlpp::StoreQueryResult res = query.store(msg.account());
         
@@ -90,10 +91,46 @@ void handle_forward_user_default_msg(uint32 msg_id, gabriel::base::DB_Handler *h
         }
         
         rsp.SerializeToString(forward_msg.mutable_msg_data());
-        need_return = true;
     }
-}
+    else if(msg_id == client::LOGIN_ACCOUNT)
+    {
+        PARSE_FROM_STRING(client::Login_Account, msg, forward_msg.msg_data());
+        const string &account = msg.account();
+        mysqlpp::Query query = handler->query("select password from account where account = %0q");
+        query.parse();
+        mysqlpp::StoreQueryResult res = query.store(account);
+
+        if(!res)
+        {
+            return;
+        }
+
+        client::Login_Account_Rsp rsp;
+        
+        if(res.num_rows() == 0)
+        {
+            rsp.set_result(ERR_ACCOUNT_NOT_EXIST);
+        }
+        else
+        {
+            std::string password(res[0][0]);
+            
+            if(password != msg.password())
+            {
+                rsp.set_result(ERR_PASSWORD_INVALID);
+            }
+            else
+            {
+                rsp.set_result(ERR_OK);
+            }
+        }
+
+        rsp.SerializeToString(forward_msg.mutable_msg_data());
+    }
     
+    need_return = true;
+}
+
 void handle_forward_user_msg(gabriel::base::DB_Handler *handler, DB_Task *task)
 {
     PARSE_FROM_STRING(Forward_User_Msg, msg, task->msg_data());
@@ -111,7 +148,7 @@ void handle_forward_user_msg(gabriel::base::DB_Handler *handler, DB_Task *task)
     }
 }
 
-std::map<uint32, void(*)(gabriel::base::DB_Handler*, DB_Task*)> msg_handlers = {
+map<uint32, void(*)(gabriel::base::DB_Handler*, DB_Task*)> msg_handlers = {
     {ZONE_INFO_REQ, handle_zone_info_req},
     {FORWARD_USER_MSG, handle_forward_user_msg},
 };
