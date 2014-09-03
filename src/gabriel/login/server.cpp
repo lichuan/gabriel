@@ -65,7 +65,7 @@ bool Server::verify_connection(gabriel::base::Client_Connection *client_connecti
     client_connection->schedule_timer([=]() {
             client_connection->shutdown();
         }, 0, 300000);
-
+    
     return true;
 }
 

@@ -34,7 +34,7 @@ Timer_Handler::Timer_Handler(function<void()> call)
     m_timer_id = -1;
 }
 
-void Timer_Handler::timer_id(int32 timer_id)
+void Timer_Handler::timer_id(int64 timer_id)
 {
     m_timer_id = timer_id;
 }
@@ -66,7 +66,7 @@ Timer::~Timer()
     }
 }
 
-int32 Timer::schedule_timer(function<void()> call, uint32 interval, uint32 delay)
+int64 Timer::schedule_timer(function<void()> call, uint32 interval, uint32 delay)
 {
     ACE_Time_Value future_time = TIMER_MGR::instance()->current_time();
     uint32 delay_sec = delay / 1000;
@@ -75,7 +75,7 @@ int32 Timer::schedule_timer(function<void()> call, uint32 interval, uint32 delay
     uint32 interval_usec = (interval % 1000) * 1000;    
     future_time += ACE_Time_Value(delay_sec, delay_usec);    
     Timer_Handler *handler = new Timer_Handler(call);
-    int32 timer_id = 0;
+    int64 timer_id = 0;
     
     if(interval == 0)
     {
@@ -95,11 +95,10 @@ int32 Timer::schedule_timer(function<void()> call, uint32 interval, uint32 delay
     return timer_id;
 }
 
-void Timer::cancel_timer(int32 id)
+void Timer::cancel_timer(int64 id)
 {
-    TIMER_MGR::instance()->cancel(id);
     auto iter = m_timer_handlers.find(id);
-
+    
     if(iter != m_timer_handlers.end())
     {
         delete iter->second;

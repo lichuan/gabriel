@@ -38,9 +38,9 @@ class Timer_Handler : public ACE_Event_Handler
 private:
     Timer_Handler(std::function<void()> call);
     virtual int handle_timeout (const ACE_Time_Value &current_time, const void *act = 0);
-    void timer_id(int32 timer_id);
+    void timer_id(int64 timer_id);
     std::function<void()> m_call;
-    int32 m_timer_id;
+    int64 m_timer_id;
 };
 
 typedef ACE_Singleton<ACE_Timer_Heap, ACE_Null_Mutex> TIMER_MGR;
@@ -50,11 +50,11 @@ class Timer
 public:
     Timer();
     ~Timer();
-    int32 schedule_timer(std::function<void()> call, uint32 interval, uint32 delay = 0);
-    void cancel_timer(int32 timer_id);
+    int64 schedule_timer(std::function<void()> call, uint32 interval, uint32 delay = 0);
+    void cancel_timer(int64 timer_id);
     
 private:
-    std::map<int32, Timer_Handler*> m_timer_handlers;
+    std::map<int64, Timer_Handler*> m_timer_handlers;
 };
 
 }

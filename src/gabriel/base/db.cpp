@@ -141,8 +141,8 @@ bool DB_Handler_Pool::init(string host, string db, string user, string password,
         return false;
     }
 
-    schedule_timer(bind(&DB_Handler_Pool::print_task_num_in_queue, this), 30000);
-
+    schedule_timer(bind(&DB_Handler_Pool::print_task_num_in_queue, this), 30000, 30000);
+    
     return true;
 }
     
