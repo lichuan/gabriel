@@ -75,13 +75,14 @@ private:
     virtual int handle_output(ACE_HANDLE hd = ACE_INVALID_HANDLE);
     virtual void dispatch(uint32 msg_type, uint32 msg_id, void *data, uint32 size) = 0;    
     virtual void on_shutdown() = 0;
+    void init();    
     void do_main_i();    
     uint32 m_state;
     uint32 m_last_msg_length;
     ACE_INET_Addr m_addr;
     ACE_Message_Queue<ACE_MT_SYNCH> m_send_queue;
     ACE_Message_Queue_Ex<Message, ACE_MT_SYNCH> m_dispatch_queue;
-    bool m_write_disable;    
+    bool m_write_disable;
 };
     
 }

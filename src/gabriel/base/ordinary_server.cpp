@@ -125,6 +125,7 @@ void Ordinary_Server::register_req_to()
     Register_Ordinary msg;
     msg.set_server_id(id());
     msg.set_server_type(type());
+    cout << "register to center type: " << type() << endl;
     m_center_connection.send(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, msg);
 }
 

@@ -27,20 +27,30 @@ namespace base {
 
 Connection::Connection()
 {
-    water_marks(ACE_IO_Cntl_Msg::SET_HWM, MSG_QUEUE_HWM);
-    water_marks(ACE_IO_Cntl_Msg::SET_LWM, MSG_QUEUE_LWM);
-    m_send_queue.high_water_mark(MSG_QUEUE_HWM);    
-    m_send_queue.low_water_mark(MSG_QUEUE_LWM);
-    m_dispatch_queue.high_water_mark(MSG_QUEUE_HWM);
-    m_dispatch_queue.low_water_mark(MSG_QUEUE_LWM);
     m_holder = NULL;
-    m_last_msg_length = 0;
-    m_state = CONNECTION_STATE::INVALID;
-    m_write_disable = true;    
 }
     
 Connection::~Connection()
 {
+}
+
+void Connection::init()
+{
+    m_last_msg_length = 0;
+    m_state = CONNECTION_STATE::INVALID;
+    m_write_disable = true;
+    msg_queue()->close();
+    msg_queue()->open();
+    water_marks(ACE_IO_Cntl_Msg::SET_HWM, MSG_QUEUE_HWM);
+    water_marks(ACE_IO_Cntl_Msg::SET_LWM, MSG_QUEUE_LWM);
+    m_send_queue.close();
+    m_send_queue.open();
+    m_send_queue.high_water_mark(MSG_QUEUE_HWM);
+    m_send_queue.low_water_mark(MSG_QUEUE_LWM);
+    m_dispatch_queue.close();
+    m_dispatch_queue.open();
+    m_dispatch_queue.high_water_mark(MSG_QUEUE_HWM);
+    m_dispatch_queue.low_water_mark(MSG_QUEUE_LWM);
 }
 
 uint32 Connection::state() const
@@ -68,9 +78,9 @@ void Connection::send(uint32 msg_type, uint32 msg_id, google::protobuf::Message 
     uint32_msg[0] = ACE_HTONL(msg_size);
     uint32_msg[1] = ACE_HTONL(msg_type);
     uint32_msg[2] = ACE_HTONL(msg_id);
-    msg_block->wr_ptr(msg_block->size());    
+    msg_block->wr_ptr(msg_block->size());
     m_send_queue.enqueue_tail(msg_block);
-
+    
     if(m_write_disable)
     {
         reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
@@ -106,6 +116,8 @@ void Connection::do_main_i()
     
 int Connection::open(void *acceptor_or_connector)
 {
+    init();
+    
     if(Super::open() < 0)
     {
         return -1;
@@ -259,7 +271,7 @@ int Connection::handle_output(ACE_HANDLE hd)
 
         return 0;
     }
-    
+
     ACE_Message_Block *msg_block;
     m_send_queue.dequeue(msg_block);
     int32 send_size = peer().send(msg_block->rd_ptr(), msg_block->length());

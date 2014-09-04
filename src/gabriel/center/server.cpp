@@ -92,10 +92,15 @@ void Server::on_connection_shutdown(gabriel::base::Client_Connection *client_con
             }
         }
     }
-    else
+    else if(client_connection->type() == gabriel::base::LOGIN_CLIENT)
     {
         cout << "error: login server disconnected from this server" << endl;
         LOG_ERROR("login server disconnected from this server");
+    }
+    else
+    {
+        cout << "error: unknown server disconnected from this server" << endl;
+        LOG_ERROR("unknown server disconnected from this server");
     }
 }
 
