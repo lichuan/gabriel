@@ -27,6 +27,7 @@
 #include "gabriel/protocol/server/msg_type.pb.h"
 
 using namespace std;
+using namespace gabriel::protocol::server;
 
 namespace gabriel {
 namespace superrecord {
@@ -93,10 +94,8 @@ bool Server::init_hook()
     return true;
 }
 
-void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)
+void Server::handle_db_task(gabriel::base::DB_Handler *handler, DB_Task *task)
 {
-    using namespace gabriel::protocol::server;
-    
     switch(task->msg_type())
     {
     case DEFAULT_MSG_TYPE:
@@ -109,7 +108,6 @@ void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protoco
     
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;
     DB_Task *task = new DB_Task;
 
     if(!task->ParseFromArray(data, size))
@@ -149,8 +147,7 @@ void Server::do_reconnect()
 
 void Server::register_req_to()
 {
-    using namespace gabriel::protocol::server;
-    Register_Superrecord msg;
+    gabriel::protocol::Null_Msg msg;
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, REGISTER_SUPERRECORD_SERVER, msg);
 }
     
@@ -160,7 +157,6 @@ void Server::update_hook()
 
 void Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server;
     using namespace placeholders;
     m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));

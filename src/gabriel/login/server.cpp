@@ -61,7 +61,6 @@ void Server::do_main_on_server_connection()
     
 bool Server::verify_connection(gabriel::base::Client_Connection *client_connection)
 {
-    using namespace gabriel::base;
     client_connection->schedule_timer([=]() {
             client_connection->shutdown();
         }, 0, 300000);
@@ -93,6 +92,7 @@ void Server::register_msg_handler()
         using namespace gabriel::protocol::server;
         m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
         m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
+        m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, SYNC_ACCOUNT, bind(&Server::sync_account_rsp, this, _1, _2, _3));
     }
     
     {
@@ -106,6 +106,26 @@ void Server::init_reactor()
     delete ACE_Reactor::instance(new ACE_Reactor(new ACE_Dev_Poll_Reactor(10000, true), true), true);
 }
 
+void Server::sync_account_rsp(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol;
+    using namespace gabriel::protocol::server;
+    PARSE_FROM_ARRAY(Sync_Account_Rsp, msg, data, size);
+    client::Login_Account_Rsp rsp;
+    rsp.set_result(ERR_OK);
+    rsp.set_key(msg.key());
+    rsp.set_port(msg.port());
+    rsp.set_addr(msg.addr());
+    uint32 conn_id = msg.conn_id_2();
+    base::Connection *user_conn = get_entity(conn_id);
+    clear_account_by_conn_id(conn_id);
+    
+    if(user_conn != NULL)
+    {
+        user_conn->send(client::DEFAULT_MSG_TYPE, client::LOGIN_ACCOUNT, rsp);
+    }
+}
+    
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     using namespace gabriel::protocol::server;
@@ -151,7 +171,11 @@ void Server::handle_forward_user_msg(gabriel::protocol::server::Forward_User_Msg
 
             if(rsp.result() == ERR_OK)
             {
-                //go to center to get gateway ip and port
+                auto iter = m_connection_account_map.find(conn_id);
+                server::Get_One_Gateway msg;
+                msg.set_account(iter->second);
+                msg.set_conn_id(conn_id);
+                m_center_connection.send(server::DEFAULT_MSG_TYPE, server::GET_ONE_GATEWAY, msg);
             }
             else
             {
@@ -176,10 +200,6 @@ void Server::handle_user_login(gabriel::base::Connection *connection, void *data
 
     if(m_login_accounts.find(account) != m_login_accounts.end())
     {
-        Login_Account_Rsp rsp;
-        rsp.set_result(ERR_LOGINING);
-        connection->send(DEFAULT_MSG_TYPE, LOGIN_ACCOUNT, rsp);
-
         return;
     }
     
@@ -243,14 +263,14 @@ void Server::forward_user_msg_to_superrecord(uint32 msg_type, uint32 msg_id, goo
     
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;
-    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
-
     if(id() > 0)
     {
         return;
     }
-
+    
+    using namespace gabriel::protocol::server;
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
+    
     if(msg.info_size() != 2)
     {
         state(gabriel::base::SERVER_STATE::SHUTDOWN);

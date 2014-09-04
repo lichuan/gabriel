@@ -31,6 +31,7 @@
 #include "gabriel/protocol/server/msg_type.pb.h"
 
 using namespace std;
+using namespace gabriel::protocol::server;
 
 namespace gabriel {
 namespace supercenter {
@@ -114,7 +115,6 @@ void Server::do_reconnect()
 
 void Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server;
     using namespace placeholders;
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, bind(&Server::register_req_from_center, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, bind(&Server::center_addr_req_from, this, _1, _2, _3));
@@ -124,7 +124,6 @@ void Server::register_msg_handler()
 
 void Server::center_addr_req_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
     PARSE_FROM_ARRAY(Center_Addr_Req, msg, data, size);
     const uint32 zone_id = msg.zone_id();
     auto iter = m_server_infos.find(zone_id);
@@ -174,15 +173,12 @@ void Server::fini_hook()
 
 void Server::register_req_from_superrecord(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;
     m_superrecord_client = static_cast<gabriel::base::Client_Connection*>(connection);
     DB_Task task;
     task.set_seq(1);
     task.set_pool_id(gabriel::base::DB_Handler_Pool::GAME_POOL);
     task.set_msg_type(DEFAULT_MSG_TYPE);
     task.set_msg_id(ZONE_INFO_REQ);
-    Zone_Info_Req req;
-    req.SerializeToString(task.mutable_msg_data());
     m_superrecord_client->send(DEFAULT_MSG_TYPE, DB_TASK, task);
 }
 
@@ -196,7 +192,6 @@ void Server::send_to_superrecord(uint32 msg_type, uint32 msg_id, google::protobu
 
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;
     PARSE_FROM_ARRAY(DB_Task, msg, data, size);
     uint32 msg_type = msg.msg_type();
     uint32 msg_id = msg.msg_id();
@@ -220,11 +215,11 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
     
 void Server::register_req_from_center(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
     PARSE_FROM_ARRAY(Register_Center, msg, data, size);
     const uint32 zone_id = msg.zone_id();
+    m_zone_connections[zone_id] = connection;
     auto iter = m_server_infos.find(zone_id);
-
+    
     if(iter == m_server_infos.end())
     {
         return;
@@ -237,9 +232,8 @@ void Server::register_req_from_center(gabriel::base::Connection *connection, voi
     {
         msg_rsp.add_info()->CopyFrom(*info);
     }
-
+    
     connection->send(DEFAULT_MSG_TYPE, REGISTER_CENTER_SERVER, msg_rsp);
-    m_zone_connections[zone_id] = connection;
     cout << "zone-" << zone_id << " center server register to this server" << endl;
     LOG_INFO("zone-%u center server register to this server", zone_id);
 }

@@ -52,14 +52,15 @@ private:
     virtual void register_msg_handler();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
     void register_req_from(gabriel::base::Connection *connection, void *data, uint32 size);
+    void sync_online_num(gabriel::base::Connection *connection, void *data, uint32 size);
+    void get_one_gateway(gabriel::base::Connection *connection, void *data, uint32 size);
+    void sync_account_rsp(gabriel::base::Connection *connection, void *data, uint32 size);
     void register_req_to();
     void clear_server_info();
     std::vector<gabriel::protocol::server::Server_Info*> m_server_infos;
     gabriel::base::Client_Connection *m_record_client;
-    std::set<uint32> m_allocated_gateway_ids;
-    std::set<uint32> m_allocated_game_ids;
-    std::map<uint32, uint32> m_allocated_game_map;
-    std::map<uint32, uint32> m_allocated_gateway_map;
+    std::set<uint32> m_allocated_ids;
+    std::map<uint32, uint32> m_allocated_map;
 };
     
 }

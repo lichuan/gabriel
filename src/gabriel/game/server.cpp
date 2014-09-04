@@ -103,13 +103,13 @@ void Server::init_reactor()
 
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
-    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
-    
     if(id() > 0)
     {
         return;
     }
+    
+    using namespace gabriel::protocol::server;    
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
     
     if(msg.info_size() < 2)
     {

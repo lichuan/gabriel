@@ -63,7 +63,7 @@ void Server::set_proc_name_and_log_dir(const char *format, ...)
     va_start(args_list, format);
     ACE_OS::vsprintf(proc_name, format, args_list);
     strncpy(m_proc_name, proc_name, 128);
-    LOG_MSG::instance()->init(m_log_dir + "log_" + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
+    LOG_MSG::instance()->init(m_log_dir + proc_name + ACE_DIRECTORY_SEPARATOR_STR);
 }
 
 void Server::init_log()

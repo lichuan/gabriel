@@ -27,6 +27,7 @@
 #include "gabriel/protocol/server/msg_type.pb.h"
 
 using namespace std;
+using namespace gabriel::protocol::server;
 
 namespace gabriel {
 namespace base {
@@ -121,7 +122,6 @@ void Ordinary_Server::do_reconnect()
     
 void Ordinary_Server::register_req_to()
 {
-    using namespace gabriel::protocol::server;    
     Register_Ordinary msg;
     msg.set_server_id(id());
     msg.set_server_type(type());
@@ -137,7 +137,6 @@ void Ordinary_Server::do_main_on_server_connection()
 
 bool Ordinary_Server::init_hook()
 {
-    using namespace gabriel::protocol::server;    
     Center_Addr_Req msg;
     msg.set_zone_id(zone_id());
     m_supercenter_connection.send(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, msg);
@@ -147,14 +146,12 @@ bool Ordinary_Server::init_hook()
     
 void Ordinary_Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server;
     using namespace placeholders;    
     m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, CENTER_ADDR_REQ, bind(&Ordinary_Server::center_addr_rsp, this, _1, _2, _3));
 }
 
 void Ordinary_Server::center_addr_rsp(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
     PARSE_FROM_ARRAY(Center_Addr_Rsp, msg, data, size);
     gabriel::base::Server_Connection *tmp = &m_center_connection;
     

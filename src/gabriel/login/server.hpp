@@ -53,6 +53,7 @@ private:
     void handle_user_login(gabriel::base::Connection *connection, void *data, uint32 size);
     void handle_forward_user_msg(gabriel::protocol::server::Forward_User_Msg &msg);    
     void handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size);
+    void sync_account_rsp(gabriel::base::Connection *connection, void *data, uint32 size);
     void forward_user_msg_to_superrecord(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg, uint32 conn_id, uint32 seq = 0);
     void clear_account_by_conn_id(uint32 conn_id);
     std::set<std::string> m_login_accounts;

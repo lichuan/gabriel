@@ -107,6 +107,7 @@ void Server::register_msg_handler()
     using namespace placeholders;
     Super::register_msg_handler();
     m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
+    m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, SYNC_ACCOUNT, bind(&Server::sync_account, this, _1, _2, _3));
 }
 
 void Server::init_reactor()
@@ -116,6 +117,23 @@ void Server::init_reactor()
 
 bool Server::init_hook()
 {
+    schedule_timer([=]() {
+            for(auto iter = m_accounts.begin(); iter != m_accounts.end();)
+            {
+                Account_Info &info = iter->second;
+                uint32 now_sec = base::get_sec_tick();
+
+                if(now_sec - info.birth_time > 300)
+                {
+                    m_accounts.erase(iter++);
+                }
+                else
+                {
+                    ++iter;
+                }
+            }
+        }, 60000, 300000);
+    
     return Super::init_hook();
 }
     
@@ -130,15 +148,32 @@ void Server::do_main_on_server_connection()
     }
 }
 
+void Server::sync_account(gabriel::base::Connection *connection, void *data, uint32 size)
+{
+    using namespace gabriel::protocol::server;
+    PARSE_FROM_ARRAY(Sync_Account, msg, data, size);
+    Account_Info info;
+    info.birth_time = base::get_sec_tick();
+    info.key = msg.key();
+    m_accounts[msg.account()] = info;
+    Sync_Account_Rsp rsp;
+    rsp.set_key(info.key);
+    rsp.set_port(msg.port());
+    rsp.set_addr(msg.addr());
+    rsp.set_conn_id_1(msg.conn_id_1());
+    rsp.set_conn_id_2(msg.conn_id_2());
+    connection->send(DEFAULT_MSG_TYPE, SYNC_ACCOUNT, rsp);
+}
+
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
-    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
-    
     if(id() > 0)
     {
         return;
     }
+    
+    using namespace gabriel::protocol::server;
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
     
     if(msg.info_size() < 3)
     {

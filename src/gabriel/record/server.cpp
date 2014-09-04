@@ -28,6 +28,7 @@
 #include "gabriel/protocol/server/msg_type.pb.h"
 
 using namespace std;
+using namespace gabriel::protocol::server;
 
 namespace gabriel {
 namespace record {
@@ -104,21 +105,18 @@ void Server::update_hook()
 
 void Server::register_msg_handler()
 {
-    using namespace gabriel::protocol::server;
     using namespace placeholders;
     Super::register_msg_handler();
     m_server_msg_handler.register_handler(DEFAULT_MSG_TYPE, REGISTER_ORDINARY_SERVER, bind(&Server::register_rsp_from, this, _1, _2, _3));
     m_client_msg_handler.register_handler(DEFAULT_MSG_TYPE, DB_TASK, bind(&Server::handle_db_msg, this, _1, _2, _3));
 }
 
-void Server::handle_db_task(gabriel::base::DB_Handler *handler, gabriel::protocol::server::DB_Task *task)
+void Server::handle_db_task(gabriel::base::DB_Handler *handler, DB_Task *task)
 {
-    using namespace gabriel::protocol::server;
 }
 
 void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;
     DB_Task *task = new DB_Task;
 
     if(!task->ParseFromArray(data, size))
@@ -142,13 +140,12 @@ void Server::handle_db_msg(gabriel::base::Connection *connection, void *data, ui
     
 void Server::register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size)
 {
-    using namespace gabriel::protocol::server;    
-    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
-
     if(id() > 0)
     {
         return;
     }
+    
+    PARSE_FROM_ARRAY(Register_Ordinary_Rsp, msg, data, size);
     
     if(msg.info_size() != 1)
     {
@@ -158,7 +155,7 @@ void Server::register_rsp_from(gabriel::base::Connection *connection, void *data
         return;
     }
     
-    const gabriel::protocol::server::Server_Info &info = msg.info(0);
+    const Server_Info &info = msg.info(0);
     id(info.server_id());
     
     if(m_acceptor.open(ACE_INET_Addr(info.port(), info.inner_addr().c_str()), ACE_Reactor::instance()) < 0)

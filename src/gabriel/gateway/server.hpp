@@ -37,6 +37,12 @@ public:
     virtual ~Server();
     
 private:
+    struct Account_Info
+    {
+        uint32 birth_time;
+        std::string key;
+    };
+    
     typedef Ordinary_Server Super;    
     virtual void register_msg_handler();
     virtual void on_connection_shutdown(gabriel::base::Client_Connection *client_connection);
@@ -49,7 +55,9 @@ private:
     virtual bool init_hook();    
     virtual void do_reconnect();
     void register_rsp_from(gabriel::base::Connection *connection, void *data, uint32 size);
+    void sync_account(gabriel::base::Connection *connection, void *data, uint32 size);
     std::map<uint32, gabriel::base::Server_Connection*> m_game_connections;
+    std::map<std::string, Account_Info> m_accounts;
 };
     
 }
