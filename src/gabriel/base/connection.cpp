@@ -71,7 +71,7 @@ bool Connection::connected() const
 void Connection::send(uint32 msg_type, uint32 msg_id, google::protobuf::Message &msg)
 {
     const uint32 byte_size = msg.ByteSize();
-    ACE_Message_Block *msg_block = new ACE_Message_Block(sizeof(uint32) * 3 + byte_size);    
+    ACE_Message_Block *msg_block = new ACE_Message_Block(sizeof(uint32) * 3 + byte_size);
     msg.SerializeToArray(msg_block->base() + sizeof(uint32) * 3, byte_size);
     const uint32 msg_size = sizeof(uint32) * 2 + byte_size;
     uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());    
@@ -84,7 +84,11 @@ void Connection::send(uint32 msg_type, uint32 msg_id, google::protobuf::Message 
     if(m_write_disable)
     {
         m_write_disable = false;
-        reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+
+        if(reactor() != NULL)
+        {
+            reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
+        }
     }
 }
     
@@ -164,22 +168,72 @@ int Connection::handle_input(ACE_HANDLE hd)
 
     recv_msg_block->wr_ptr(recv_size);
     putq(recv_msg_block);
-        
-    if(m_last_msg_length == 0)
+
+    while(true)
     {
-        if(msg_queue()->message_length() < sizeof(uint32))
+        if(m_last_msg_length == 0)
+        {
+            if(msg_queue()->message_length() < sizeof(uint32))
+            {
+                return 0;
+            }
+            
+            ACE_Message_Block *cur_msg_block = NULL;
+            uint32 remain_bytes = sizeof(uint32);
+            char *cur_ptr = reinterpret_cast<char*>(&m_last_msg_length);
+            
+            for(;;)
+            {
+                getq(cur_msg_block);
+                
+                if(cur_msg_block->length() >= remain_bytes)
+                {
+                    ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), remain_bytes);
+                    cur_msg_block->rd_ptr(remain_bytes);
+                    
+                    if(cur_msg_block->length() > 0)
+                    {
+                        ungetq(cur_msg_block);
+                    }
+                    else
+                    {
+                        cur_msg_block->release();
+                    }
+
+                    break;
+                }
+
+                ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), cur_msg_block->length());
+                remain_bytes -= cur_msg_block->length();
+                cur_ptr += cur_msg_block->length();
+                cur_msg_block->release();
+            }
+
+            m_last_msg_length = ACE_NTOHL(m_last_msg_length);
+        }
+        
+        if(m_last_msg_length < 2 * sizeof(uint32))
         {
             return 0;
         }
         
+        uint32 remain_bytes = m_last_msg_length;
+        
+        if(msg_queue()->message_length() < remain_bytes)
+        {
+            return 0;
+        }
+        
+        ACE_Message_Block *msg_block = new ACE_Message_Block(remain_bytes);
+        Message *msg = new Message;
+        msg->m_msg_block = msg_block;
+        char *cur_ptr = msg_block->base();
         ACE_Message_Block *cur_msg_block = NULL;
-        uint32 remain_bytes = sizeof(uint32);
-        char *cur_ptr = reinterpret_cast<char*>(&m_last_msg_length);
         
         for(;;)
         {
             getq(cur_msg_block);
-            
+
             if(cur_msg_block->length() >= remain_bytes)
             {
                 ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), remain_bytes);
@@ -202,63 +256,16 @@ int Connection::handle_input(ACE_HANDLE hd)
             cur_ptr += cur_msg_block->length();
             cur_msg_block->release();
         }
-
-        m_last_msg_length = ACE_NTOHL(m_last_msg_length);
-    }
-
-    if(m_last_msg_length < 2 * sizeof(uint32))
-    {
-        return 0;
-    }
-    
-    uint32 remain_bytes = m_last_msg_length;
-    
-    if(msg_queue()->message_length() < remain_bytes)
-    {
-        return 0;
-    }
         
-    ACE_Message_Block *msg_block = new ACE_Message_Block(remain_bytes);
-    Message *msg = new Message;        
-    msg->m_msg_block = msg_block;        
-    char *cur_ptr = msg_block->base();        
-    ACE_Message_Block *cur_msg_block = NULL;
-    
-    for(;;)
-    {
-        getq(cur_msg_block);
-
-        if(cur_msg_block->length() >= remain_bytes)
-        {
-            ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), remain_bytes);
-            cur_msg_block->rd_ptr(remain_bytes);
-            
-            if(cur_msg_block->length() > 0)
-            {
-                ungetq(cur_msg_block);
-            }
-            else
-            {
-                cur_msg_block->release();
-            }
-
-            break;
-        }
-
-        ACE_OS::memcpy(cur_ptr, cur_msg_block->rd_ptr(), cur_msg_block->length());
-        remain_bytes -= cur_msg_block->length();
-        cur_ptr += cur_msg_block->length();
-        cur_msg_block->release();
+        m_last_msg_length = 0;
+        uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());        
+        msg->m_msg_type = ACE_NTOHL(uint32_msg[0]);
+        msg->m_msg_id = ACE_NTOHL(uint32_msg[1]);
+        msg_block->rd_ptr(sizeof(uint32) * 2);
+        msg_block->wr_ptr(msg_block->size());
+        m_dispatch_queue.enqueue_tail(msg);
     }
     
-    m_last_msg_length = 0;
-    uint32 *uint32_msg = reinterpret_cast<uint32*>(msg_block->base());        
-    msg->m_msg_type = ACE_NTOHL(uint32_msg[0]);
-    msg->m_msg_id = ACE_NTOHL(uint32_msg[1]);
-    msg_block->rd_ptr(sizeof(uint32) * 2);
-    msg_block->wr_ptr(msg_block->size());
-    m_dispatch_queue.enqueue_tail(msg);
-
     return 0;
 }
     

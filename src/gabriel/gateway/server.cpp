@@ -60,11 +60,11 @@ bool Server::on_connection_shutdown(gabriel::base::Server_Connection *server_con
         {
             cout << "error: disconnected from game server (id=" << iter.first << ")" << endl;
             LOG_ERROR("disconnected from game server (id=%u)", iter.first);
-            
+
             break;
         }
     }
-    
+
     return true;
 }
 
@@ -133,10 +133,10 @@ bool Server::init_hook()
                 }
             }
         }, 60000, 300000);
-    
+
     return Super::init_hook();
 }
-    
+
 void Server::do_main_on_server_connection()
 {
     Super::do_main_on_server_connection();
@@ -243,9 +243,9 @@ void Server::fini_hook()
 {
     for(auto iter : m_game_connections)
     {
-        delete iter.second;        
+        delete iter.second;
     }
-
+    
     m_game_connections.clear();
 }
     
