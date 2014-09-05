@@ -37,7 +37,7 @@
 namespace gabriel {
 namespace base {
     
-class Server : protected Locked_Entity_Manager<Client_Connection, KEY_ID>, protected Entity<>, public Timer
+class Server : private Locked_Entity_Manager<Client_Connection, KEY_ID>, protected Entity<>, public Timer
 {
 public:
     Server();
@@ -60,6 +60,7 @@ public:
     
 protected:
     void set_proc_name_and_log_dir(const char *format, ...);
+    Client_Connection* get_connetion(uint32 id);    
     virtual void do_main_on_server_connection();
     virtual void do_reconnect();
     Server_Connection m_supercenter_connection;

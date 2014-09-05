@@ -117,7 +117,7 @@ void Server::sync_account_rsp(gabriel::base::Connection *connection, void *data,
     rsp.set_port(msg.port());
     rsp.set_addr(msg.addr());
     uint32 conn_id = msg.conn_id_2();
-    base::Connection *user_conn = get_entity(conn_id);
+    base::Connection *user_conn = get_connetion(conn_id);
     clear_account_by_conn_id(conn_id);
     
     if(user_conn != NULL)
@@ -150,7 +150,7 @@ void Server::handle_forward_user_msg(gabriel::protocol::server::Forward_User_Msg
     uint32 msg_type = msg.msg_type();
     uint32 msg_id = msg.msg_id();
     uint32 conn_id = msg.conn_id();
-    gabriel::base::Connection *connection = get_entity(conn_id);
+    gabriel::base::Connection *connection = get_connetion(conn_id);
 
     if(connection == NULL)
     {

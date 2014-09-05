@@ -167,7 +167,7 @@ void Server::register_msg_handler()
 void Server::sync_account_rsp(gabriel::base::Connection *connection, void *data, uint32 size)
 {
     PARSE_FROM_ARRAY(Sync_Account_Rsp, msg, data, size);
-    base::Connection *login_conn = get_entity(msg.conn_id_1());
+    base::Connection *login_conn = get_connetion(msg.conn_id_1());
     
     if(login_conn != NULL)
     {
@@ -198,7 +198,7 @@ void Server::get_one_gateway(gabriel::base::Connection *connection, void *data, 
     if(target_info != NULL)
     {
         string key = base::gen_uuid();
-        gabriel::base::Connection *gateway = get_entity(target_info->conn_id());
+        gabriel::base::Connection *gateway = get_connetion(target_info->conn_id());
 
         if(gateway != NULL)
         {

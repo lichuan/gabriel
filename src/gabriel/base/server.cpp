@@ -289,9 +289,14 @@ void Server::do_reactor_thread()
 void Server::add_connection(Client_Connection *client_connection)
 {
     int unique_id = 0;
-    while(get_entity(unique_id = m_connection_id_allocator.new_id()) != NULL);
+    while(get_connetion(unique_id = m_connection_id_allocator.new_id()) != NULL);
     client_connection->id(unique_id);
     add_entity(client_connection);
+}
+
+Client_Connection* Server::get_connetion(uint32 id)
+{
+    return get_entity(id);
 }
 
 }

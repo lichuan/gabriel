@@ -83,8 +83,8 @@ void Connection::send(uint32 msg_type, uint32 msg_id, google::protobuf::Message 
     
     if(m_write_disable)
     {
+        m_write_disable = false;
         reactor()->schedule_wakeup(this, ACE_Event_Handler::WRITE_MASK);
-        m_write_disable = false;        
     }
 }
     

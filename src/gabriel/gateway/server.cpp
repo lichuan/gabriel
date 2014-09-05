@@ -231,6 +231,12 @@ void Server::register_rsp_from(gabriel::base::Connection *connection, void *data
             }
         }
     }
+    
+    if(id() == 0)
+    {
+        state(gabriel::base::SERVER_STATE::SHUTDOWN);
+        cout << "error: information of this server received from center server is wrong" << endl;
+    }
 }
 
 void Server::fini_hook()

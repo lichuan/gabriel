@@ -27,15 +27,15 @@
 #include "ace/SOCK_Stream.h"
 #include "google/protobuf/message.h"
 #include "gabriel/base/ref.hpp"
-#include "gabriel/base/common.hpp"
 #include "gabriel/base/entity.hpp"
+#include "gabriel/base/common.hpp"
 
 namespace gabriel {
 namespace base {
     
 class Server;
     
-class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Entity<>, public Ref<ACE_SYNCH_MUTEX>
+class Connection : public ACE_Svc_Handler<ACE_SOCK_STREAM, ACE_MT_SYNCH>, public Ref<ACE_SYNCH_MUTEX>, public Entity<>
 {
     struct Message
     {
