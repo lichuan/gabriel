@@ -77,3 +77,5 @@ env.Install("build/bin", gabriel_game_server)
 #gateway
 gabriel_gateway_server = SConscript("src/gabriel/gateway/SConscript", variant_dir="build/gateway", duplicate=0)
 env.Install("build/bin", gabriel_gateway_server)
+
+
