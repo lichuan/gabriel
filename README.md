@@ -1,4 +1,4 @@
-##GABRIEL
+## GABRIEL
 
   gabriel is an angel from the Holy Bible, this engine is named gabriel, means bringing people
 
@@ -6,7 +6,7 @@
   
   welcome you to join in.
   
-##DONATE
+## DONATE
 
   gabriel server engine is developed just by myself, It will cost me much time and much energy, If
 
@@ -16,13 +16,13 @@
   
   thank you!
   
-##BUILD
+## BUILD
 
   gabriel server engine is build by scons tool, please make sure that you have installed scons,
 
   please refer to scons official site: http://www.scons.org/
   
-##DEPENDENCY
+## DEPENDENCY
 
   gabriel depends on some third libraries, such as yaml-cpp, ace, protobuf, mysql++, lua5.2.
 
